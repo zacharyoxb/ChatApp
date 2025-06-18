@@ -3,51 +3,40 @@ Imports List type.
 Imports BaseModel class for use when routing
 Imports APIRouter for routing.
 """
-
-
-from typing import List
-from pydantic import BaseModel
-from fastapi import APIRouter
+import uuid
+from fastapi import APIRouter, WebSocket
+from database import db
 
 router = APIRouter()
-
-class Chat(BaseModel):
-    """
-    Holds group chat data
-    """
-    chat_id: int
-    chat_name: str
-
-# temporary db for testing
-chat_db: List[Chat] = [
-    Chat(
-        chat_id=1,
-        chat_name="Chat 1"
-    ),
-    Chat(
-        chat_id=1,
-        chat_name="Chat 2"
-    ),
-]
 
 @router.get("/chats")
 def fetch_chats():
     """
     Gets all chats
     """
-    return chat_db
+    return db.get_users
 
 @router.post("/chats")
-def create_chat(chat: Chat):
+def create_chat(name: str) -> None:
     """
     Creates new group chat
     """
-    chat_db.append(chat)
-    return {"id": chat.chat_id}
+    db.create_chat(name)
 
-@router.get("/chats/{Chat}")
-def display_chat(chat_id: int, chat_name: str):
+@router.get("/chats/{chat_id}")
+def display_chat(chat_id: uuid.UUID):
     """
     Displays group chat
     """
-    return {"user_id": chat_id, "username": chat_name}
+    return {"chat_id": chat_id}
+
+@router.websocket("/ws/{chat_id}") # this is defo silly
+async def chat_websocket(websocket: WebSocket, chat_id: uuid.UUID):
+    """
+    Recieves and sends back chat messages
+    (this will be changed to exchange more data later)
+    """
+    await websocket.accept()
+    while True:
+        mssg = await websocket.receive_text()
+        await websocket.send_text(mssg)

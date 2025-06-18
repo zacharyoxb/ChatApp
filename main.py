@@ -13,8 +13,8 @@ from api import (
 
 app = FastAPI(title="ChatApp API", version="0.1.0")
 
-app.include_router(chat_router, prefix="/chats", tags=["chats"])
-app.include_router(user_router, prefix="/users", tags=["users"])
+app.include_router(chat_router, tags=["chats"])
+app.include_router(user_router, tags=["users"])
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
