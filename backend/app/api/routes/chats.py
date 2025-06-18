@@ -5,7 +5,7 @@ Imports APIRouter for routing.
 """
 import uuid
 from fastapi import APIRouter, WebSocket
-from database import db
+from backend.app.database import db
 
 router = APIRouter()
 
@@ -31,7 +31,7 @@ def display_chat(chat_id: uuid.UUID):
     return {"chat_id": chat_id}
 
 @router.websocket("/ws/{chat_id}") # this is defo silly
-async def chat_websocket(websocket: WebSocket, chat_id: uuid.UUID):
+async def chat_websocket(websocket: WebSocket):
     """
     Recieves and sends back chat messages
     (this will be changed to exchange more data later)

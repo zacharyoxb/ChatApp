@@ -5,7 +5,7 @@ api provides routers for each route
 
 from fastapi import FastAPI
 
-from api import (
+from backend.app.api import (
     auth_router,
     chat_router,
     user_router
