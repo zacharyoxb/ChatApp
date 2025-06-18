@@ -31,8 +31,8 @@ def create_chat(chat_name: str) -> None:
     """
     Creates chat and adds to db
     """
-    chat_id = uuid.uuid1()
-    chat_db.update(chat_id, Chat(chat_id=chat_id, chat_name=chat_name))
+    chat_id = uuid.uuid4()
+    chat_db[chat_id] = Chat(chat_id=chat_id, chat_name=chat_name)
 
 def get_chat(chat_id: uuid.UUID) -> Chat | None:
     """
@@ -51,8 +51,8 @@ def create_user(username: str) -> None:
     """
     Creates user and adds to db
     """
-    user_id = uuid.uuid1()
-    user_db.update(user_id, User(user_id=user_id, username=username))
+    user_id = uuid.uuid4()
+    user_db[user_id] = User(user_id=user_id, username=username)
 
 def get_user(user_id: uuid.UUID) -> User | None:
     """

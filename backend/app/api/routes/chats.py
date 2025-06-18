@@ -14,7 +14,7 @@ def fetch_chats():
     """
     Gets all chats
     """
-    return db.get_users
+    return db.get_chats()
 
 @router.post("/chats")
 def create_chat(name: str) -> None:
