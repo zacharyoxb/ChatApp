@@ -18,9 +18,9 @@ app.include_router(user_router, tags=["users"])
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
-@app.get("/")
-def root():
-    """
-    Stand in for root
-    """
-    return {"message": "Hello world"}
+# @app.get("/")
+# def root():
+#     """
+#     Stand in for root
+#     """
+#     return {"message": "Hello world"}
