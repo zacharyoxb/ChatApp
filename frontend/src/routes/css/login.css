@@ -1,0 +1,11 @@
+#login-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 6%;
+}
+
+.entry-box {
+    padding-top: 1mm;
+    padding-bottom: 1mm;
+}
