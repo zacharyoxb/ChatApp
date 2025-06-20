@@ -5,7 +5,13 @@
     padding-bottom: 6%;
 }
 
-.entry-box {
-    padding-top: 1mm;
-    padding-bottom: 1mm;
+#entry-area {
+    display: flex;
+    flex-direction: column;
+}
+
+#entry-area label {
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
 }
