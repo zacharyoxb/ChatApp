@@ -4,17 +4,19 @@ function SignUp() {
 
   return (
     <>
-      <div id="signup-box">
+      <div id="login-box">
         <h2> Sign Up </h2>
-        <label className='entry-box'>
-          Email: <input name="Email input box"/>
-        </label>
-        <label className='entry-box'>
-          Password: <input name="First password input box"/>
-        </label>
-        <label className='entry-box'>
-          Enter password again: <input name="First password input box"/>
-        </label>
+        <div id="entry-area"> 
+          <label>
+            Email: <input name="email"/>
+          </label>
+          <label>
+            Password: <input name="password"/>
+          </label>
+          <label>
+            Enter password again: <input name="password 2"/>
+          </label>
+        </div>
       </div>
     </>
   )
