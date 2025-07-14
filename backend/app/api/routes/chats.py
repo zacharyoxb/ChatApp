@@ -1,42 +1,49 @@
-"""
-Imports List type.
-Imports BaseModel class for use when routing
-Imports APIRouter for routing.
-"""
-import uuid
-from fastapi import APIRouter, WebSocket
-from backend.app.database import db
+" Libraries for metadata, routing, maintaining ws connections and for use of auth cookies "
+from typing import Annotated
+from fastapi import APIRouter, WebSocket, Cookie, WebSocketDisconnect
 
 router = APIRouter()
 
-@router.get("/chats")
-def fetch_chats():
-    """
-    Gets all chats
-    """
-    return db.get_chats()
+class ConnectionManager:
+    """ Manages active websocket connections for each chat. """
+    def __init__(self):
+        self.active_connections: list[WebSocket] = []
 
-@router.post("/chats")
-def create_chat(name: str) -> None:
-    """
-    Creates new group chat
-    """
-    db.create_chat(name)
+    async def connect(self, websocket: WebSocket):
+        """ Connect new user """
+        await websocket.accept()
+        self.active_connections.append(websocket)
 
-@router.get("/chats/{chat_id}")
-def display_chat(chat_id: uuid.UUID):
-    """
-    Displays group chat
-    """
-    return {"chat_id": chat_id}
+    def disconnect(self, websocket: WebSocket):
+        """ Disconnect user """
+        self.active_connections.remove(websocket)
 
-@router.websocket("/ws/{chat_id}") # this is defo silly
-async def chat_websocket(websocket: WebSocket):
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        """ Sends message only to specific websocket client """
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        """ Sends message to all chatters """
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+@router.websocket("{chat_id}/ws")
+async def chat_websocket(
+    websocket: WebSocket,
+    cookie: Annotated[str | None, Cookie()] = None,
+    ):
     """
-    Recieves and sends back chat messages
-    (this will be changed to exchange more data later)
+    Connects to chat
     """
-    await websocket.accept()
-    while True:
-        mssg = await websocket.receive_text()
-        await websocket.send_text(mssg)
+    # instead of just getting the main manager, get this chat's manager here
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await manager.send_personal_message(f"You wrote: {data}", websocket)
+            await manager.broadcast(f"Client #{cookie} says: {data}")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Client #{cookie} left the chat")

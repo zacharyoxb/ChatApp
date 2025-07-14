@@ -7,9 +7,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from backend.app.api import (
-    auth_router,
     chat_router,
-    user_router
 )
 
 origins = [
@@ -20,8 +18,6 @@ origins = [
 app = FastAPI(title="ChatApp API", version="0.1.0")
 
 app.include_router(chat_router, tags=["chats"])
-app.include_router(user_router, tags=["users"])
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 
 app.add_middleware(
