@@ -39,7 +39,7 @@ def connect_to_db(cnx: mysql.connector.MySQLConnection, db_name):
             cursor.execute(f"USE {db_name}")
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_BAD_DB_ERROR:
-                cursor.execute(f"CREATE DATABASE {db_name} DEFAULT CHARACTER SET 'utf8")
+                cursor.execute(f"CREATE DATABASE {db_name} DEFAULT CHARACTER SET 'utf8'")
             else:
                 sys.exit(1)
         cnx.database = db_name
