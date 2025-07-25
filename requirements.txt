@@ -1,1 +1,2 @@
 fastapi[standard]==0.115.12
+mysql-connector-python[standard]==9.4.0
