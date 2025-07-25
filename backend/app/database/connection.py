@@ -3,12 +3,14 @@ Functions for editing and accessing databases
 """
 
 import logging
+import sys
 import time
 import mysql.connector
+from mysql.connector import errorcode
 
 
 def connect_to_mysql(config, logger: logging.Logger, attempts=3, delay=2):
-    """ Attempts connection to database """
+    """ Attempts connection to mysql instance """
     attempt = 1
     # Implement a reconnection routine
     while attempt < attempts + 1:
@@ -29,3 +31,15 @@ def connect_to_mysql(config, logger: logging.Logger, attempts=3, delay=2):
             time.sleep(delay ** attempt)
             attempt += 1
     return None
+
+def connect_to_db(cnx: mysql.connector.MySQLConnection, db_name):
+    """ Connects to a database """
+    with cnx.cursor() as cursor:
+        try:
+            cursor.execute(f"USE {db_name}")
+        except mysql.connector.Error as err:
+            if err.errno == errorcode.ER_BAD_DB_ERROR:
+                cursor.execute(f"CREATE DATABASE {db_name} DEFAULT CHARACTER SET 'utf8")
+            else:
+                sys.exit(1)
+        cnx.database = db_name
