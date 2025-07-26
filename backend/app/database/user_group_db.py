@@ -74,5 +74,10 @@ def init_db():
             for _, table_desc in TABLES.items():
                 cursor.execute(table_desc)
     except mysql.connector.Error as err:
-        logger.error("Error during database initialisation: %s", err)
-    
+        logger.error("Error during database initialisation - %s", err)
+    finally:
+        cnx.commit()
+        cnx.close()
+
+if __name__ == "__main__":
+    init_db()
