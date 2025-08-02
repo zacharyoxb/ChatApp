@@ -6,18 +6,17 @@ api provides routers for each route
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from backend.app.api import (
-    chat_router,
+from app.api import (
+    login_router,
 )
 
 origins = [
-    "http://localhost:5173"
-    "https://localhost:5173"
+    "https://localhost:3000"
 ]
 
 app = FastAPI(title="ChatApp API", version="0.1.0")
 
-app.include_router(chat_router, tags=["chats"])
+app.include_router(login_router, tags=["login", "signup"])
 
 
 app.add_middleware(

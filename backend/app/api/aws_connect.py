@@ -4,7 +4,6 @@ import time
 from dotenv import load_dotenv
 
 import mysql.connector
-from mysql.connector import Error
 
 load_dotenv()
 
@@ -23,7 +22,6 @@ config = {
   'raise_on_warnings': True
 }
 
-
 def get_connection(attempts=5, delay=2):
     """ Gets a connection to database."""
     attempt=1
@@ -36,6 +34,3 @@ def get_connection(attempts=5, delay=2):
                 time.sleep(delay ** attempt)
                 attempt+=1
     return None
-
-def signup(username: str, password: str):
-    """ Sends signup data to db """
