@@ -1,5 +1,6 @@
 """ Connects to AWS database """
 import os
+import time
 from dotenv import load_dotenv
 
 import mysql.connector
@@ -22,14 +23,19 @@ config = {
   'raise_on_warnings': True
 }
 
-try:
-    connection = mysql.connector.connect(**config)
 
+def get_connection(attempts=5, delay=2):
+    """ Gets a connection to database."""
+    attempt=1
+    while attempt <= attempts:
+        try:
+            return mysql.connector.connect(**config)
 
-except Error as e:
-    print("Connection error:", e)
+        except (mysql.connector.Error, IOError) as _err:
+            if attempt is not attempts:
+                time.sleep(delay ** attempt)
+                attempt+=1
+    return None
 
-finally:
-    if 'connection' in locals() and connection.is_connected():
-        connection.close()
-        print("Connection closed")
+def signup(username: str, password: str):
+    """ Sends signup data to db """
