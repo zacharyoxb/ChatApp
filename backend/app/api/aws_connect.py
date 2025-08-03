@@ -32,5 +32,5 @@ def get_connection(attempts=5, delay=2):
         except (mysql.connector.Error, IOError) as _err:
             if attempt is not attempts:
                 time.sleep(delay ** attempt)
-                attempt+=1
+            attempt+=1
     return None
