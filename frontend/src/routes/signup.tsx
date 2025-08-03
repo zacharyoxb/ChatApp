@@ -17,9 +17,6 @@ const [error, setError] = useState<string | null>(null);
       return;
     }
 
-    // clears previous errors
-    setError(null); 
-
     // api call
     try {
        const response = await fetch('https://localhost:8000/signup', {
