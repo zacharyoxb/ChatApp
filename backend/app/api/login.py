@@ -31,7 +31,7 @@ async def signup(req: SignupLoginRequest):
     pass_hash = bcrypt.hashpw(pass_bytes, salt).decode()
 
     try:
-        cursor = con.cursor()
+        cursor = con.cursor(prepared=True)
         query = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
         cursor.execute(query, (user_id, req.username, pass_hash))
         con.commit()

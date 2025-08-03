@@ -4,7 +4,7 @@ import './css/signup.css'
 function SignUp() {
 const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); // prevents page from reloading
     const formData = new FormData(event.currentTarget);
 
@@ -17,9 +17,41 @@ const [error, setError] = useState<string | null>(null);
       return;
     }
 
-    setError(null); // clears previous errors
+    // clears previous errors
+    setError(null); 
 
-    // api call here
+    // api call
+    try {
+       const response = await fetch('https://localhost:8000/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      // successful response
+      if (response.ok) {
+        // TODO: client gets cookie, redirected to chats
+        return;
+      }
+
+      // error in response, display to user
+      switch (response.status) {
+        case 400:
+          setError('This username is already taken. Try another.');
+          break;
+        case 500:
+          setError('Database error. Please contact website administrator.');
+          break;
+        default:
+          setError('Unknown error has occurred. Please contact website administrator.')
+      }
+
+    } catch (err) {
+      // Network errors or unexpected exceptions
+      setError('Unable to reach server. Please check your connection.');
+    }
   }
 
   return (
@@ -36,7 +68,7 @@ const [error, setError] = useState<string | null>(null);
           <label>
             Enter password again:
             <input name="password2" type="password" required />
-            {error && <span className="inline-error">{error}</span>}
+            {error && <div className="inline-error">{error}</div>}
           </label>
 
           <button type="submit">Sign Up</button>
