@@ -36,6 +36,7 @@ async def signup(req: SignupLoginRequest):
         cursor.execute(query, (user_id, req.username, pass_hash))
         con.commit()
         cursor.close()
+        con.close()
         # we probably want to return a session cookie here instead
         return {"message": "Signup successful"}
     except mysql.connector.Error as e:

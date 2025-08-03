@@ -1,8 +1,8 @@
 """ Connects to AWS database """
 import os
-import time
 from dotenv import load_dotenv
 
+# This is not an async sql library, change later?
 import mysql.connector
 
 load_dotenv()
@@ -22,15 +22,17 @@ config = {
   'raise_on_warnings': True
 }
 
-def get_connection(attempts=5, delay=2):
-    """ Gets a connection to database."""
-    attempt=1
-    while attempt <= attempts:
-        try:
-            return mysql.connector.connect(**config)
+# create connection pool, more thread safe
+cnx_pool = mysql.connector.pooling.MySQLConnectionPool(
+    pool_name="aws_db_pool",
+    pool_size=5,
+    pool_reset_session=True,
+    **config
+)
 
-        except (mysql.connector.Error, IOError) as _err:
-            if attempt is not attempts:
-                time.sleep(delay ** attempt)
-            attempt+=1
-    return None
+def get_connection():
+    """ Gets a connection to the db """
+    try:
+        return cnx_pool.get_connection()
+    except mysql.connector.Error as _e:
+        return None
