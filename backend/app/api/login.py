@@ -2,11 +2,12 @@
 import uuid
 from pydantic import BaseModel
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Response, HTTPException
 import bcrypt
 import mysql.connector
 
-from app.api.aws_connect import get_connection
+from app.services.mysqldb import get_connection
+from app.services.redis import create_session
 
 router = APIRouter()
 
@@ -16,7 +17,7 @@ class SignupLoginRequest(BaseModel):
     password: str
 
 @router.post("/signup")
-async def signup(req: SignupLoginRequest):
+async def signup(req: SignupLoginRequest, res: Response):
     """ Sends signup data to db """
     con = get_connection()
 
@@ -37,8 +38,10 @@ async def signup(req: SignupLoginRequest):
         con.commit()
         cursor.close()
         con.close()
-        # we probably want to return a session cookie here instead
-        return {"message": "Signup successful"}
+
+        session_id = create_session(req.username)
+        res.set_cookie(key = "session_id", value=session_id)
+        return {"message": "Signed up successfully", "session_id": session_id}
     except mysql.connector.Error as e:
         if e.errno == 1062: # ERROR 1062 (23000): Duplicate entry
             raise HTTPException(status_code=400, detail="Username already exists") from e

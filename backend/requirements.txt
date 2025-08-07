@@ -2,3 +2,4 @@ fastapi[standard]==0.115.12
 python-dotenv==1.1.1
 mysql-connector-python==9.4.0
 bcrypt==4.3.0
+redis[hiredis]==6.4.0

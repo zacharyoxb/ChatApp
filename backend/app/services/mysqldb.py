@@ -12,6 +12,7 @@ db_pass = os.getenv('DB_PASS')
 db_host = os.getenv('DB_HOST')
 db_port = os.getenv('DB_PORT')
 db_name = os.getenv('DB_NAME')
+db_raise_on_warnings = os.getenv('DB_RAISE_ON_WARNINGS').lower() == "true"
 
 config = {
   'user': db_user,
@@ -19,7 +20,7 @@ config = {
   'host': db_host,
   'port': db_port,
   'database': db_name,
-  'raise_on_warnings': True
+  'raise_on_warnings': db_raise_on_warnings
 }
 
 # create connection pool, more thread safe
