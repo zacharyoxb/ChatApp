@@ -28,16 +28,18 @@ async def create_session(username: str) -> str:
     """ Creates session cookie """
     session_id = str(uuid.uuid4())
     await redis_client.hset(f"session:{session_id}",
-        values={"user": username, "status": "active"})
+        mapping={"user": username, "status": "active"})
     await redis_client.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
     return session_id
 
-async def get_session(session_id: str) -> dict | None:
+async def get_session(session_id: str, _username: str) -> dict | None:
     """ Gets session """
     session_key = f"session:{session_id}"
     session_data = await redis_client.hgetall(session_key)
 
     if not session_data:
-        return None  # session not found or expired
+        return None
+
+    # check if username from session matches
 
     return session_data

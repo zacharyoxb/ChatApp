@@ -31,9 +31,28 @@ cnx_pool = mysql.connector.pooling.MySQLConnectionPool(
     **config
 )
 
+
+
 def get_connection():
     """ Gets a connection to the db """
     try:
         return cnx_pool.get_connection()
     except mysql.connector.Error as _e:
         return None
+   
+def add_user(user_id, user_name, pass_hash):
+    """ Adds user to db """
+    con = cnx_pool.get_connection()
+    cursor = con.cursor(prepared=True)
+    query = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
+    cursor.execute(query, (user_id, user_name, pass_hash))
+    con.commit()
+    cursor.close()
+    con.close()
+
+
+def add_group():
+    """ Adds group to db """
+
+def add_user_to_group():
+    """ Adds user to group in db """
