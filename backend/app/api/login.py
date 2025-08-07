@@ -27,11 +27,12 @@ async def signup(req: SignupLoginRequest, res: Response):
     pass_hash = bcrypt.hashpw(pass_bytes, salt).decode()
 
     try:
-        add_user(user_id, req.username, pass_hash)
+        await add_user(user_id, req.username, pass_hash)
         session_id = await create_session(req.username)
         res.set_cookie(key = "session_id", value=session_id)
         return {"message": "Signed up successfully", "session_id": session_id}
     except mysql.connector.Error as e:
         if e.errno == 1062: # ERROR 1062 (23000): Duplicate entry
             raise HTTPException(status_code=400, detail="Username already exists") from e
+        print(e.msg)
         raise HTTPException(status_code=500, detail="Database operation failed") from e

@@ -2,15 +2,14 @@
 import os
 from dotenv import load_dotenv
 
-# This is not an async sql library, change later?
-import mysql.connector
+from mysql.connector.aio import MySQLConnectionPool
 
 load_dotenv()
 
 db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASS')
 db_host = os.getenv('DB_HOST')
-db_port = os.getenv('DB_PORT')
+db_port = int(os.getenv('DB_PORT'))
 db_name = os.getenv('DB_NAME')
 db_raise_on_warnings = os.getenv('DB_RAISE_ON_WARNINGS').lower() == "true"
 
@@ -24,31 +23,26 @@ config = {
 }
 
 # create connection pool, more thread safe
-cnx_pool = mysql.connector.pooling.MySQLConnectionPool(
+cnx_pool = MySQLConnectionPool(
     pool_name="aws_db_pool",
     pool_size=5,
     pool_reset_session=True,
     **config
 )
 
+ADD_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
 
+async def init_db_pool():
+    """ Initialises pool (call on startup) """
+    await cnx_pool.initialize_pool()
 
-def get_connection():
-    """ Gets a connection to the db """
-    try:
-        return cnx_pool.get_connection()
-    except mysql.connector.Error as _e:
-        return None
-   
-def add_user(user_id, user_name, pass_hash):
+async def add_user(user_id, user_name, pass_hash):
     """ Adds user to db """
-    con = cnx_pool.get_connection()
-    cursor = con.cursor(prepared=True)
-    query = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
-    cursor.execute(query, (user_id, user_name, pass_hash))
-    con.commit()
-    cursor.close()
-    con.close()
+    async with await cnx_pool.get_connection() as conn:
+        cursor = await conn.cursor(prepared=True)
+        await cursor.execute(ADD_USER_QUERY, (user_id, user_name, pass_hash))
+        await conn.commit()
+        await cursor.close()
 
 
 def add_group():
