@@ -27,13 +27,11 @@ const [error, setError] = useState<string | null>(null);
         body: JSON.stringify({ username, password }),
       });
 
-      // successful response
       if (response.ok) {
         // TODO: client gets cookie, redirected to chats
         return;
       }
 
-      // error in response, display to user
       switch (response.status) {
         case 400:
           setError('This username is already taken. Try another.');
@@ -46,7 +44,6 @@ const [error, setError] = useState<string | null>(null);
       }
 
     } catch (err) {
-      // Network errors or unexpected exceptions
       setError('Unable to reach server. Please check your connection.');
     }
   }
