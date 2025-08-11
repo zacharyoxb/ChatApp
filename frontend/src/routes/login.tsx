@@ -70,7 +70,7 @@ function Login() {
             Password: <input name="password" type="password" required />
           </label>
           {error && <div className="inline-error">{error}</div>}
-          <button type="submit">Sign Up</button>
+          <button type="submit">Log in</button>
         </form>
       </div>
     </>
