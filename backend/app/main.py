@@ -9,6 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api import (
     login_router,
+    session_router
 )
 
 from app.services.mysqldb import init_db_pool
@@ -28,6 +29,7 @@ async def lifespan(_ls_app: FastAPI):
 app = FastAPI(title="ChatApp API", version="0.1.0", lifespan=lifespan)
 
 app.include_router(login_router, tags=["login", "signup"])
+app.include_router(session_router, tags=["session", "auth"])
 
 app.add_middleware(
     CORSMiddleware,

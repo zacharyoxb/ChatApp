@@ -1,4 +1,4 @@
-""" Methods involved with login """
+""" Handles POST requests for logging in and signing up. """
 import uuid
 from pydantic import BaseModel
 
@@ -13,12 +13,12 @@ from app.utils.cookies import set_session_cookie
 router = APIRouter()
 
 class SignupLoginRequest(BaseModel):
-    """ Input required for signin/login"""
+    """ Input required for sign in/login """
     username: str
     password: str
 
 @router.post("/signup")
-async def signup(req: SignupLoginRequest, res: Response):
+async def signup(req: SignupLoginRequest, res: Response) -> dict[str, str]:
     """ Sends signup data to db and returns session id if successful"""
     # generate unique id
     user_id = uuid.uuid4().bytes
@@ -39,7 +39,7 @@ async def signup(req: SignupLoginRequest, res: Response):
         raise HTTPException(status_code=500, detail="Database operation failed") from e
 
 @router.post("/login")
-async def login(req: SignupLoginRequest, res: Response):
+async def login(req: SignupLoginRequest, res: Response) -> dict[str, str]:
     """ Checks user submitted login details and returns session id if successful """
     pass_hash = await get_password(req.username)
 

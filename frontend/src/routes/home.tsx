@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import './css/home.css'
-import { Link } from 'react-router';
+import { useState } from "react";
+import "./css/home.css";
+import { Link } from "react-router";
 
 function Home() {
   const [hovered1, setHovered1] = useState(false);
@@ -16,30 +16,30 @@ function Home() {
           onMouseEnter={() => setHovered1(true)}
           onMouseLeave={() => setHovered1(false)}
           style={{
-            backgroundColor: hovered1 ? '#333' : '#eee',
-            color: hovered1 ? 'white' : 'black',
-            padding: '0.5rem 1rem',
-            borderRadius: '4px',
-            textDecoration: 'none',
-            marginRight: '1rem'
+            backgroundColor: hovered1 ? "#333" : "#eee",
+            color: hovered1 ? "white" : "black",
+            padding: "0.5rem 1rem",
+            borderRadius: "4px",
+            textDecoration: "none",
+            marginRight: "1rem",
           }}
         >
           Login
         </Link>
 
         <Link
-        className="link-button"
-        to="/signup"
-        onMouseEnter={() => setHovered2(true)}
-        onMouseLeave={() => setHovered2(false)}
-        style={{
-          backgroundColor: hovered2 ? '#333' : '#eee',
-          color: hovered2 ? 'white' : 'black',
-          padding: '0.5rem 1rem',
-          borderRadius: '4px',
-          textDecoration: 'none',
-          marginRight: '1rem'
-        }}
+          className="link-button"
+          to="/signup"
+          onMouseEnter={() => setHovered2(true)}
+          onMouseLeave={() => setHovered2(false)}
+          style={{
+            backgroundColor: hovered2 ? "#333" : "#eee",
+            color: hovered2 ? "white" : "black",
+            padding: "0.5rem 1rem",
+            borderRadius: "4px",
+            textDecoration: "none",
+            marginRight: "1rem",
+          }}
         >
           Sign Up
         </Link>
@@ -48,4 +48,4 @@ function Home() {
   );
 }
 
-export default Home
+export default Home;
