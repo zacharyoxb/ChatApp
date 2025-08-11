@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import './css/login.css'
+import { useNavigate } from "react-router";
 
 function Login() {
+const navigate = useNavigate();
 const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -22,9 +24,13 @@ const [error, setError] = useState<string | null>(null);
         credentials: "include"
       });
 
+      console.log("Hi?");
+
       if (response.ok) {
-        // TODO: client gets cookie, redirected to chats
-        return;
+        const data = await response.json();
+        // store session id
+        localStorage.setItem("session_id", data.session_id)
+        navigate("/chats")
       }
 
       switch (response.status) {
