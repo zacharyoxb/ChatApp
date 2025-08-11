@@ -32,7 +32,7 @@ async def create_session(username: str) -> str:
     session_id = str(uuid.uuid4())
     try:
         await redis_client.hset(f"session:{session_id}",
-            mapping={"user": username})
+            mapping={"username": username})
         await redis_client.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
     except Exception as e:
         raise e
@@ -47,4 +47,4 @@ async def get_session(session_id: str) -> dict | None:
     if not session_data:
         return None
 
-    return session_data.get("user")
+    return session_data.get("username")
