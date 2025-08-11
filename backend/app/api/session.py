@@ -1,7 +1,7 @@
 """ This is called by the frontend to check for a valid session. """
 from fastapi import APIRouter, Cookie, HTTPException
 
-from app.services.redis import get_session
+from app.services.myredis import get_session
 
 router = APIRouter()
 

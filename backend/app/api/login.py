@@ -7,7 +7,7 @@ import bcrypt
 import mysql.connector
 
 from app.services.mysqldb import add_user, get_password
-from app.services.redis import create_session
+from app.services.myredis import create_session
 from app.utils.cookies import set_session_cookie
 
 router = APIRouter()
