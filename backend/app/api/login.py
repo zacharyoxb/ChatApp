@@ -8,6 +8,7 @@ import mysql.connector
 
 from app.services.mysqldb import add_user, get_password
 from app.services.redis import create_session
+from app.utils.cookies import set_session_cookie
 
 router = APIRouter()
 
@@ -29,7 +30,7 @@ async def signup(req: SignupLoginRequest, res: Response):
     try:
         await add_user(user_id, req.username, pass_hash)
         session_id = await create_session(req.username)
-        res.set_cookie(key="session_id", value=session_id)
+        set_session_cookie(res, session_id)
         return {"message": "Signed up successfully", "session_id": session_id}
     except mysql.connector.Error as e:
         if e.errno == 1062: # ERROR 1062 (23000): Duplicate entry
@@ -52,5 +53,5 @@ async def login(req: SignupLoginRequest, res: Response):
         raise HTTPException(status_code=401, detail="Username or password is incorrect.")
 
     session_id = await create_session(req.username)
-    res.set_cookie(key="session_id", value=session_id)
+    set_session_cookie(res, session_id)
     return {"message": "Signed in successfully", "session_id": session_id}

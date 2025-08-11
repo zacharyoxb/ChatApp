@@ -1,6 +1,6 @@
 uvicorn app.main:app \
   --host localhost \
   --port 8000 \
-  --ssl-keyfile certs/fastapi-server.key \
-  --ssl-certfile certs/fastapi-server.crt \
+  --ssl-keyfile certs/ChatApp-Server.key \
+  --ssl-certfile certs/ChatApp-Server.crt \
   --reload

@@ -6,8 +6,8 @@ import fs from 'fs';
 export default defineConfig({
   server: {
     https: {
-      key: fs.readFileSync('certs/vite-server.key'),
-      cert: fs.readFileSync('certs/vite-server.crt')
+      key: fs.readFileSync('certs/ChatApp-Server.key'),
+      cert: fs.readFileSync('certs/ChatApp-Server.crt')
     },
     port: 3000,
   },
