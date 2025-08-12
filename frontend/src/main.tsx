@@ -5,6 +5,7 @@ import "./index.css";
 import Home from "./routes/home.tsx";
 import Login from "./routes/login.tsx";
 import SignUp from "./routes/signup.tsx";
+import Chats from "./routes/chats.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/chats" element={<Chats />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

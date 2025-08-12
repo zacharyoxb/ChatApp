@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import "./css/signup.css";
 import { useNavigate } from "react-router";
+import "./css/signup-login.css";
 
 function SignUp() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
-  // runs once on mount
   useEffect(() => {
     async function checkSession() {
       try {
@@ -24,7 +23,7 @@ function SignUp() {
   }, [navigate]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // prevents page from reloading
+    event.preventDefault();
     const formData = new FormData(event.currentTarget);
 
     const username = formData.get("username") as string;
@@ -48,7 +47,6 @@ function SignUp() {
       });
 
       if (response.ok) {
-        // TODO: client gets cookie, redirected to chats
         return;
       }
 
@@ -70,10 +68,10 @@ function SignUp() {
   };
 
   return (
-    <>
-      <div id="login-box">
+    <div className="root-div">
+      <div className="login-box">
         <h2> Sign Up </h2>
-        <form id="entry-area" onSubmit={handleSubmit}>
+        <form className="entry-area" onSubmit={handleSubmit}>
           <label>
             Username: <input name="username" required />
           </label>
@@ -89,7 +87,7 @@ function SignUp() {
           <button type="submit">Sign Up</button>
         </form>
       </div>
-    </>
+    </div>
   );
 }
 

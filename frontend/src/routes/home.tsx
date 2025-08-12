@@ -1,46 +1,35 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import "./css/home.css";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 function Home() {
-  const [hovered1, setHovered1] = useState(false);
-  const [hovered2, setHovered2] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const response = await fetch("https://localhost:8000/session", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          navigate("/chats");
+        }
+      } catch {}
+    }
+    checkSession();
+  }, [navigate]);
 
   return (
-    <div id="parent">
+    <div className="root-div">
       <h1>ChatApp: Basic Group Messaging Service</h1>
       <div id="link-buttons">
-        <Link
-          className="link-button"
-          to="/login"
-          onMouseEnter={() => setHovered1(true)}
-          onMouseLeave={() => setHovered1(false)}
-          style={{
-            backgroundColor: hovered1 ? "#333" : "#eee",
-            color: hovered1 ? "white" : "black",
-            padding: "0.5rem 1rem",
-            borderRadius: "4px",
-            textDecoration: "none",
-            marginRight: "1rem",
-          }}
-        >
+        <Link className="link-button" to="/login">
           Login
         </Link>
 
-        <Link
-          className="link-button"
-          to="/signup"
-          onMouseEnter={() => setHovered2(true)}
-          onMouseLeave={() => setHovered2(false)}
-          style={{
-            backgroundColor: hovered2 ? "#333" : "#eee",
-            color: hovered2 ? "white" : "black",
-            padding: "0.5rem 1rem",
-            borderRadius: "4px",
-            textDecoration: "none",
-            marginRight: "1rem",
-          }}
-        >
+        <Link className="link-button" to="/signup">
           Sign Up
         </Link>
       </div>
