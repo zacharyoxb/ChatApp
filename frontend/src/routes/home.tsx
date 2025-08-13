@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import "./css/home.css";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import { LinkButton } from "../components/LinkButton";
 
 function Home() {
   const navigate = useNavigate();
@@ -22,16 +23,11 @@ function Home() {
   }, [navigate]);
 
   return (
-    <div className="root-div">
+    <div id="parent-div">
       <h1>ChatApp: Basic Group Messaging Service</h1>
       <div id="link-buttons">
-        <Link className="link-button" to="/login">
-          Login
-        </Link>
-
-        <Link className="link-button" to="/signup">
-          Sign Up
-        </Link>
+        <LinkButton to="/login">Login</LinkButton>
+        <LinkButton to="/signup">Sign Up</LinkButton>
       </div>
     </div>
   );

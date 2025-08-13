@@ -1,0 +1,27 @@
+.link-button {
+    display: inline-block;
+    font-size: clamp(0.875rem, 2vw, 1.25rem);
+    width: clamp(6rem, 20vw, 12rem);
+    background-color: #131313;
+    color: white;
+    border-radius: 1px;
+    text-decoration: none;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.link-button:hover {
+  background-color: #d3d3d3;
+}
+
+@media (prefers-color-scheme: light) {
+  .link-button {
+    background-color: #ffffff;
+    border-color: #c9c6c6;
+    color: #000;
+  }
+
+  .link-button:hover {
+    background-color: #666464;
+  }
+}
+            
