@@ -28,13 +28,17 @@ body {
 }
 
 h1 {
-  font-size: 6vw;
+  font-size: clamp(2rem, 5vw + 1rem, 4rem);
   line-height: 1.1;
 }
 
 h2 {
-  font-size: 3vw;
+  font-size: clamp(1.5rem, 3vw + 0.5rem, 3rem);
   line-height: 1.1;
+}
+
+h3 {
+  font-size: clamp(1.25rem, 2vw + 0.25rem, 2.25rem);
 }
 
 button {

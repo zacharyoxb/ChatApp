@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { CustomButton } from "../components/CustomButton";
 import "./css/signup-login.css";
 
 function Login() {
@@ -58,20 +59,18 @@ function Login() {
   };
 
   return (
-    <div className="root-div">
-      <div className="login-box">
-        <h2> Login </h2>
-        <form className="entry-area" onSubmit={handleSubmit}>
-          <label>
-            Username: <input name="username" required />
-          </label>
-          <label>
-            Password: <input name="password" type="password" required />
-          </label>
-          {error && <div className="inline-error">{error}</div>}
-          <button type="submit">Log in</button>
-        </form>
-      </div>
+    <div className="login-box">
+      <h2> Login </h2>
+      <form className="entry-area" onSubmit={handleSubmit}>
+        <label>
+          Username: <input name="username" required />
+        </label>
+        <label>
+          Password: <input name="password" type="password" required />
+        </label>
+        {error && <div className="inline-error">{error}</div>}
+        <CustomButton type="submit">Log in</CustomButton>
+      </form>
     </div>
   );
 }

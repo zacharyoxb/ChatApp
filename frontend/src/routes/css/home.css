@@ -12,11 +12,6 @@
 }
 
 .link-button {
-  border: solid;
-  border-color: white;
-  border-radius: 10px;
-  background-color: white;
-  width: 5%;
-  padding-left: 3%;
-  padding-right: 3%;
+  font-size: clamp(0.875rem, 2vw, 1.25rem);
+  width: clamp(6rem, 20vw, 12rem);
 }

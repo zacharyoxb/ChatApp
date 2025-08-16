@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { CustomButton } from "../components/CustomButton";
 import "./css/signup-login.css";
 
 function SignUp() {
@@ -84,7 +85,7 @@ function SignUp() {
             {error && <div className="inline-error">{error}</div>}
           </label>
 
-          <button type="submit">Sign Up</button>
+          <CustomButton type="submit">Sign Up</CustomButton>
         </form>
       </div>
     </div>
