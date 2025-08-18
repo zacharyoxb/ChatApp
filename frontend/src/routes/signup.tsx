@@ -82,7 +82,7 @@ function SignUp() {
           <label>
             Enter password again:
             <input name="password2" type="password" required />
-            {error && <div className="inline-error">{error}</div>}
+            {error && <div className="error-box">{error}</div>}
           </label>
 
           <CustomButton type="submit">Sign Up</CustomButton>

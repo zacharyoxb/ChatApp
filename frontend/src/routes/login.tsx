@@ -68,7 +68,7 @@ function Login() {
         <label>
           Password: <input name="password" type="password" required />
         </label>
-        {error && <div className="inline-error">{error}</div>}
+        {error && <div className="error-box">{error}</div>}
         <CustomButton type="submit">Log in</CustomButton>
       </form>
     </div>

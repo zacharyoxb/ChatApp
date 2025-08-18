@@ -60,8 +60,16 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-.inline-error {
+.error-box {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #f8d7da;
   color: red;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 @media (prefers-color-scheme: light) {
