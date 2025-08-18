@@ -69,7 +69,7 @@ function SignUp() {
   };
 
   return (
-    <div className="root-div">
+    <div className="parent-div">
       <div className="login-box">
         <h2> Sign Up </h2>
         <form className="entry-area" onSubmit={handleSubmit}>
