@@ -1,0 +1,13 @@
+#parent-div {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}

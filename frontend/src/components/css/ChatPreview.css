@@ -1,4 +1,21 @@
-.layout-div {
+#layout-div {
     display: flex;
-    flex-flow: column nowrap;
+    flex-flow: row nowrap;
+    padding: 1vh;
+}
+
+#left-col {
+    flex: 0 0 auto;
+}
+
+#middle-col {
+    display: flex;
+    flex-flow: column;
+    align-items: flex-start;
+    padding-left: 10px;
+}
+
+#right-col {
+    flex: 0 0 auto;
+    margin-left: auto;
 }

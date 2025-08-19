@@ -1,5 +1,6 @@
 import React from "react";
 import "./css/ChatPreview.css";
+import defaultProfile from "../assets/default-profile.jpg";
 import { Link } from "react-router";
 
 interface ChatPreviewProps {
@@ -18,21 +19,23 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
   time,
   url,
 }) => {
-  const defaultProfile = "/images/default/default-profile.png";
-
   return (
-    <Link to={url} id="layout-div">
-      <div className="left-col">
+    <div id="layout-div">
+      <div id="left-col">
         <img
           id="profile-image"
           src={profileImage || defaultProfile}
-          alt={name + "'s profile picture"}
+          width={50}
+          height={50}
+          alt={"${name}'s profile picture"}
         />
-        <div className="middle-col">{message}</div>
-
-        <div className="right-col">{time}</div>
       </div>
-    </Link>
+      <div id="middle-col">
+        <div> {name} </div>
+        <div> {message} </div>
+      </div>
+      <div id="right-col">{time}</div>
+    </div>
   );
 };
 
