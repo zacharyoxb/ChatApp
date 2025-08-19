@@ -1,7 +1,7 @@
 import React from "react";
 import "./css/ChatPreview.css";
 import defaultProfile from "../assets/default-profile.jpg";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 
 interface ChatPreviewProps {
   profileImage?: string;
@@ -11,7 +11,6 @@ interface ChatPreviewProps {
   url: string;
 }
 
-// make focusable later for accessibility
 const ChatPreview: React.FC<ChatPreviewProps> = ({
   profileImage,
   name,
@@ -19,6 +18,19 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
   time,
   url,
 }) => {
+  const navigate = useNavigate();
+
+  function onClick() {
+    navigate(url);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      navigate(url);
+    }
+  }
+
   return (
     <div id="layout-div">
       <div id="left-col">
@@ -30,11 +42,19 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
           alt={"${name}'s profile picture"}
         />
       </div>
-      <div id="middle-col">
-        <div> {name} </div>
-        <div> {message} </div>
+      <div
+        id="link-container"
+        onClick={onClick}
+        onKeyDown={onKeyDown}
+        role="button"
+        tabIndex={0} // may have to change this later?
+      >
+        <div id="middle-col">
+          <div> {name} </div>
+          <div> {message} </div>
+        </div>
+        <div id="right-col">{time}</div>
       </div>
-      <div id="right-col">{time}</div>
     </div>
   );
 };
