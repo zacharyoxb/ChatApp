@@ -1,5 +1,6 @@
 """ Connects to AWS database """
 import os
+from typing import Optional
 from dotenv import load_dotenv
 
 from mysql.connector.aio import MySQLConnectionPool
@@ -33,19 +34,25 @@ cnx_pool = MySQLConnectionPool(
 ADD_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
 GET_PASS_HASH_QUERY = "SELECT pass_hash FROM users WHERE user_name = ?"
 
+GET_CHATS_QUERY = """
+    SELECT c.chat_id, c.chat_name 
+    FROM users u JOIN users_in_chats uc ON u.user_id = uc.user_id
+    JOIN chats c ON uc.chat_id = c.chat_id
+    WHERE u.user_name = ? """
+
 async def init_db_pool() -> None:
     """ Initialises pool (call on startup) """
     await cnx_pool.initialize_pool()
 
-async def add_user(user_id: bytes, user_name: str, pass_hash: str) -> None:
+async def add_user(user_id: bytes, username: str, pass_hash: str) -> None:
     """ Adds user to db """
     async with await cnx_pool.get_connection() as conn:
         cursor = await conn.cursor(prepared=True)
-        await cursor.execute(ADD_USER_QUERY, (user_id, user_name, pass_hash))
+        await cursor.execute(ADD_USER_QUERY, (user_id, username, pass_hash))
         await conn.commit()
         await cursor.close()
 
-async def get_password(username: str) -> str | None:
+async def get_password(username: str) -> Optional[str]:
     """ Gets the password hash for a user. Returns None if user doesn't exist. """
     async with await cnx_pool.get_connection() as conn:
         cursor = await conn.cursor(prepared=True)
@@ -54,8 +61,17 @@ async def get_password(username: str) -> str | None:
         await cursor.close()
         return result[0] if result else None
 
-def add_group():
-    """ Adds group to db """
+async def add_chat():
+    """ Adds chat to db """
 
-def add_user_to_group():
-    """ Adds user to group in db """
+async def add_user_to_chat():
+    """ Adds user to chat in db """
+
+async def get_all_chats(username: str) -> Optional[list[tuple[int, str]]]:
+    """ Gets all chats the user is in """
+    async with await cnx_pool.get_connection() as conn:
+        cursor = await conn.cursor(prepared=True)
+        await cursor.execute(GET_CHATS_QUERY, (username,))
+        result = await cursor.fetchall()
+        await cursor.close()
+        return result if result else None

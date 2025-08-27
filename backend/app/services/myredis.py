@@ -1,5 +1,6 @@
 """ Accesses redis for sessions / pubsub functionality"""
 import os
+from typing import Optional
 import uuid
 from dotenv import load_dotenv
 import redis.asyncio as redis
@@ -39,7 +40,7 @@ async def create_session(username: str) -> str:
 
     return session_id
 
-async def get_session(session_id: str) -> dict | None:
+async def get_session(session_id: str) -> Optional[dict]:
     """ Gets session, returns username if exists, None otherwise """
     session_key = f"session:{session_id}"
     session_data = await redis_client.hgetall(session_key)

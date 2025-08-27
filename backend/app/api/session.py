@@ -11,4 +11,4 @@ async def get_session_endpoint(session_id: str = Cookie(None)) -> dict[str, str]
     username = await get_session(session_id)
     if username is None:
         raise HTTPException(status_code=401, detail="Session expired or invalid")
-    return {"username": username}
+    return
