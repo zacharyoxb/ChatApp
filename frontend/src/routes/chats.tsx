@@ -1,7 +1,23 @@
+import { useEffect } from "react";
 import ChatPreview from "../components/ChatPreview";
 import "./css/chats.css";
 
 function Chats() {
+  useEffect(() => {
+    async function getChats() {
+      try {
+        const response = await fetch("https://localhost:8000/chats", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          return;
+        }
+      } catch {}
+    }
+    getChats();
+  });
   return (
     <div id="parent-div">
       <div id="top-bar">

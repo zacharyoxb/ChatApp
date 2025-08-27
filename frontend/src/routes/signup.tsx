@@ -48,7 +48,7 @@ function SignUp() {
       });
 
       if (response.ok) {
-        return;
+        navigate("/chats");
       }
 
       switch (response.status) {
