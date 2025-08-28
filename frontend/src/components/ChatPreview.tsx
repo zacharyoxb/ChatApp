@@ -1,7 +1,7 @@
 import React from "react";
-import "./css/ChatPreview.css";
 import defaultProfile from "../assets/default-profile.jpg";
 import { useNavigate } from "react-router";
+import "./css/ChatPreview.css";
 
 interface ChatPreviewProps {
   profileImage?: string;
@@ -39,7 +39,7 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
           src={profileImage || defaultProfile}
           width={50}
           height={50}
-          alt={"${name}'s profile picture"}
+          alt={`${name}'s profile picture`}
         />
       </div>
       <div
@@ -47,7 +47,8 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
         onClick={onClick}
         onKeyDown={onKeyDown}
         role="button"
-        tabIndex={0} // may have to change this later?
+        tabIndex={0}
+        aria-label={`Chat with ${name}. Last message: ${message}. Sent/Received at ${time}`}
       >
         <div id="middle-col">
           <div> {name} </div>

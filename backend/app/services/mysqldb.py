@@ -33,6 +33,7 @@ cnx_pool = MySQLConnectionPool(
 
 ADD_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
 GET_PASS_HASH_QUERY = "SELECT pass_hash FROM users WHERE user_name = ?"
+ADD_CHAT_QUERY = "INSERT INTO chats (chat_id, chat_name) VALUES (%s, %s)"
 
 GET_CHATS_QUERY = """
     SELECT c.chat_id, c.chat_name 
@@ -61,8 +62,13 @@ async def get_password(username: str) -> Optional[str]:
         await cursor.close()
         return result[0] if result else None
 
-async def add_chat():
+async def create_chat(chat_id: bytes, chat_name: str) -> None:
     """ Adds chat to db """
+    async with await cnx_pool.get_connection() as conn:
+        cursor = await conn.cursor(prepared=True)
+        await cursor.execute(ADD_CHAT_QUERY, (chat_id, chat_name))
+        await conn.commit()
+        await cursor.close()
 
 async def add_user_to_chat():
     """ Adds user to chat in db """
