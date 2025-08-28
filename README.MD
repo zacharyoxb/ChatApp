@@ -1,5 +1,6 @@
 Database creation query for the database schema the backend uses:
 
+````sql
 CREATE TABLE `users` (
 `user_id` BINARY(16),
 `user_name` VARCHAR(18) NOT NULL,
@@ -21,3 +22,5 @@ PRIMARY KEY (`user_id`, `chat_id`),
 FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
 FOREIGN KEY (`chat_id`) REFERENCES `chats` (`chat_id`) ON DELETE CASCADE
 );
+```
+
