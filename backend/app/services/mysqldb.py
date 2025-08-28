@@ -1,8 +1,8 @@
 """ Connects to AWS database """
 import os
 from typing import Optional
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 from mysql.connector.aio import MySQLConnectionPool
 
 load_dotenv()
@@ -25,7 +25,7 @@ config = {
 
 # create connection pool, more thread safe
 cnx_pool = MySQLConnectionPool(
-    pool_name="aws_db_pool",
+    pool_name="db_pool",
     pool_size=5,
     pool_reset_session=True,
     **config

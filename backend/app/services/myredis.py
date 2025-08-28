@@ -2,6 +2,7 @@
 import os
 from typing import Optional
 import uuid
+
 from dotenv import load_dotenv
 import redis.asyncio as redis
 

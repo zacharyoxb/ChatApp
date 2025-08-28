@@ -1,5 +1,6 @@
 """ Standardises cookie defaults """
 from datetime import datetime, timedelta, timezone
+
 from fastapi import Response
 
 def set_session_cookie(response: Response, session_id: str):
