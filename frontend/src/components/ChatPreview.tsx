@@ -1,6 +1,6 @@
 import React from "react";
-import defaultProfile from "../assets/default-profile.jpg";
 import { useNavigate } from "react-router";
+import defaultProfile from "../assets/default-profile.jpg";
 import "./css/ChatPreview.css";
 
 interface ChatPreviewProps {
