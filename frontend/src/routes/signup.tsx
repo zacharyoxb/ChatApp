@@ -52,7 +52,7 @@ function SignUp() {
       }
 
       switch (response.status) {
-        case 400:
+        case 409:
           setError("This username is already taken. Try another.");
           break;
         case 500:

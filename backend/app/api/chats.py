@@ -25,3 +25,7 @@ async def get_chat_previews(session_id: str = Cookie(None)):
         return []
     return [ChatPreview(chat_id=chat_id, chat_name=chat_name)
             for chat_id, chat_name in chat_tuples]
+
+@router.post("/chats")
+async def create_new_chat(_session_id: str = Cookie(None)):
+    """ Creates a new chat, adds users to chat """
