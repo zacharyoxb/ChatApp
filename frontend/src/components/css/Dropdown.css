@@ -1,0 +1,19 @@
+#button {
+  background-color: inherit;
+}
+
+#light-mode-icon, #dark-mode-icon {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  #dark-mode-icon {
+    display: block;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  #light-mode-icon {
+    display: block;
+  }
+}

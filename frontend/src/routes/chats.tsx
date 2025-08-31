@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import threeDots from "../assets/three-dots.png";
 import threeDotsLight from "../assets/three-dots-light.png";
 import "./css/chats.css";
+import Dropdown, { type DropdownOption } from "../components/Dropdown";
 
 interface ChatPreviewData {
   chat_id: number;
@@ -34,26 +35,27 @@ function Chats() {
     }
     fetchChats();
   }, []);
+
+  const dropdownOptions: DropdownOption[] = [
+    {
+      label: "Create Chat",
+      url: "/chats/new",
+    },
+    {
+      label: "Logout",
+      url: "/logout",
+    },
+  ];
+
   return (
     <div id="parent-div">
       <div id="top-bar">
         <h1> ChatApp </h1>
-        <img
-          id="three-dots"
-          className="dark-mode-icon"
-          src={threeDots}
-          width={50}
-          height={50}
-          alt={`Miscellaneous menu`}
-        />
-        <img
-          id="three-dots-light"
-          className="light-mode-icon"
-          src={threeDotsLight}
-          width={50}
-          height={50}
-          alt={`Miscellaneous menu`}
-        />
+        <Dropdown
+          darkLogo={threeDots}
+          lightLogo={threeDotsLight}
+          menuOptions={dropdownOptions}
+        ></Dropdown>
       </div>
       <div id="chats-area">
         {chats.length === 0 ? (
