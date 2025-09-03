@@ -5,7 +5,7 @@ from fastapi import APIRouter, Cookie, HTTPException, status
 from pydantic import BaseModel
 
 from app.services.myredis import get_session
-from app.services.mysqldb import get_all_chats
+from app.services.mysqldb import db_service
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def get_chat_previews(session_id: str = Cookie(None)):
     if username is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
-    chat_tuples = await get_all_chats(username)
+    chat_tuples = await db_service.get_all_chats(username)
     if not chat_tuples:
         return []
     return [ChatPreview(chat_id=chat_id, chat_name=chat_name)

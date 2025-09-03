@@ -7,7 +7,7 @@ import bcrypt
 import mysql.connector
 from mysql.connector import errorcode
 
-from app.services.mysqldb import add_user, get_password
+from app.services.mysqldb import db_service
 from app.services.myredis import create_session
 from app.utils.cookies import set_session_cookie
 
@@ -29,7 +29,7 @@ async def signup(req: SignupLoginRequest, res: Response) -> None:
     pass_hash = bcrypt.hashpw(pass_bytes, salt).decode()
 
     try:
-        await add_user(user_id, req.username, pass_hash)
+        await db_service.add_user(user_id, req.username, pass_hash)
         session_id = await create_session(req.username)
         set_session_cookie(res, session_id)
         res.status_code = status.HTTP_201_CREATED
@@ -43,7 +43,7 @@ async def signup(req: SignupLoginRequest, res: Response) -> None:
 @router.post("/login")
 async def login(req: SignupLoginRequest, res: Response) -> None:
     """ Checks user submitted login details and returns session id if successful """
-    pass_hash = await get_password(req.username)
+    pass_hash = await db_service.get_password(req.username)
 
     if pass_hash is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,

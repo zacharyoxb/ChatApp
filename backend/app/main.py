@@ -14,7 +14,7 @@ from app.api import (
 )
 
 from app.services.myredis import init_redis
-from app.services.mysqldb import init_db_pool
+from app.services.mysqldb import db_service
 from app.utils.service_configs import get_service_configs
 
 origins = [
@@ -26,7 +26,7 @@ async def lifespan(_ls_app: FastAPI):
     """ Runs startup / cleanup code"""
     # Startup code
     db_config, redis_config = get_service_configs()
-    await init_db_pool(db_config)
+    await db_service.init_db_pool(db_config)
     init_redis(redis_config)
     yield
     # Shutdown code (optional cleanup)
