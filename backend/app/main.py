@@ -13,7 +13,9 @@ from app.api import (
     chats_router
 )
 
+from app.services.myredis import init_redis
 from app.services.mysqldb import init_db_pool
+from app.utils.service_configs import get_service_configs
 
 origins = [
     "https://localhost:3000"
@@ -23,7 +25,9 @@ origins = [
 async def lifespan(_ls_app: FastAPI):
     """ Runs startup / cleanup code"""
     # Startup code
-    await init_db_pool()
+    db_config, redis_config = get_service_configs()
+    await init_db_pool(db_config)
+    init_redis(redis_config)
     yield
     # Shutdown code (optional cleanup)
 

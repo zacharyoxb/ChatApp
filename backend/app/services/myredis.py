@@ -1,33 +1,18 @@
 """ Accesses redis for sessions / pubsub functionality"""
-import os
 from typing import Optional
 import uuid
 
-from dotenv import load_dotenv
+from redis import Redis
 import redis.asyncio as redis
 
-load_dotenv()
-
-redis_host = os.getenv("REDIS_HOST")
-redis_port = int(os.getenv("REDIS_PORT"))
-redis_db = int(os.getenv("REDIS_DB"))
-redis_decode_on_warnings = os.getenv("REDIS_DECODE_RESPONSES").lower() == "true"
-redis_ssl = os.getenv("REDIS_SSL").lower() == "true"
-redis_certfile = os.path.join(os.getcwd(), "certs", "valkey.crt")
-
-config = {
-    "host": redis_host,
-    "port": redis_port,
-    "db": redis_db,
-    "password": None,
-    "decode_responses": redis_decode_on_warnings,
-    "ssl": redis_ssl,
-    "ssl_certfile": redis_certfile,
-}
+redis_client: Optional[Redis] = None
 
 SESSION_TTL_SECONDS = 3600  # 1 hour
 
-redis_client = redis.Redis(**config)
+def init_redis(redis_config: dict) -> None:
+    """ Initialises redis / valkey"""
+    global redis_client
+    redis_client = redis.Redis(**redis_config)
 
 async def create_session(username: str) -> str:
     """ Creates session cookie """
