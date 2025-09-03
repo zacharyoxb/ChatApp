@@ -8,7 +8,7 @@ import mysql.connector
 from mysql.connector import errorcode
 
 from app.services.mysqldb import db_service
-from app.services.myredis import create_session
+from app.services.myredis import redis_service
 from app.utils.cookies import set_session_cookie
 
 router = APIRouter()
@@ -30,7 +30,7 @@ async def signup(req: SignupLoginRequest, res: Response) -> None:
 
     try:
         await db_service.add_user(user_id, req.username, pass_hash)
-        session_id = await create_session(req.username)
+        session_id = await redis_service.create_session(req.username)
         set_session_cookie(res, session_id)
         res.status_code = status.HTTP_201_CREATED
     except mysql.connector.Error as e:
@@ -56,6 +56,6 @@ async def login(req: SignupLoginRequest, res: Response) -> None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Username or password is incorrect.")
 
-    session_id = await create_session(req.username)
+    session_id = await redis_service.create_session(req.username)
     set_session_cookie(res, session_id)
     res.status_code = status.HTTP_201_CREATED

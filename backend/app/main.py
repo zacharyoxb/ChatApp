@@ -13,7 +13,7 @@ from app.api import (
     chats_router
 )
 
-from app.services.myredis import init_redis
+from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
 from app.utils.service_configs import get_service_configs
 
@@ -27,7 +27,7 @@ async def lifespan(_ls_app: FastAPI):
     # Startup code
     db_config, redis_config = get_service_configs()
     await db_service.init_db_pool(db_config)
-    init_redis(redis_config)
+    redis_service.init_redis(redis_config)
     yield
     # Shutdown code (optional cleanup)
 
