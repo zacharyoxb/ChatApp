@@ -1,11 +1,12 @@
 """ Accesses redis for sessions / pubsub functionality """
+import time
 from typing import Optional
 import uuid
 
 from redis import Redis
 import redis.asyncio as redis
 
-SESSION_TTL_SECONDS = 3600  # 1 hour
+SESSION_TTL_SECONDS = 30 * 24 * 3600 # 30 days
 
 class RedisService:
     """ Singleton instance holding redis connection """
@@ -24,17 +25,19 @@ class RedisService:
     async def create_session(self, username: str) -> str:
         """ Creates session cookie """
         session_id = str(uuid.uuid4())
-        try:
-            await self._redis_conn.hset(f"session:{session_id}",
-                mapping={"username": username})
-            await self._redis_conn.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
-        except Exception as e:
-            raise e
+        await self._redis_conn.hset(f"session:{session_id}",
+            mapping={
+                "username": username, 
+                "created_at": time.time(), 
+                "last_activity": time.time()
+            }
+        )
+        await self._redis_conn.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
 
         return session_id
 
     async def get_session(self, session_id: str) -> Optional[dict]:
-        """ Gets session, returns username if exists, None otherwise """
+        """ Gets session, extends TTL due to activity """
         session_key = f"session:{session_id}"
         session_data = await self._redis_conn.hgetall(session_key)
 
@@ -42,5 +45,22 @@ class RedisService:
             return None
 
         return session_data.get("username")
+
+    async def extend_session(self, session_id: str) -> None:
+        """ Extend session for sliding TTL """
+        if not session_id:
+            return
+
+        session_key = f"session:{session_id}"
+
+        exists = await self._redis_conn.exists(session_key)
+        if exists:
+            await self._redis_conn.hset(
+                session_key,
+                "last_activity",
+                time.time()
+            )
+            await self._redis_conn.expire(session_key, SESSION_TTL_SECONDS)
+
 
 redis_service = RedisService()
