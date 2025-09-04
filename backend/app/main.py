@@ -15,7 +15,7 @@ from app.api import (
 
 from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
-from app.utils.service_configs import get_service_configs
+from app.utils.service_configs import config_manager
 
 origins = [
     "https://localhost:3000"
@@ -25,9 +25,13 @@ origins = [
 async def lifespan(_ls_app: FastAPI):
     """ Runs startup / cleanup code"""
     # Startup code
-    db_config, redis_config = get_service_configs()
+    config_manager.initialize()
+    db_config = config_manager.get_db_config()
+    redis_config = config_manager.get_redis_config()
+
     await db_service.init_db_pool(db_config)
     redis_service.init_redis(redis_config)
+    
     yield
     # Shutdown code (optional cleanup)
 

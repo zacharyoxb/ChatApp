@@ -1,4 +1,4 @@
-""" Accesses redis for sessions / pubsub functionality"""
+""" Accesses redis for sessions / pubsub functionality """
 from typing import Optional
 import uuid
 
@@ -18,7 +18,7 @@ class RedisService:
         return cls._instance
 
     def init_redis(self, redis_config: dict) -> None:
-        """ Initialises redis / valkey"""
+        """ Initialises redis / valkey """
         self._redis_conn = redis.Redis(**redis_config)
 
     async def create_session(self, username: str) -> str:
