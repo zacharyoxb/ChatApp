@@ -31,7 +31,7 @@ async def lifespan(_ls_app: FastAPI):
 
     await db_service.init_db_pool(db_config)
     redis_service.init_redis(redis_config)
-    
+
     yield
     # Shutdown code (optional cleanup)
 
