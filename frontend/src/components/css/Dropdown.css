@@ -5,10 +5,11 @@
 #logo-button {
   background-color: inherit;
   padding: 0;
-  margin: 0; 
+  margin: 0;
 }
 
-#light-mode-icon, #dark-mode-icon {
+#light-mode-icon,
+#dark-mode-icon {
   display: none;
   height: clamp(2rem, 5vw + 1rem, 4rem);
   width: clamp(2rem, 5vw + 1rem, 4rem);
@@ -30,6 +31,15 @@
 #dropdown-menu.right {
   left: auto;
   right: 0;
+}
+
+#dropdown-option {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  border-radius: 0;
+  border: none;
 }
 
 @media (prefers-color-scheme: dark) {
