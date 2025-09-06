@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ $EUID -ne 0 ]]; then
+   echo "${RED}This script must be run as root or with sudo${NC}."
+   exit 1
+fi
+
 # Exit on any error
 set -e
 
