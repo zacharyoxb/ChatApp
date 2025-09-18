@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import "./css/Dropdown.css";
 
@@ -21,6 +21,8 @@ const Dropdown: React.FC<DropdownProps> = ({
   menuOptions,
 }) => {
   const [showMenu, setShowMenu] = useState<boolean>(false);
+  const [menuPosition, setMenuPosition] = useState<"left" | "right">("left");
+  const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -32,8 +34,19 @@ const Dropdown: React.FC<DropdownProps> = ({
     setShowMenu(false);
   };
 
+  useEffect(() => {
+    if (showMenu && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceOnRight = window.innerWidth - rect.right;
+      const spaceOnLeft = rect.left;
+
+      // menu aligns to side with more space
+      setMenuPosition(spaceOnRight >= spaceOnLeft ? "left" : "right");
+    }
+  }, [showMenu]);
+
   return (
-    <div id="dropdown-container">
+    <div id="dropdown-container" ref={containerRef}>
       <button id="logo-button" onClick={toggleMenu}>
         {lightLogo && (
           <img src={lightLogo} id="light-mode-icon" alt="Miscellaneous menu" />
@@ -45,7 +58,10 @@ const Dropdown: React.FC<DropdownProps> = ({
       </button>
 
       {showMenu && (
-        <div id="dropdown-menu">
+        <div
+          id="dropdown-menu"
+          className={menuPosition === "right" ? "menu-right" : "menu-left"}
+        >
           {menuOptions.map((option, index) => (
             <button
               key={index}
