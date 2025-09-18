@@ -39,11 +39,17 @@ function Chats() {
   const dropdownOptions: DropdownOption[] = [
     {
       label: "Create Chat",
-      url: "/chats/new",
+      action: () => navigate("/chats/new"),
     },
     {
       label: "Logout",
-      url: "/logout",
+      action: async () => {
+        await fetch("https://localhost:8000/logout", {
+          method: "POST",
+          credentials: "include",
+        });
+        navigate("/");
+      },
     },
   ];
 

@@ -62,5 +62,9 @@ class RedisService:
             )
             await self._redis_conn.expire(session_key, SESSION_TTL_SECONDS)
 
+    async def delete_session(self, session_id: str) -> None:
+        """ Deletes session if exists """
+        session_key = f"session:{session_id}"
+        await self._redis_conn.delete(session_key)
 
 redis_service = RedisService()

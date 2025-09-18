@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import "./css/Dropdown.css";
 
 interface DropdownProps {
@@ -11,7 +10,7 @@ interface DropdownProps {
 
 export interface DropdownOption {
   label: string;
-  url: string;
+  action: () => void | Promise<void>;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -23,14 +22,18 @@ const Dropdown: React.FC<DropdownProps> = ({
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [menuPosition, setMenuPosition] = useState<"left" | "right">("left");
   const containerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setShowMenu((prev) => !prev);
   };
 
-  const handleOptionClick = (url: string) => {
-    navigate(url);
+  const handleOptionClick = async (action: () => void | Promise<void>) => {
+    const result = action();
+
+    if (result instanceof Promise) {
+      await result;
+    }
+
     setShowMenu(false);
   };
 
@@ -66,7 +69,7 @@ const Dropdown: React.FC<DropdownProps> = ({
             <button
               key={index}
               id="dropdown-option"
-              onClick={() => handleOptionClick(option.url)}
+              onClick={() => handleOptionClick(option.action)}
             >
               {option.label}
             </button>

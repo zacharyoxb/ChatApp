@@ -1,15 +1,15 @@
-""" Handles POST requests for logging in and signing up. """
+""" Handles POST requests for logging in, signing up and logging out. """
 import uuid
 from pydantic import BaseModel
 
-from fastapi import APIRouter, Response, HTTPException, status
+from fastapi import APIRouter, Cookie, Response, HTTPException, status
 import bcrypt
 import mysql.connector
 from mysql.connector import errorcode
 
 from app.services.mysqldb import db_service
 from app.services.myredis import redis_service
-from app.utils.cookies import set_session_cookie
+from app.utils.cookies import set_session_cookie, remove_session_cookie
 
 router = APIRouter()
 
@@ -59,3 +59,12 @@ async def login(req: SignupLoginRequest, res: Response) -> None:
     session_id = await redis_service.create_session(req.username)
     set_session_cookie(res, session_id)
     res.status_code = status.HTTP_201_CREATED
+
+@router.post("/logout")
+async def logout(res: Response, session_id: str = Cookie(None)) -> None:
+    """ Logs user out by deleting redis entry for session """
+    if session_id is None:
+        # cookie expired anyway, do nothing
+        return
+    await redis_service.delete_session(session_id)
+    remove_session_cookie(res)
