@@ -25,7 +25,7 @@
   z-index: 1000;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 180px;
+  min-width: 20vw;
   margin-top: 0.5rem;
   overflow: hidden;
   animation: fadeIn 0.2s ease;
@@ -42,9 +42,9 @@
 }
 
 #dropdown-option {
-  font-size: clamp(0.875rem, 2vw, 1.5rem);
+  font-size: 0.9rem; 
   width: 100%;
-  padding: 6px 8px;
+  padding: 5px 8px;
   display: flex;
   align-items: center;
   border: none;
@@ -87,5 +87,16 @@
 
   #dropdown-menu {
     background: white;
+  }
+}
+
+/* Tablet size +++ */
+@media (min-width: 768px) {
+  #dropdown-menu {
+    min-width: 20vw;
+  }
+  
+  #dropdown-option {
+    font-size: 1.2rem;
   }
 }
