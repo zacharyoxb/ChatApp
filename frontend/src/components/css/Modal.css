@@ -1,0 +1,47 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #131313;
+  border: 1px solid #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.modal-close-button {
+  background-color: rgb(104, 0, 0);
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  margin-top: 0rem; /* override margin-top from button so it's centrally aligned */
+}
+
+.modal-close-button:hover {
+  background-color: #333;
+  border-radius: 50%;
+}
+
+.modal-body {
+  padding: 15px;
+  border: 1px solid #ffffff; /* Box around the body */
+}

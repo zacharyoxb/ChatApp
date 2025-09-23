@@ -36,7 +36,6 @@ function SignUp() {
       return;
     }
 
-    // api call
     try {
       const response = await fetch("https://localhost:8000/signup", {
         method: "POST",
@@ -64,7 +63,9 @@ function SignUp() {
           );
       }
     } catch (err) {
-      setError("Unable to reach server. Please check your connection.");
+      setError(
+        "Unknown error has occurred. Please contact website administrator."
+      );
     }
   };
 
