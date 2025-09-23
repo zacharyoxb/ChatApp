@@ -81,15 +81,13 @@ function Chats() {
         )}
       </div>
       <div id="bottom-bar"></div>
-      {isModalOpen && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="Create New Chat"
-        >
-          Test
-        </Modal>
-      )}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Create New Chat"
+      >
+        Test
+      </Modal>
     </div>
   );
 }
