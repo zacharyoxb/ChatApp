@@ -38,11 +38,21 @@
 }
 
 .modal-close-button:hover {
-  background-color: #333;
-  border-radius: 50%;
+  background-color: rgb(170, 0, 0);
 }
 
 .modal-body {
   padding: 15px;
-  border: 1px solid #ffffff; /* Box around the body */
+  border: 1px solid #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+  .modal-content {
+    background-color: #ffffff;
+    border: 1px solid #131313;
+  }
+
+  .modal-body {
+    border: 1px solid #131313;
+  }
 }
