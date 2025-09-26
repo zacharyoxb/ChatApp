@@ -1,0 +1,27 @@
+.styled-button {
+  display: inline-block;
+  background-color: #131313;
+  color: white;
+  border-radius: 1px;
+  transition: background-color 0.2s ease-in-out;
+  border: 1px solid #ffffff;
+  border-radius: 10px;
+}
+
+.styled-button:hover {
+  background-color: #555555;
+  border: 1px solid #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+  .styled-button {
+    color: #000;
+    background-color: #ffffff;
+    border: 1px solid #000000;
+  }
+
+  .styled-button:hover {
+    background-color: #a1a1a1;
+    border: 1px solid #000000;
+  }
+}

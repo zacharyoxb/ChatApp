@@ -6,6 +6,7 @@ import threeDotsLight from "../assets/three-dots-light.png";
 import "./css/chats.css";
 import Dropdown, { type DropdownOption } from "../components/Dropdown";
 import Modal from "../components/Modal";
+import { StyledButton } from "../components/StyledButton";
 
 interface ChatPreviewData {
   chat_id: number;
@@ -16,6 +17,7 @@ function Chats() {
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatPreviewData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchChats() {
@@ -55,6 +57,11 @@ function Chats() {
     },
   ];
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    throw new Error("Function not implemented.");
+  };
+
   return (
     <div id="parent-div">
       <div id="top-bar">
@@ -86,7 +93,14 @@ function Chats() {
         onClose={() => setIsModalOpen(false)}
         title="Create New Chat"
       >
-        Test
+        <form className="entry-area" onSubmit={handleSubmit}>
+          <label>
+            Chat Name: <input name="chat name" required />
+          </label>
+          {error && <div className="error-box">{error}</div>}
+
+          <StyledButton type="submit">Create Chat</StyledButton>
+        </form>
       </Modal>
     </div>
   );

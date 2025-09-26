@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./css/Dropdown.css";
+import { StyledButton } from "./StyledButton";
 
 interface DropdownProps {
   label?: string;
@@ -66,13 +67,13 @@ const Dropdown: React.FC<DropdownProps> = ({
           className={menuPosition === "right" ? "menu-right" : "menu-left"}
         >
           {menuOptions.map((option, index) => (
-            <button
+            <StyledButton
               key={index}
               id="dropdown-option"
               onClick={() => handleOptionClick(option.action)}
             >
               {option.label}
-            </button>
+            </StyledButton>
           ))}
         </div>
       )}

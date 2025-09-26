@@ -40,23 +40,6 @@
   left: auto;
 }
 
-#dropdown-option {
-  font-size: 0.9rem; 
-  width: 100%;
-  display: flex;
-  align-items: center;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  border: 1px solid #ffffff;
-}
-
-#dropdown-option:hover {
-  background-color: #555555;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -99,7 +82,7 @@
   #dropdown-menu {
     min-width: 20vw;
   }
-  
+
   #dropdown-option {
     font-size: 1.2rem;
   }

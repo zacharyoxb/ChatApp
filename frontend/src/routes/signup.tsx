@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { CustomButton } from "../components/CustomButton";
+import { StyledButton } from "../components/StyledButton";
 import "./css/signup-login.css";
 
 function SignUp() {
@@ -86,7 +86,7 @@ function SignUp() {
             {error && <div className="error-box">{error}</div>}
           </label>
 
-          <CustomButton type="submit">Sign Up</CustomButton>
+          <StyledButton type="submit">Sign Up</StyledButton>
         </form>
       </div>
     </div>
