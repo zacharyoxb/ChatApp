@@ -19,24 +19,25 @@ function Chats() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function fetchChats() {
+    try {
+      const response = await fetch("https://localhost:8000/chats", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        navigate("/login");
+      }
+
+      if (response.ok) {
+        const data: ChatPreviewData[] = await response.json();
+        setChats(data);
+      }
+    } catch {}
+  }
+
   useEffect(() => {
-    async function fetchChats() {
-      try {
-        const response = await fetch("https://localhost:8000/chats", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (response.status === 401) {
-          navigate("/login");
-        }
-
-        if (response.ok) {
-          const data: ChatPreviewData[] = await response.json();
-          setChats(data);
-        }
-      } catch {}
-    }
     fetchChats();
   }, []);
 
@@ -59,7 +60,27 @@ function Chats() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    throw new Error("Function not implemented.");
+    const formData = new FormData(event.currentTarget);
+    const chatName = formData.get("chat-name") as string;
+    try {
+      const response = await fetch("https://localhost:8000/chats", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ chatName }),
+        credentials: "include",
+      });
+
+      if (response.status !== 201) {
+        setError("Error occurred when creating chat.");
+        return;
+      }
+
+      fetchChats();
+    } catch (err) {
+      setError("Internal Server Error.");
+    }
   };
 
   return (
@@ -95,7 +116,7 @@ function Chats() {
       >
         <form className="entry-area" onSubmit={handleSubmit}>
           <label>
-            Chat Name: <input name="chat name" required />
+            Chat Name: <input name="chat-name" required />
           </label>
           {error && <div className="error-box">{error}</div>}
 
