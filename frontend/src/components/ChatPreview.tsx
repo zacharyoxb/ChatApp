@@ -2,12 +2,16 @@ import React from "react";
 import { useNavigate } from "react-router";
 import defaultProfile from "../assets/default-profile.jpg";
 import "./css/ChatPreview.css";
+import {
+  formatMessageTimeLong,
+  formatMessageTimeShort,
+} from "../utils/formatMessageTime";
 
 interface ChatPreviewProps {
   profileImage?: string;
   name: string;
   message: string;
-  time: string;
+  last_message_at: string;
   url: string;
 }
 
@@ -15,7 +19,7 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
   profileImage,
   name,
   message,
-  time,
+  last_message_at,
   url,
 }) => {
   const navigate = useNavigate();
@@ -30,6 +34,8 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
       navigate(url);
     }
   }
+
+  const [date, time] = formatMessageTimeLong(last_message_at);
 
   return (
     <div id="layout-div">
@@ -48,13 +54,13 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
         onKeyDown={onKeyDown}
         role="button"
         tabIndex={0}
-        aria-label={`Chat with ${name}. Last message: ${message}. Sent/Received at ${time}`}
+        aria-label={`Chat with ${name}. Last message: ${message}. Sent/Received ${date} at ${time}`}
       >
         <div id="middle-col">
           <div> {name} </div>
           <div> {message} </div>
         </div>
-        <div id="right-col">{time}</div>
+        <div id="right-col">{formatMessageTimeShort(last_message_at)}</div>
       </div>
     </div>
   );

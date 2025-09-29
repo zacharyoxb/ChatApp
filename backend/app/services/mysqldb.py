@@ -7,8 +7,8 @@ ADD_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, 
 GET_PASS_HASH_QUERY = "SELECT pass_hash FROM users WHERE user_name = ?"
 ADD_CHAT_QUERY = "INSERT INTO chats (chat_id, chat_name) VALUES (%s, %s)"
 
-GET_CHATS_QUERY = """
-    SELECT c.chat_id, c.chat_name 
+GET_USER_CHATS_QUERY = """
+    SELECT c.chat_id, c.chat_name, c.last_message_at
     FROM users u JOIN users_in_chats uc ON u.user_id = uc.user_id
     JOIN chats c ON uc.chat_id = c.chat_id
     WHERE u.user_name = ? """
@@ -61,11 +61,11 @@ class DatabaseService:
     async def add_user_to_chat(self):
         """ Adds user to chat in db """
 
-    async def get_all_chats(self, username: str) -> Optional[list[tuple[int, str]]]:
+    async def get_all_user_chats(self, username: str) -> Optional[list[tuple[int, str]]]:
         """ Gets all chats the user is in """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
-            await cursor.execute(GET_CHATS_QUERY, (username,))
+            await cursor.execute(GET_USER_CHATS_QUERY, (username,))
             result = await cursor.fetchall()
             await cursor.close()
             return result if result else None

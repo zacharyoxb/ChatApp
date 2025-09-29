@@ -11,6 +11,7 @@ import { StyledButton } from "../components/StyledButton";
 interface ChatPreviewData {
   chat_id: number;
   chat_name: string;
+  last_message_at: string; // ISO datetime format
 }
 
 function Chats() {
@@ -102,11 +103,18 @@ function Chats() {
               key={chat.chat_id}
               name={chat.chat_name}
               message="Lorem Ipsum"
-              time="22:22"
+              last_message_at={chat.last_message_at}
               url="/chats"
             ></ChatPreview>
           ))
         )}
+        <ChatPreview
+          key={"AAAAAA"}
+          name={"AAAAA"}
+          message="Lorem Ipsum"
+          last_message_at={"2011-10-05T14:48:00.000Z"}
+          url="/chats"
+        ></ChatPreview>
       </div>
       <div id="bottom-bar"></div>
       <Modal

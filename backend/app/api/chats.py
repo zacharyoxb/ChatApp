@@ -1,4 +1,5 @@
 """ Handles the chat page - both chats preview and the chat itself """
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Cookie, HTTPException, status
@@ -13,6 +14,7 @@ class ChatPreview(BaseModel):
     """ ChatPreview template """
     chat_id: int
     chat_name: str
+    last_message_at: datetime
 
 @router.get("/chats", response_model=List[ChatPreview])
 async def get_chat_previews(session_id: str = Cookie(None)):
@@ -21,11 +23,12 @@ async def get_chat_previews(session_id: str = Cookie(None)):
     if username is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
-    chat_tuples = await db_service.get_all_chats(username)
+    chat_tuples = await db_service.get_all_user_chats(username)
     if not chat_tuples:
         return []
-    return [ChatPreview(chat_id=chat_id, chat_name=chat_name)
-            for chat_id, chat_name in chat_tuples]
+    # In future remember to change this to get the last message.
+    return [ChatPreview(chat_id=chat_id, chat_name=chat_name, last_message_at=last_message_at)
+            for chat_id, chat_name, last_message_at in chat_tuples]
 
 @router.post("/chats")
 async def create_new_chat(_session_id: str = Cookie(None)):
