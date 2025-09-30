@@ -112,7 +112,7 @@ function Chats() {
           key={"AAAAAA"}
           name={"AAAAA"}
           message="Lorem Ipsum"
-          last_message_at={"2011-10-05T14:48:00.000Z"}
+          last_message_at={"Thursday, December 20, 2012"}
           url="/chats"
         ></ChatPreview>
       </div>
