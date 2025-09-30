@@ -63,8 +63,5 @@ async def login(req: SignupLoginRequest, res: Response) -> None:
 @router.post("/logout")
 async def logout(res: Response, session_id: str = Cookie(None)) -> None:
     """ Logs user out by deleting redis entry for session """
-    if session_id is None:
-        # cookie expired anyway, do nothing
-        return
     await redis_service.delete_session(session_id)
     remove_session_cookie(res)

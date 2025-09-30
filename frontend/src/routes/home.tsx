@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import "./css/home.css";
 import { useNavigate } from "react-router";
-import { LinkButton } from "../components/LinkButton";
+import { StyledButton } from "../components/StyledButton";
 
 function Home() {
   const navigate = useNavigate();
@@ -26,8 +26,8 @@ function Home() {
     <div id="parent-div">
       <h1>ChatApp: Basic Group Messaging Service</h1>
       <div id="link-buttons">
-        <LinkButton to="/login">Login</LinkButton>
-        <LinkButton to="/signup">Sign Up</LinkButton>
+        <StyledButton onClick={() => navigate("/login")}>Login</StyledButton>
+        <StyledButton onClick={() => navigate("/signup")}>Sign Up</StyledButton>
       </div>
     </div>
   );

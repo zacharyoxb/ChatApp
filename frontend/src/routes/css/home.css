@@ -12,7 +12,7 @@
   gap: 5vw;
 }
 
-.link-button {
+.styled-button {
   font-size: clamp(0.875rem, 2vw, 1.25rem);
   width: clamp(6rem, 20vw, 12rem);
 }
