@@ -1,10 +1,10 @@
-#parent-div {
+.parentDiv {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
-#top-bar {
+.topBar {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -16,26 +16,28 @@
   border-bottom: 1px solid #ddd;
 }
 
-#chats-area {
+.chatsArea {
   height: 80vh;
+  display: flex;
+  justify-content: center;
 }
 
-.light-mode-icon {
+.lightModeIcon {
   display: none;
 }
 
-.dark-mode-icon {
+.darkModeIcon {
   display: none;
 }
 
 @media (prefers-color-scheme: dark) {
-  .dark-mode-icon {
+  .darkModeIcon {
     display: block;
   }
 }
 
 @media (prefers-color-scheme: light) {
-  .light-mode-icon {
+  .lightModeIcon {
     display: block;
   }
 }

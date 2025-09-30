@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { StyledButton } from "../components/StyledButton";
-import "./css/signup-login.css";
+import styles from "./css/sharedAuth.module.css";
 
-function SignUp() {
+function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
@@ -29,15 +29,9 @@ function SignUp() {
 
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
-    const password2 = formData.get("password2") as string;
-
-    if (password !== password2) {
-      setError("Passwords do not match");
-      return;
-    }
 
     try {
-      const response = await fetch("https://localhost:8000/signup", {
+      const response = await fetch("https://localhost:8000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,11 +45,8 @@ function SignUp() {
       }
 
       switch (response.status) {
-        case 409:
-          setError("This username is already taken. Try another.");
-          break;
-        case 500:
-          setError("Database error. Please contact website administrator.");
+        case 401:
+          setError("Username or password is incorrect.");
           break;
         default:
           setError(
@@ -63,34 +54,25 @@ function SignUp() {
           );
       }
     } catch (err) {
-      setError(
-        "Unknown error has occurred. Please contact website administrator."
-      );
+      setError("Internal Server Error.");
     }
   };
 
   return (
-    <div className="parent-div">
-      <div className="login-box">
-        <h2> Sign Up </h2>
-        <form className="entry-area" onSubmit={handleSubmit}>
-          <label>
-            Username: <input name="username" required />
-          </label>
-          <label>
-            Password: <input name="password" type="password" required />
-          </label>
-          <label>
-            Enter password again:
-            <input name="password2" type="password" required />
-            {error && <div className="error-box">{error}</div>}
-          </label>
-
-          <StyledButton type="submit">Sign Up</StyledButton>
-        </form>
-      </div>
+    <div className={styles.entryBox}>
+      <h2> Login </h2>
+      <form className={styles.entryArea} onSubmit={handleSubmit}>
+        <label>
+          Username: <input name="username" required />
+        </label>
+        <label>
+          Password: <input name="password" type="password" required />
+        </label>
+        {error && <div className="error-box">{error}</div>}
+        <StyledButton type="submit">Log in</StyledButton>
+      </form>
     </div>
   );
 }
 
-export default SignUp;
+export default Login;

@@ -3,9 +3,9 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
 import "./index.css";
 import Home from "./routes/Home.tsx";
-import Login from "./routes/login.tsx";
-import SignUp from "./routes/signup.tsx";
-import Chats from "./routes/chats.tsx";
+import Login from "./routes/Login.tsx";
+import SignUp from "./routes/Signup.tsx";
+import Chats from "./routes/Chats.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

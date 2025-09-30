@@ -1,0 +1,21 @@
+.entryBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 6%;
+}
+
+.entryArea {
+  display: flex;
+  flex-direction: column;
+}
+
+.entryArea label {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+}

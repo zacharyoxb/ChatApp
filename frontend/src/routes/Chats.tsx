@@ -3,10 +3,10 @@ import ChatPreview from "../components/ChatPreview";
 import { useNavigate } from "react-router";
 import threeDots from "../assets/three-dots.png";
 import threeDotsLight from "../assets/three-dots-light.png";
-import "./css/chats.css";
 import Dropdown, { type DropdownOption } from "../components/Dropdown";
 import Modal from "../components/Modal";
 import { StyledButton } from "../components/StyledButton";
+import styles from "./css/Chats.module.css";
 
 interface ChatPreviewData {
   chat_id: number;
@@ -85,8 +85,8 @@ function Chats() {
   };
 
   return (
-    <div id="parent-div">
-      <div id="top-bar">
+    <div className={styles.parentDiv}>
+      <div className={styles.topBar}>
         <h1> ChatApp </h1>
         <Dropdown
           darkLogo={threeDots}
@@ -94,7 +94,7 @@ function Chats() {
           menuOptions={dropdownOptions}
         ></Dropdown>
       </div>
-      <div id="chats-area">
+      <div className={styles.chatsArea}>
         {chats.length === 0 ? (
           <h2> You aren't in any chats. </h2>
         ) : (
@@ -108,15 +108,8 @@ function Chats() {
             ></ChatPreview>
           ))
         )}
-        <ChatPreview
-          key={"AAAAAA"}
-          name={"AAAAA"}
-          message="Lorem Ipsum"
-          last_message_at={"Thursday, December 20, 2012"}
-          url="/chats"
-        ></ChatPreview>
       </div>
-      <div id="bottom-bar"></div>
+      <div className={styles.bottomBar}></div>
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
