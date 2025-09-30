@@ -1,6 +1,6 @@
 Database creation query for the database schema the backend uses:
 
-````sql
+```sql
 CREATE TABLE `users` (
   `user_id` BINARY(16) PRIMARY KEY,
   `user_name` VARCHAR(18) NOT NULL UNIQUE,
@@ -43,7 +43,7 @@ CREATE TABLE `dm_chats` (
 ```
 
 Don't forget the indexes for performance:
-````sql
+```sql
 CREATE INDEX idx_chats_public ON chats(is_public);
 CREATE INDEX idx_users_in_chats_user ON users_in_chats(user_id);
 ```
