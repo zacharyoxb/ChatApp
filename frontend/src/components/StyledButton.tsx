@@ -1,5 +1,5 @@
 import React from "react";
-import "./css/StyledButton.css";
+import styles from "./css/StyledButton.module.css";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -12,7 +12,7 @@ export function StyledButton({
   ...rest
 }: ButtonProps) {
   return (
-    <button {...rest} className={`styled-button ${className}`}>
+    <button {...rest} className={`${styles.styledButton} ${className}`}>
       {children}
     </button>
   );

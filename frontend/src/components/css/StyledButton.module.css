@@ -1,4 +1,4 @@
-.styled-button {
+.styledButton {
   display: inline-block;
   background-color: #131313;
   color: white;
@@ -8,19 +8,19 @@
   border-radius: 10px;
 }
 
-.styled-button:hover {
+.styledButton:hover {
   background-color: #555555;
   border: 1px solid #ffffff;
 }
 
 @media (prefers-color-scheme: light) {
-  .styled-button {
+  .styledButton {
     color: #000;
     background-color: #ffffff;
     border: 1px solid #000000;
   }
 
-  .styled-button:hover {
+  .styledButton:hover {
     background-color: #a1a1a1;
     border: 1px solid #000000;
   }

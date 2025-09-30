@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import "./css/home.css";
+import styles from "./css/Home.module.css";
 import { useNavigate } from "react-router";
 import { StyledButton } from "../components/StyledButton";
 
@@ -23,11 +23,21 @@ function Home() {
   }, [navigate]);
 
   return (
-    <div id="parent-div">
+    <div className={styles.parentDiv}>
       <h1>ChatApp: Basic Group Messaging Service</h1>
-      <div id="link-buttons">
-        <StyledButton onClick={() => navigate("/login")}>Login</StyledButton>
-        <StyledButton onClick={() => navigate("/signup")}>Sign Up</StyledButton>
+      <div className={styles.linkButtons}>
+        <StyledButton
+          onClick={() => navigate("/login")}
+          className={styles.homeButton}
+        >
+          Login
+        </StyledButton>
+        <StyledButton
+          onClick={() => navigate("/signup")}
+          className={styles.homeButton}
+        >
+          Sign Up
+        </StyledButton>
       </div>
     </div>
   );

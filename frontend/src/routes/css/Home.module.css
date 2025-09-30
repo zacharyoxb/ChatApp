@@ -1,18 +1,18 @@
-#parent-div {
+.parentDiv {
   display: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
 }
 
-#link-buttons {
+.linkButtons {
   display: flex;
   flex-direction: row;
   justify-content: center;
   gap: 5vw;
 }
 
-.styled-button {
+.homeButton {
   font-size: clamp(0.875rem, 2vw, 1.25rem);
   width: clamp(6rem, 20vw, 12rem);
 }
