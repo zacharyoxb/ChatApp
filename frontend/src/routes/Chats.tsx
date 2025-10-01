@@ -115,13 +115,16 @@ function Chats() {
         onClose={() => setIsModalOpen(false)}
         title="Create New Chat"
       >
-        <form className="entry-area" onSubmit={handleSubmit}>
+        <form className={styles.entryArea} onSubmit={handleSubmit}>
           <label>
-            Chat Name: <input name="chat-name" required />
+            Chat Name:{" "}
+            <input className={styles.inputBox} name="chat-name" required />
           </label>
           {error && <div className="error-box">{error}</div>}
 
-          <StyledButton type="submit">Create Chat</StyledButton>
+          <StyledButton className={styles.createChatButton} type="submit">
+            Create Chat
+          </StyledButton>
         </form>
       </Modal>
     </div>

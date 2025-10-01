@@ -22,7 +22,21 @@
   justify-content: center;
 }
 
+.entryArea {
+  display: flex;
+  flex-direction: column;
+}
+
+.inputBox {
+  width: 50%;
+}
+
+.createChatButton {
+  margin-left: auto;
+}
+
 .lightModeIcon {
+  /* This bit should probably be in dropdown */
   display: none;
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { StyledButton } from "../components/StyledButton";
-import styles from "./css/sharedAuth.module.css";
+import styles from "./css/SharedAuth.module.css";
 
 function SignUp() {
   const navigate = useNavigate();

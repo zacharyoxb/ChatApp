@@ -1,4 +1,4 @@
-.modal-overlay {
+.modalOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,21 +12,21 @@
   cursor: default;
 }
 
-.modal-content {
+.modalContent {
   background-color: #131313;
   border: 1px solid #ffffff;
   padding: 10px;
   border-radius: 8px;
 }
 
-.modal-header {
+.modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
 }
 
-.modal-close-button {
+.modalCloseButton {
   background-color: rgb(104, 0, 0);
   color: white;
   font-size: 1.5rem;
@@ -37,22 +37,22 @@
   margin-top: 0rem; /* override margin-top from button so it's centrally aligned */
 }
 
-.modal-close-button:hover {
+.modalCloseButton:hover {
   background-color: rgb(170, 0, 0);
 }
 
-.modal-body {
+.modalBody {
   padding: 15px;
   border: 1px solid #ffffff;
 }
 
 @media (prefers-color-scheme: light) {
-  .modal-content {
+  .modalContent {
     background-color: #ffffff;
     border: 1px solid #131313;
   }
 
-  .modal-body {
+  .modalBody {
     border: 1px solid #131313;
   }
 }
