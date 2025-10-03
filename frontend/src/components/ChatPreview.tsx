@@ -1,11 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import defaultProfile from "../assets/default-profile.jpg";
-import "./css/ChatPreview.css";
 import {
   formatMessageTimeLong,
   formatMessageTimeShort,
 } from "../utils/formatMessageTime";
+import styles from "./css/ChatPreview.module.css";
 
 interface ChatPreviewProps {
   profileImage?: string;
@@ -38,10 +38,10 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
   const [date, time] = formatMessageTimeLong(last_message_at);
 
   return (
-    <div id="layout-div">
-      <div id="left-col">
+    <div className={styles.layoutDiv}>
+      <div className={styles.leftCol}>
         <img
-          id="profile-image"
+          className={styles.profileImage}
           src={profileImage || defaultProfile}
           width={50}
           height={50}
@@ -49,18 +49,20 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
         />
       </div>
       <div
-        id="link-container"
+        className={styles.linkContainer}
         onClick={onClick}
         onKeyDown={onKeyDown}
         role="button"
         tabIndex={0}
         aria-label={`Chat with ${name}. Last message: ${message}. Sent/Received ${date} at ${time}`}
       >
-        <div id="middle-col">
+        <div className={styles.middleCol}>
           <div> {name} </div>
           <div> {message} </div>
         </div>
-        <div id="right-col">{formatMessageTimeShort(last_message_at)}</div>
+        <div className={styles.rightCol}>
+          {formatMessageTimeShort(last_message_at)}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import "./css/Dropdown.css";
 import { StyledButton } from "./StyledButton";
+import styles from "./css/Dropdown.module.css";
 
 interface DropdownProps {
   label?: string;
@@ -50,26 +50,35 @@ const Dropdown: React.FC<DropdownProps> = ({
   }, [showMenu]);
 
   return (
-    <div id="dropdown-container" ref={containerRef}>
-      <button id="logo-button" onClick={toggleMenu}>
+    <div className={styles.dropdownContainer} ref={containerRef}>
+      <button className={styles.logoButton} onClick={toggleMenu}>
         {lightLogo && (
-          <img src={lightLogo} id="light-mode-icon" alt="Miscellaneous menu" />
+          <img
+            src={lightLogo}
+            className={styles.lightModeIcon}
+            alt="Miscellaneous menu"
+          />
         )}
         {darkLogo && (
-          <img src={darkLogo} id="dark-mode-icon" alt="Miscellaneous menu" />
+          <img
+            src={darkLogo}
+            className={styles.darkModeIcon}
+            alt="Miscellaneous menu"
+          />
         )}
         {label}
       </button>
 
       {showMenu && (
         <div
-          id="dropdown-menu"
-          className={menuPosition === "right" ? "menu-right" : "menu-left"}
+          className={`${
+            menuPosition === "right" ? styles.menuRight : styles.menuLeft
+          } ${styles.dropdownMenu}`}
         >
           {menuOptions.map((option, index) => (
             <StyledButton
               key={index}
-              id="dropdown-option"
+              className={styles.dropdownOption}
               onClick={() => handleOptionClick(option.action)}
             >
               {option.label}

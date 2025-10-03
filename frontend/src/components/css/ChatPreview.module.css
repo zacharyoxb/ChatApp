@@ -1,6 +1,8 @@
-#layout-div {
+.layoutDiv {
   display: flex;
   flex-flow: row nowrap;
+  max-height: 65px;
+  max-width: 100%;
   padding: 1vh;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -8,12 +10,12 @@
   background-color: #131313;
 }
 
-#left-col {
+.leftCol {
   flex: 0 auto auto;
   padding: 5px;
 }
 
-#link-container {
+.linkContainer {
   display: flex;
   flex-flow: row;
   flex: 1;
@@ -23,26 +25,26 @@
   transition: background 0.2s ease;
 }
 
-#link-container:hover {
+.linkContainer:hover {
   background-color: #555555;
 }
 
-#middle-col {
+.middleCol {
   text-align: left;
 }
 
-#right-col {
+.rightCol {
   flex: 0 0 auto;
   margin-left: auto;
 }
 
 @media (prefers-color-scheme: light) {
-  #layout-div {
+  .layoutDiv {
     color: #000;
     background-color: #ffffff;
   }
 
-  #link-container:hover {
+  .linkContainer:hover {
     background-color: #a1a1a1;
   }
 }

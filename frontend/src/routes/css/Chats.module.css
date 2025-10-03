@@ -34,24 +34,3 @@
 .createChatButton {
   margin-left: auto;
 }
-
-.lightModeIcon {
-  /* This bit should probably be in dropdown */
-  display: none;
-}
-
-.darkModeIcon {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  .darkModeIcon {
-    display: block;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  .lightModeIcon {
-    display: block;
-  }
-}
