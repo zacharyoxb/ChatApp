@@ -28,7 +28,11 @@ function Chats() {
       });
 
       if (response.status === 401) {
-        navigate("/login");
+        navigate("/login", {
+          state: {
+            sessionExpired: true,
+          },
+        });
       }
 
       if (response.ok) {

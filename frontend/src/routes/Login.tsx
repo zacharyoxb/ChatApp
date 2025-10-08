@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { StyledButton } from "../components/StyledButton";
 import styles from "./css/SharedAuth.module.css";
 
 function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  // Notifies when navigating from expired session
+  const location = useLocation();
+  const sessionExpired = location.state || {};
 
   useEffect(() => {
     async function checkSession() {
+      if (sessionExpired) {
+        setError("Your session has expired. Please log in again.");
+        return;
+      }
+
       try {
         const response = await fetch("https://localhost:8000/session", {
           method: "GET",

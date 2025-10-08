@@ -37,7 +37,7 @@ class RedisService:
         return session_id
 
     async def get_session(self, session_id: str) -> Optional[dict]:
-        """ Gets session, extends TTL due to activity """
+        """ Gets session"""
         session_key = f"session:{session_id}"
         session_data = await self._redis_conn.hgetall(session_key)
 
