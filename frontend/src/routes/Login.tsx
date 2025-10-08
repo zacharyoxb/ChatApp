@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { StyledButton } from "../components/StyledButton";
 import styles from "./css/SharedAuth.module.css";
 
@@ -71,6 +71,10 @@ function Login() {
         {error && <div className="error-box">{error}</div>}
         <StyledButton type="submit">Log in</StyledButton>
       </form>
+
+      <div>
+        Don't have an account? <Link to="/signup"> Sign up </Link>
+      </div>
     </div>
   );
 }
