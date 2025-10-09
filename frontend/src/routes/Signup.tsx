@@ -27,7 +27,6 @@ function SignUp() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
 
-    const username = formData.get("username") as string;
     const password = formData.get("password") as string;
     const password2 = formData.get("password2") as string;
 
@@ -36,13 +35,16 @@ function SignUp() {
       return;
     }
 
+    const username = formData.get("username") as string;
+    const remember_me = formData.get("remember-me") === "on";
+
     try {
       const response = await fetch("https://localhost:8000/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, remember_me }),
         credentials: "include",
       });
 
@@ -71,6 +73,7 @@ function SignUp() {
 
   return (
     <div className="parent-div">
+      {error && <div className="error-box">{error}</div>}
       <div className={styles.entryBox}>
         <h2> Sign Up </h2>
         <form className={styles.entryArea} onSubmit={handleSubmit}>
@@ -83,7 +86,10 @@ function SignUp() {
           <label>
             Enter password again:
             <input name="password2" type="password" required />
-            {error && <div className="error-box">{error}</div>}
+          </label>
+          <label className={styles.checkboxLabel}>
+            <input name="remember-me" type="checkbox"></input>
+            Remember me
           </label>
           <StyledButton type="submit">Sign Up</StyledButton>
         </form>

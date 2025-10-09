@@ -17,6 +17,7 @@ class SignupLoginRequest(BaseModel):
     """ Input required for sign in/login """
     username: str
     password: str
+    remember_me: bool
 
 @router.post("/signup")
 async def signup(req: SignupLoginRequest, res: Response) -> None:

@@ -8,12 +8,12 @@ function Login() {
   const [error, setError] = useState<string | null>(null);
   // Notifies when navigating from expired session
   const location = useLocation();
-  const sessionExpired = location.state || {};
 
   useEffect(() => {
     async function checkSession() {
-      if (sessionExpired) {
+      if (location.state?.sessionExpired) {
         setError("Your session has expired. Please log in again.");
+        navigate(location.pathname, { replace: true, state: {} });
         return;
       }
 
@@ -37,6 +37,7 @@ function Login() {
 
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
+    const remember_me = formData.get("remember-me") === "on";
 
     try {
       const response = await fetch("https://localhost:8000/login", {
@@ -44,7 +45,7 @@ function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, remember_me }),
         credentials: "include",
       });
 
@@ -68,6 +69,7 @@ function Login() {
 
   return (
     <div className={styles.entryBox}>
+      {error && <div className="error-box">{error}</div>}
       <h2> Login </h2>
       <form className={styles.entryArea} onSubmit={handleSubmit}>
         <label>
@@ -76,7 +78,10 @@ function Login() {
         <label>
           Password: <input name="password" type="password" required />
         </label>
-        {error && <div className="error-box">{error}</div>}
+        <label className={styles.checkboxLabel}>
+          <input name="remember-me" type="checkbox"></input>
+          Remember me
+        </label>
         <StyledButton type="submit">Log in</StyledButton>
       </form>
 
