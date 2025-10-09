@@ -67,26 +67,70 @@ function Login() {
     }
   };
 
+  const clearError = () => {
+    if (error) setError(null);
+  };
+
   return (
-    <div className={styles.entryBox}>
-      {error && <div className="error-box">{error}</div>}
-      <h2> Login </h2>
+    <div className={styles.entryBox} role="main">
+      <h1> Login </h1>
+
+      {error && (
+        <div
+          className="error-box"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          {error}
+        </div>
+      )}
+
       <form className={styles.entryArea} onSubmit={handleSubmit}>
-        <label>
-          Username: <input name="username" required />
+        <label htmlFor="username-input">
+          Username:{" "}
+          <input
+            id="username-input"
+            name="username"
+            type="text"
+            autoComplete="username"
+            required
+            aria-required="true"
+            onChange={clearError}
+          />
         </label>
-        <label>
-          Password: <input name="password" type="password" required />
+
+        <label htmlFor="password-input">
+          Password:{" "}
+          <input
+            id="password-input"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            aria-required="true"
+            onChange={clearError}
+          />
         </label>
-        <label className={styles.checkboxLabel}>
-          <input name="remember-me" type="checkbox"></input>
+
+        <label htmlFor="remember-me-input" className={styles.checkboxLabel}>
+          <input
+            id="remember-me-input"
+            name="remember-me"
+            type="checkbox"
+          ></input>
           Remember me
         </label>
+
         <StyledButton type="submit">Log in</StyledButton>
       </form>
 
       <div>
-        Don't have an account? <Link to="/signup"> Sign up </Link>
+        Don't have an account?
+        <Link to="/signup">
+          Sign up
+          <span className="sr-only"> to your existing account</span>
+        </Link>
       </div>
     </div>
   );

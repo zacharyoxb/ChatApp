@@ -71,32 +71,83 @@ function SignUp() {
     }
   };
 
-  return (
-    <div className="parent-div">
-      {error && <div className="error-box">{error}</div>}
-      <div className={styles.entryBox}>
-        <h2> Sign Up </h2>
-        <form className={styles.entryArea} onSubmit={handleSubmit}>
-          <label>
-            Username: <input name="username" required />
-          </label>
-          <label>
-            Password: <input name="password" type="password" required />
-          </label>
-          <label>
-            Enter password again:
-            <input name="password2" type="password" required />
-          </label>
-          <label className={styles.checkboxLabel}>
-            <input name="remember-me" type="checkbox"></input>
-            Remember me
-          </label>
-          <StyledButton type="submit">Sign Up</StyledButton>
-        </form>
+  const clearError = () => {
+    if (error) setError(null);
+  };
 
-        <div>
-          Already have an account? <Link to="/login"> Login </Link>
+  return (
+    <div className={styles.entryBox}>
+      <h1> Sign Up </h1>
+
+      {error && (
+        <div
+          className="error-box"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          {error}
         </div>
+      )}
+
+      <form className={styles.entryArea} onSubmit={handleSubmit}>
+        <label htmlFor="username-input">
+          Username:{" "}
+          <input
+            id="username-input"
+            name="username"
+            type="text"
+            autoComplete="username"
+            required
+            aria-required="true"
+            onChange={clearError}
+          />
+        </label>
+
+        <label htmlFor="password-input">
+          Password:{" "}
+          <input
+            id="password-input"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            aria-required="true"
+            onChange={clearError}
+          />
+        </label>
+
+        <label htmlFor="password2-input">
+          Enter password again:{" "}
+          <input
+            id="password2-input"
+            name="password2"
+            type="password"
+            autoComplete="new-password"
+            required
+            aria-required="true"
+            onChange={clearError}
+          />
+        </label>
+
+        <label htmlFor="remember-me-input" className={styles.checkboxLabel}>
+          <input
+            id="remember-me-input"
+            name="remember-me"
+            type="checkbox"
+          ></input>
+          Remember me
+        </label>
+
+        <StyledButton type="submit">Sign Up</StyledButton>
+      </form>
+
+      <div>
+        Already have an account?
+        <Link to="/login">
+          Login
+          <span className="sr-only"> to your existing account</span>
+        </Link>
       </div>
     </div>
   );
