@@ -126,7 +126,7 @@ function Login() {
       </form>
 
       <div>
-        Don't have an account?
+        Don't have an account?{" "}
         <Link to="/signup">
           Sign up
           <span className="sr-only"> to your existing account</span>
