@@ -129,7 +129,7 @@ function Login() {
         Don't have an account?{" "}
         <Link to="/signup">
           Sign up
-          <span className="sr-only"> to your existing account</span>
+          <span className="sr-only"> for a new account</span>
         </Link>
       </div>
     </div>
