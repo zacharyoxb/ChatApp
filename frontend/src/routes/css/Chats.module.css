@@ -27,10 +27,19 @@
   flex-direction: column;
 }
 
+.entryArea label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .inputBox {
   width: 50%;
 }
 
 .createChatButton {
   margin-left: auto;
+  font-size: small;
+  margin-top: 10px;
 }

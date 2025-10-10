@@ -92,6 +92,16 @@ function Chats() {
     <div className={styles.parentDiv}>
       <div className={styles.topBar}>
         <h1> ChatApp </h1>
+        {error && (
+          <div
+            className="error-box"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+          >
+            {error}
+          </div>
+        )}
         <Dropdown
           darkLogo={threeDots}
           lightLogo={threeDotsLight}
@@ -124,7 +134,11 @@ function Chats() {
             Chat Name:{" "}
             <input className={styles.inputBox} name="chat-name" required />
           </label>
-          {error && <div className="error-box">{error}</div>}
+
+          <label>
+            Add Users to Chat:
+            <input className={styles.inputBox} name="add-users" required />
+          </label>
 
           <StyledButton className={styles.createChatButton} type="submit">
             Create Chat
