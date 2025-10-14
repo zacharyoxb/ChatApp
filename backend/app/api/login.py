@@ -30,7 +30,7 @@ async def signup(req: SignupLoginRequest, res: Response) -> None:
     pass_hash = bcrypt.hashpw(pass_bytes, salt).decode()
 
     try:
-        await db_service.add_user(user_id, req.username, pass_hash)
+        await db_service.create_user(user_id, req.username, pass_hash)
         session_id = await redis_service.create_session(user_id, req.username)
         set_session_cookie(res, session_id)
         res.status_code = status.HTTP_201_CREATED

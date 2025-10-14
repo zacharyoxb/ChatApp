@@ -20,12 +20,12 @@ class ChatPreview(BaseModel):
 @router.get("/chats", response_model=List[ChatPreview])
 async def get_user_chat_previews(res: Response, session_id: str = Cookie(None)):
     """ Gets all chats user is in """
-    username = await redis_service.get_session(session_id)
-    if username is None:
+    session_data = await redis_service.get_session(session_id)
+    if session_data is None:
         remove_session_cookie(res)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
-    chat_tuples = await db_service.get_all_user_chats(username)
+    chat_tuples = await db_service.get_all_user_chats(session_data.get("user_id"))
     if not chat_tuples:
         return []
     # In future remember to change this to get the last message.
@@ -35,8 +35,8 @@ async def get_user_chat_previews(res: Response, session_id: str = Cookie(None)):
 @router.post("/chats")
 async def create_new_chat(res: Response, _chat_name: str, session_id: str = Cookie(None)):
     """ Creates a new chat, adds users to chat """
-    username = await redis_service.get_session(session_id)
-    if username is None:
+    session_data = await redis_service.get_session(session_id)
+    if session_data is None:
         remove_session_cookie(res)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")

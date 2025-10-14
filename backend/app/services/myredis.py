@@ -45,7 +45,7 @@ class RedisService:
         if not session_data:
             return None
 
-        return session_data.get("username")
+        return session_data
 
     async def extend_session(self, session_id: str) -> None:
         """ Extend session for sliding TTL """

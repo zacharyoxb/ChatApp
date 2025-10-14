@@ -10,18 +10,16 @@ class Role(Enum):
     ADMIN = "Admin"
     MEMBER = "Member"
 
-ADD_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
-GET_USER_ID_QUERY = "SELECT user_id FROM users WHERE user_name = ?"
-GET_PASS_HASH_QUERY = "SELECT pass_hash FROM users WHERE user_name = ?"
-ADD_CHAT_QUERY = "INSERT INTO chats (chat_id, chat_name, created_by, is_public) " \
+# INSERT queries
+CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
+CREATE_CHAT_QUERY = "INSERT INTO chats (chat_id, chat_name, created_by, is_public) " \
 "VALUES (%s, %s, %s, %s)"
 ADD_USER_TO_CHAT_QUERY = "INSERT INTO users_in_chats (user_id, chat_id, role) VALUES (%s, %s, %s)"
 
-GET_USER_CHATS_QUERY = """
-    SELECT c.chat_id, c.chat_name, c.last_message_at
-    FROM users u JOIN users_in_chats uc ON u.user_id = uc.user_id
-    JOIN chats c ON uc.chat_id = c.chat_id
-    WHERE u.user_name = ? """
+# SELECT queries
+GET_USER_ID_QUERY = "SELECT user_id FROM users WHERE user_name = ?"
+GET_PASS_HASH_QUERY = "SELECT pass_hash FROM users WHERE user_name = ?"
+GET_USER_CHATS_QUERY = "placeholder"
 
 class DatabaseService:
     """ Singleton instance holding pool"""
@@ -43,11 +41,28 @@ class DatabaseService:
         )
         await self._pool.initialize_pool()
 
-    async def add_user(self, user_id: bytes, username: str, pass_hash: str) -> None:
+    async def create_user(self, user_id: bytes, username: str, pass_hash: str) -> None:
         """ Adds user to db """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
-            await cursor.execute(ADD_USER_QUERY, (user_id, username, pass_hash))
+            await cursor.execute(CREATE_USER_QUERY, (user_id, username, pass_hash))
+            await conn.commit()
+            await cursor.close()
+
+    async def create_chat(self, chat_id: bytes, chat_name: str, user_id: bytes,
+                           is_public: bool) -> None:
+        """ Adds chat to db """
+        async with await self._pool.get_connection() as conn:
+            cursor = await conn.cursor(prepared=True)
+            await cursor.execute(CREATE_CHAT_QUERY, (chat_id, chat_name, user_id, is_public))
+            await conn.commit()
+            await cursor.close()
+
+    async def add_user_to_chat(self, user_id: str, chat_id: bytes, role: Role):
+        """ Adds user to chat in db """
+        async with await self._pool.get_connection() as conn:
+            cursor = await conn.cursor(prepared=True)
+            await cursor.execute(ADD_USER_TO_CHAT_QUERY, (user_id, chat_id, role))
             await conn.commit()
             await cursor.close()
 
@@ -69,30 +84,13 @@ class DatabaseService:
             await cursor.close()
             return result[0] if result else None
 
-    async def create_chat(self, chat_id: bytes, chat_name: str, user_id: bytes,
-                           is_public: bool) -> None:
-        """ Adds chat to db """
-        async with await self._pool.get_connection() as conn:
-            cursor = await conn.cursor(prepared=True)
-            await cursor.execute(ADD_CHAT_QUERY, (chat_id, chat_name, user_id, is_public))
-            await conn.commit()
-            await cursor.close()
-
-    async def add_user_to_chat(self, user_id: str, chat_id: bytes, role: Role):
-        """ Adds user to chat in db """
-        async with await self._pool.get_connection() as conn:
-            cursor = await conn.cursor(prepared=True)
-            await cursor.execute(ADD_USER_TO_CHAT_QUERY, (user_id, chat_id, role))
-            await conn.commit()
-            await cursor.close()
-
-    async def get_all_user_chats(self, username: str) -> Optional[list[tuple[int, str]]]:
+    async def get_all_user_chats(self, user_id: bytes) -> Optional[list[tuple[int, str]]]:
         """ Gets all chats the user is in """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
-            await cursor.execute(GET_USER_CHATS_QUERY, (username,))
-            result = await cursor.fetchall()
+            await cursor.execute(GET_USER_CHATS_QUERY, (user_id,))
+            result = await cursor.fetchone()
             await cursor.close()
-            return result if result else None
+            return result[0] if result else None
 
 db_service = DatabaseService()
