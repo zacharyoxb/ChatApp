@@ -22,11 +22,12 @@ class RedisService:
         """ Initialises redis / valkey """
         self._redis_conn = redis.Redis(**redis_config)
 
-    async def create_session(self, username: str) -> str:
+    async def create_session(self, user_id: bytes, username: str) -> str:
         """ Creates session cookie """
         session_id = str(uuid.uuid4())
         await self._redis_conn.hset(f"session:{session_id}",
             mapping={
+                "user_id": str(user_id),
                 "username": username, 
                 "created_at": time.time(), 
                 "last_activity": time.time()

@@ -33,5 +33,10 @@ async def get_user_chat_previews(res: Response, session_id: str = Cookie(None)):
             for chat_id, chat_name, last_message_at in chat_tuples]
 
 @router.post("/chats")
-async def create_new_chat(_session_id: str = Cookie(None)):
+async def create_new_chat(res: Response, _chat_name: str, session_id: str = Cookie(None)):
     """ Creates a new chat, adds users to chat """
+    username = await redis_service.get_session(session_id)
+    if username is None:
+        remove_session_cookie(res)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Session does not exist or has expired")

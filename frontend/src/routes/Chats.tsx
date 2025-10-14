@@ -135,11 +135,6 @@ function Chats() {
             <input className={styles.inputBox} name="chat-name" required />
           </label>
 
-          <label>
-            Add Users to Chat:
-            <input className={styles.inputBox} name="add-users" required />
-          </label>
-
           <StyledButton className={styles.createChatButton} type="submit">
             Create Chat
           </StyledButton>
