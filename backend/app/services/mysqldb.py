@@ -19,7 +19,16 @@ ADD_USER_TO_CHAT_QUERY = "INSERT INTO users_in_chats (user_id, chat_id, role) VA
 # SELECT queries
 GET_USER_ID_QUERY = "SELECT user_id FROM users WHERE user_name = ?"
 GET_PASS_HASH_QUERY = "SELECT pass_hash FROM users WHERE user_name = ?"
-GET_USER_CHATS_QUERY = "placeholder"
+GET_USER_CHATS_QUERY = """
+    SELECT 
+        c.chat_id,
+        c.chat_name,
+        c.last_message_at
+    FROM chats c
+    INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
+    WHERE uic.user_id = ?
+    ORDER BY c.last_message_at DESC
+    """
 
 class DatabaseService:
     """ Singleton instance holding pool"""
@@ -84,13 +93,13 @@ class DatabaseService:
             await cursor.close()
             return result[0] if result else None
 
-    async def get_all_user_chats(self, user_id: bytes) -> Optional[list[tuple[int, str]]]:
+    async def get_all_user_chats(self, user_id: bytes) -> Optional[list[tuple]]:
         """ Gets all chats the user is in """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(GET_USER_CHATS_QUERY, (user_id,))
-            result = await cursor.fetchone()
+            result = await cursor.fetchall()
             await cursor.close()
-            return result[0] if result else None
+            return result if result else None
 
 db_service = DatabaseService()
