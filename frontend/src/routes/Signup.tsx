@@ -35,6 +35,11 @@ function SignUp() {
       return;
     }
 
+    if (password.length < 8) {
+      setError("Passwords must be at least 8 characters.");
+      return;
+    }
+
     const username = formData.get("username") as string;
     const remember_me = formData.get("remember-me") === "on";
 
