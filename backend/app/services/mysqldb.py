@@ -23,12 +23,30 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         c.chat_name,
-        c.last_message_at
+        c.last_message_at,
+        'group' as chat_type
     FROM chats c
     INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
     WHERE uic.user_id = ?
-    ORDER BY c.last_message_at DESC
-    """
+
+    UNION ALL
+
+    SELECT 
+        c.chat_id,
+        u.user_name as chat_name,  -- Use the other user's name as chat name for DMs
+        c.last_message_at,
+        'dm' as chat_type
+    FROM chats c
+    INNER JOIN dm_chats dm ON c.chat_id = dm.chat_id
+    INNER JOIN users u ON (
+        CASE 
+            WHEN dm.user1_id = ? THEN dm.user2_id
+            ELSE dm.user1_id
+        END
+    ) = u.user_id
+    WHERE dm.user1_id = ? OR dm.user2_id = ?
+    ORDER BY last_message_at DESC;
+"""
 
 class DatabaseService:
     """ Singleton instance holding pool"""
@@ -94,10 +112,10 @@ class DatabaseService:
             return result[0] if result else None
 
     async def get_all_user_chats(self, user_id: bytes) -> Optional[list[tuple]]:
-        """ Gets all chats the user is in """
+        """ Gets all group chats the user is in """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
-            await cursor.execute(GET_USER_CHATS_QUERY, (user_id,))
+            await cursor.execute(GET_USER_CHATS_QUERY, (user_id,)*4)
             result = await cursor.fetchall()
             await cursor.close()
             return result if result else None
