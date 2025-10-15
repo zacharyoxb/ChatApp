@@ -1,19 +1,14 @@
 """ Connects to mysql database """
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from mysql.connector.aio import MySQLConnectionPool
-
-class Role(Enum):
-    """ Enum for all possible roles """
-    OWNER = "Owner"
-    ADMIN = "Admin"
-    MEMBER = "Member"
 
 # INSERT queries
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
 CREATE_CHAT_QUERY = "INSERT INTO chats (chat_id, chat_name, created_by, is_public) " \
-"VALUES (%s, %s, %s, %s)"
+    "VALUES (%s, %s, %s, %s)"
 ADD_USER_TO_CHAT_QUERY = "INSERT INTO users_in_chats (user_id, chat_id, role) VALUES (%s, %s, %s)"
 
 # SELECT queries
@@ -48,8 +43,26 @@ GET_USER_CHATS_QUERY = """
     ORDER BY last_message_at DESC;
 """
 
+
+class Role(Enum):
+    """ Enum for all possible roles """
+    OWNER = "Owner"
+    ADMIN = "Admin"
+    MEMBER = "Member"
+
+
+@dataclass
+class CreateChatRequest:
+    """ Data class for creating a new chat """
+    chat_id: bytes
+    chat_name: str
+    user_id: bytes
+    is_public: bool
+    other_users: List[bytes]
+
+
 class DatabaseService:
-    """ Singleton instance holding pool"""
+    """ Singleton instance holding pool """
     _instance: Optional['DatabaseService'] = None
     _pool: Optional[MySQLConnectionPool] = None
 
@@ -76,12 +89,18 @@ class DatabaseService:
             await conn.commit()
             await cursor.close()
 
-    async def create_chat(self, chat_id: bytes, chat_name: str, user_id: bytes,
-                           is_public: bool) -> None:
+    async def create_chat(self, req: CreateChatRequest) -> None:
         """ Adds chat to db """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
-            await cursor.execute(CREATE_CHAT_QUERY, (chat_id, chat_name, user_id, is_public))
+            # create chat
+            await cursor.execute(CREATE_CHAT_QUERY, (req.chat_id, req.chat_name, req.user_id,
+                                                     req.is_public))
+            # add creator as owner
+            await cursor.execute(ADD_USER_TO_CHAT_QUERY, (req.user_id, req.chat_id, 'owner'))
+            # add other users if provided
+            for other_user_id in req.other_users:
+                await cursor.execute(ADD_USER_TO_CHAT_QUERY, (other_user_id, req.chat_id, 'member'))
             await conn.commit()
             await cursor.close()
 
@@ -119,5 +138,6 @@ class DatabaseService:
             result = await cursor.fetchall()
             await cursor.close()
             return result if result else None
+
 
 db_service = DatabaseService()
