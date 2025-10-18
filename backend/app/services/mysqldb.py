@@ -1,5 +1,6 @@
 """ Connects to mysql database """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
@@ -45,24 +46,54 @@ GET_USER_CHATS_QUERY = """
 
 
 class Role(Enum):
-    """ Enum for all possible roles """
-    OWNER = "Owner"
-    ADMIN = "Admin"
-    MEMBER = "Member"
+    """ Enum for the 3 possible roles. """
+    OWNER = "owner"
+    ADMIN = "admin"
+    MEMBER = "member"
 
 
 @dataclass
 class CreateChatRequest:
-    """ Data class for creating a new chat """
+    """ Data class for creating a new chat.
+
+    Attributes:
+        chat_id (bytes): Generated chat id.
+        chat_name (str): Name of the chat.
+        user_id (bytes): User id of the chat owner.
+        is_public (bool, optional): Indicates whether the chat is public. Defaults to False.
+        other_users (List[bytes], optional): All other users in the chat. Defaults to empty list.
+    """
     chat_id: bytes
     chat_name: str
     user_id: bytes
-    is_public: bool
-    other_users: List[bytes]
+    is_public: bool = False
+    other_users: List[bytes] = field(default_factory=list)
+
+
+class ChatType(Enum):
+    """ Enum for the 2 chat types. """
+    GROUP = "group"
+    DM = "dm"
+
+
+@dataclass
+class UserChat:
+    """ Represents a chat in a user's chat list.
+
+    Attributes:
+        chat_id (bytes): Id of the chat
+        chat_name (str): Name of the chat
+        last_message_at (datetime): Timestamp of the last message in the chat
+        chat_type (ChatType): Type of chat (group or DM)
+    """
+    chat_id: bytes
+    chat_name: str
+    last_message_at: datetime
+    chat_type: ChatType
 
 
 class DatabaseService:
-    """ Singleton instance holding pool """
+    """ Singleton instance holding database pool. """
     _instance: Optional['DatabaseService'] = None
     _pool: Optional[MySQLConnectionPool] = None
 
@@ -72,7 +103,11 @@ class DatabaseService:
         return cls._instance
 
     async def init_db_pool(self, db_config: dict) -> None:
-        """ Initialises pool (call on startup ONLY) """
+        """ Initialises pool. (call on startup ONLY) 
+
+        Args:
+            db_config (dict): Database configuration provided by service_configs. 
+        """
         self._pool = MySQLConnectionPool(
             pool_name="db_pool",
             pool_size=5,
@@ -82,7 +117,13 @@ class DatabaseService:
         await self._pool.initialize_pool()
 
     async def create_user(self, user_id: bytes, username: str, pass_hash: str) -> None:
-        """ Adds user to db """
+        """ Adds user to db. 
+
+        Args:
+            user_id (bytes): Generated id of user.
+            username (str): Username of user.
+            pass_hash (str): Hashed password of user.
+        """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(CREATE_USER_QUERY, (user_id, username, pass_hash))
@@ -90,7 +131,11 @@ class DatabaseService:
             await cursor.close()
 
     async def create_chat(self, req: CreateChatRequest) -> None:
-        """ Adds chat to db """
+        """ Adds chat to db. 
+
+        Args:
+            req (CreateChatRequest): Dataclass for creating chat.
+        """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             # create chat
@@ -105,7 +150,13 @@ class DatabaseService:
             await cursor.close()
 
     async def add_user_to_chat(self, user_id: str, chat_id: bytes, role: Role):
-        """ Adds user to chat in db """
+        """ Adds user to chat in db. 
+
+        Args:
+            user_id (str): Added user's id. 
+            chat_id (bytes): Id of chat to add user to.
+            role (Role): Role to assign to user.
+        """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(ADD_USER_TO_CHAT_QUERY, (user_id, chat_id, role))
@@ -113,7 +164,14 @@ class DatabaseService:
             await cursor.close()
 
     async def get_user_id(self, username: str) -> bytes:
-        """ Gets user id from username """
+        """ Gets user id from username. 
+
+        Args:
+            username (str): Username of user.
+
+        Returns:
+            bytes: User's id.
+        """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(GET_USER_ID_QUERY, (username,))
@@ -122,7 +180,14 @@ class DatabaseService:
             return result[0] if result else None
 
     async def get_password(self, username: str) -> Optional[str]:
-        """ Gets the password hash for a user. Returns None if user doesn't exist. """
+        """ Gets the password hash for a user.
+
+        Args:
+            username (str): Username of user.
+
+        Returns:
+            Optional[str]: If user exists, the password hash. Otherwise none.
+        """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(GET_PASS_HASH_QUERY, (username,))
@@ -131,7 +196,15 @@ class DatabaseService:
             return result[0] if result else None
 
     async def get_all_user_chats(self, user_id: bytes) -> Optional[list[tuple]]:
-        """ Gets all group chats the user is in """
+        """ Gets all group chats the user is in.
+
+        Args:
+            user_id (bytes): Id of user to check.
+
+        Returns:
+            Optional[list[tuple]]: List containing tuples of chat information.
+            Includes chat id, name, and the timestamp of the last message.
+        """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(GET_USER_CHATS_QUERY, (user_id,)*4)

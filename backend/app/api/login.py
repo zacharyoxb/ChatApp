@@ -13,15 +13,27 @@ from app.utils.cookies import set_session_cookie, remove_session_cookie
 
 router = APIRouter()
 
+
 class SignupLoginRequest(BaseModel):
     """ Input required for sign in/login """
     username: str
     password: str
     remember_me: bool
 
+
 @router.post("/signup")
 async def signup(req: SignupLoginRequest, res: Response) -> None:
-    """ Sends signup data to db and returns cookie with session id if successful"""
+    """  Sends signup data to db and returns cookie with session id if successful.
+
+    Args:
+        req (SignupLoginRequest): Request template sent from frontend.
+        res (Response): FastAPI response.
+
+    Raises:
+        HTTPException: Exception thrown if the username is already taken. (409 CONFLICT)
+        HTTPException: Exception thrown if any other error happens with the mysql connector
+         (500 INTERNAL SERVER ERROR)
+    """
     # generate unique id
     user_id = uuid.uuid4().bytes
     # hash the password
@@ -41,9 +53,19 @@ async def signup(req: SignupLoginRequest, res: Response) -> None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="Database operation failed") from e
 
+
 @router.post("/login")
 async def login(req: SignupLoginRequest, res: Response) -> None:
-    """ Checks user submitted login details and returns session id if successful """
+    """  Checks user submitted login details and returns session id if successful. 
+
+    Args:
+        req (SignupLoginRequest): Request template sent from frontend. 
+        res (Response): FastAPI response.
+
+    Raises:
+       HTTPException: Exception thrown if the username and/or password is incorrect.
+        (401 UNAUTHORIZED) 
+    """
     pass_hash = await db_service.get_password(req.username)
 
     if pass_hash is None:
@@ -62,8 +84,14 @@ async def login(req: SignupLoginRequest, res: Response) -> None:
     set_session_cookie(res, session_id)
     res.status_code = status.HTTP_201_CREATED
 
+
 @router.post("/logout")
 async def logout(res: Response, session_id: str = Cookie(None)) -> None:
-    """ Logs user out by deleting redis entry for session """
+    """ Logs user out by deleting redis entry for session.
+
+    Args:
+        res (Response): FastAPI response
+        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+    """
     await redis_service.delete_session(session_id)
     remove_session_cookie(res)

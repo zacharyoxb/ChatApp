@@ -5,11 +5,18 @@ from app.services.myredis import redis_service
 
 router = APIRouter()
 
+
 @router.get("/session")
 async def get_session_endpoint(session_id: str = Cookie(None)) -> None:
-    """ Checks if session id is still valid, returns No Content on success """
+    """ Checks if the session id of the user is valid.
+
+    Args:
+        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+
+    Raises:
+        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
+    """
     session_data = await redis_service.get_session(session_id)
     if session_data is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                             detail="Session expired or invalid")
-    return None
+                            detail="Session expired or invalid")

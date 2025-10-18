@@ -22,7 +22,18 @@ class ChatPreview(BaseModel):
 
 @router.get("/chats", response_model=List[ChatPreview])
 async def get_user_chat_previews(res: Response, session_id: str = Cookie(None)):
-    """ Gets all chats user is in """
+    """ Gets all chats a user is in
+
+    Args:
+        res (Response): FastAPI response.
+        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+
+    Raises:
+        HTTPException: Exception thrown if the user's session has expired.
+
+    Returns:
+        ChatPreview: An array of data in the ChatPreview template.
+    """
     session_data = await redis_service.get_session(session_id)
     if session_data is None:
         remove_session_cookie(res)
@@ -49,11 +60,11 @@ async def create_new_chat(
         res (Response): FastAPI response
         chat_name (str): Name of the created chat.
         other_users (Optional[List[bytes]]): List of user_ids of users to add.
-        is_public (bool): Whether the chat should be public or not.
-        session_id (str, optional): The session_id of the user.. Defaults to Cookie(None).
+        is_public (bool): Whether the chat should be public or not. Defaults to False.
+        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
 
     Raises:
-        HTTPException: Exception thrown if the user's session has expired.
+        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
     """
     session_data = await redis_service.get_session(session_id)
     if session_data is None:

@@ -6,10 +6,11 @@ import uuid
 from redis import Redis
 import redis.asyncio as redis
 
-SESSION_TTL_SECONDS = 30 * 24 * 3600 # 30 days
+SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 days
+
 
 class RedisService:
-    """ Singleton instance holding redis connection """
+    """ Singleton instance holding the redis connection. """
     _instance: Optional['RedisService'] = None
     _redis_conn: Optional[Redis] = None
 
@@ -19,26 +20,46 @@ class RedisService:
         return cls._instance
 
     def init_redis(self, redis_config: dict) -> None:
-        """ Initialises redis / valkey """
+        """ Initialises redis / valkey 
+
+        Args:
+            redis_config (dict): Redis configuration provided by service_configs.
+        """
         self._redis_conn = redis.Redis(**redis_config)
 
     async def create_session(self, user_id: bytes, username: str) -> str:
-        """ Creates session cookie """
+        """ Creates a session and returns a session cookie. 
+
+        Args:
+            user_id (bytes): The id of the user.
+            username (str): The username of the user.
+
+        Returns:
+            str: The session id of the session.
+        """
         session_id = str(uuid.uuid4())
         await self._redis_conn.hset(f"session:{session_id}",
-            mapping={
-                "user_id": str(user_id),
-                "username": username, 
-                "created_at": time.time(), 
-                "last_activity": time.time()
-            }
-        )
+                                    mapping={
+                                        "user_id": str(user_id),
+                                        "username": username,
+                                        "created_at": time.time(),
+                                        "last_activity": time.time()
+                                    }
+                                    )
         await self._redis_conn.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
 
         return session_id
 
     async def get_session(self, session_id: str) -> Optional[dict]:
-        """ Gets session"""
+        """ Gets the session associated with the session id.
+
+        Args:
+            session_id (str): The session id of the session.
+
+        Returns:
+            Optional[dict]: Returns the dictionary associated with the session id, or 
+             None if the session does not exist/has expired.
+        """
         session_key = f"session:{session_id}"
         session_data = await self._redis_conn.hgetall(session_key)
 
@@ -48,10 +69,11 @@ class RedisService:
         return session_data
 
     async def extend_session(self, session_id: str) -> None:
-        """ Extend session for sliding TTL """
-        if not session_id:
-            return
+        """ Extend session for sliding TTL 
 
+        Args:
+            session_id (str): The session id of the session.
+        """
         session_key = f"session:{session_id}"
 
         exists = await self._redis_conn.exists(session_key)
@@ -64,8 +86,13 @@ class RedisService:
             await self._redis_conn.expire(session_key, SESSION_TTL_SECONDS)
 
     async def delete_session(self, session_id: str) -> None:
-        """ Deletes session if exists """
+        """ Deletes session if exists
+
+        Args:
+            session_id (str): The session id of the session. 
+        """
         session_key = f"session:{session_id}"
         await self._redis_conn.delete(session_key)
+
 
 redis_service = RedisService()
