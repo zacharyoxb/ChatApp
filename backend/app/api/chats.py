@@ -21,7 +21,10 @@ class ChatPreview(BaseModel):
 
 
 @router.get("/chats", response_model=List[ChatPreview])
-async def get_user_chat_previews(res: Response, session_id: str = Cookie(None)):
+async def get_user_chat_previews(
+    res: Response,
+    session_id: str = Cookie(None)
+) -> List[ChatPreview]:
     """ Gets all chats a user is in
 
     Args:
@@ -39,12 +42,17 @@ async def get_user_chat_previews(res: Response, session_id: str = Cookie(None)):
         remove_session_cookie(res)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
-    chat_tuples = await db_service.get_all_user_chats(session_data.get("user_id"))
-    if not chat_tuples:
-        return []
+    user_chats = await db_service.get_all_user_chats(session_data.get("user_id"))
+
     # In future remember to change this to get the last message.
-    return [ChatPreview(chat_id=chat_id, chat_name=chat_name, last_message_at=last_message_at)
-            for chat_id, chat_name, last_message_at in chat_tuples]
+    return [
+        ChatPreview(
+            chat_id=chat.chat_id,
+            chat_name=chat.chat_name,
+            last_message_at=chat.last_message_at
+        )
+        for chat in user_chats
+    ]
 
 
 @router.post("/chats")

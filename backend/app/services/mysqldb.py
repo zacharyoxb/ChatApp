@@ -20,7 +20,6 @@ GET_USER_CHATS_QUERY = """
         c.chat_id,
         c.chat_name,
         c.last_message_at,
-        'group' as chat_type
     FROM chats c
     INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
     WHERE uic.user_id = ?
@@ -31,7 +30,6 @@ GET_USER_CHATS_QUERY = """
         c.chat_id,
         u.user_name as chat_name,  -- Use the other user's name as chat name for DMs
         c.last_message_at,
-        'dm' as chat_type
     FROM chats c
     INNER JOIN dm_chats dm ON c.chat_id = dm.chat_id
     INNER JOIN users u ON (
@@ -70,12 +68,6 @@ class CreateChatRequest:
     other_users: List[bytes] = field(default_factory=list)
 
 
-class ChatType(Enum):
-    """ Enum for the 2 chat types. """
-    GROUP = "group"
-    DM = "dm"
-
-
 @dataclass
 class UserChat:
     """ Represents a chat in a user's chat list.
@@ -84,12 +76,10 @@ class UserChat:
         chat_id (bytes): Id of the chat
         chat_name (str): Name of the chat
         last_message_at (datetime): Timestamp of the last message in the chat
-        chat_type (ChatType): Type of chat (group or DM)
     """
     chat_id: bytes
     chat_name: str
     last_message_at: datetime
-    chat_type: ChatType
 
 
 class DatabaseService:
@@ -195,22 +185,29 @@ class DatabaseService:
             await cursor.close()
             return result[0] if result else None
 
-    async def get_all_user_chats(self, user_id: bytes) -> Optional[list[tuple]]:
-        """ Gets all group chats the user is in.
+    async def get_all_user_chats(self, user_id: bytes) -> list[UserChat]:
+        """ Gets all group chats the user is in, including both group chats and DMs.
 
         Args:
             user_id (bytes): Id of user to check.
 
         Returns:
-            Optional[list[tuple]]: List containing tuples of chat information.
-            Includes chat id, name, and the timestamp of the last message.
+            list[UserChat]: List containing chat information.
         """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(GET_USER_CHATS_QUERY, (user_id,)*4)
-            result = await cursor.fetchall()
+            results = await cursor.fetchall()
             await cursor.close()
-            return result if result else None
+
+            return [
+                UserChat(
+                    chat_id=row[0],
+                    chat_name=row[1],
+                    last_message_at=row[2],
+                )
+                for row in results
+            ] if results else []
 
 
 db_service = DatabaseService()
