@@ -14,11 +14,19 @@ interface ChatPreviewData {
   last_message_at: string; // ISO datetime format
 }
 
+interface ChatMember {
+  userId: string;
+  username: string;
+}
+
 function Chats() {
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatPreviewData[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /* Add member modal states */
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [members, setMembers] = useState<ChatMember[]>([]);
 
   async function fetchChats() {
     try {
@@ -62,6 +70,15 @@ function Chats() {
       },
     },
   ];
+
+  const handleAddMember = () => {
+    // send post to backend to check they are a user + get id,
+    // then add to members
+  };
+
+  const handleRemoveMember = (userIdToRemove: string) => {
+    setMembers(members.filter((member) => member.userId !== userIdToRemove));
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -137,11 +154,30 @@ function Chats() {
           <div className={styles.addMemberBox}>
             <label className={styles.addMemberLabel}>
               Add Chat Members: <input name="add-member" />
-              <StyledButton className={styles.addMemberButton}>
+              <StyledButton
+                className={styles.addMemberButton}
+                onClick={() => handleAddMember()}
+              >
                 Add
               </StyledButton>
             </label>
-            Example div
+            <div className={styles.userListContainer}>
+              <div className={styles.userRectangle}>
+                <span>You</span>
+              </div>
+              {members.map((member) => (
+                <div key={member.userId} className={styles.userRectangle}>
+                  <span> {member.username}</span>
+                  <button
+                    type="button"
+                    className={styles.removeUserButton}
+                    onClick={() => handleRemoveMember(member.userId)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <StyledButton className={styles.createChatButton} type="submit">
