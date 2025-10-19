@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class ConfigManager:
     """ Singleton configuration manager """
     _instance: Optional['ConfigManager'] = None
@@ -15,7 +16,7 @@ class ConfigManager:
     # List of required environment variables
     REQUIRED_DB_VARS = ["DB_USER", "DB_PASS", "DB_HOST", "DB_NAME"]
     REQUIRED_REDIS_VARS = ["REDIS_HOST", "REDIS_PORT", "REDIS_DB",
-                          "REDIS_DECODE_RESPONSES", "REDIS_SSL"]
+                           "REDIS_DECODE_RESPONSES", "REDIS_SSL"]
 
     def __new__(cls):
         if cls._instance is None:
@@ -51,8 +52,7 @@ class ConfigManager:
 
         self._initialized = True
 
-    def _validate_env_vars(self, required_vars: list, service_name: str) -> None:
-        """ Validate required environment variables for a service """
+    def _validate_env_vars(self, required_vars: list[str], service_name: str) -> None:
         missing_vars = []
         for var in required_vars:
             value = os.getenv(var)
@@ -75,5 +75,6 @@ class ConfigManager:
         if not self._initialized:
             self.initialize()
         return self._redis_config.copy()
+
 
 config_manager = ConfigManager()
