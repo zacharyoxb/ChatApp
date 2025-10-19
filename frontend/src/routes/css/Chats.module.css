@@ -27,15 +27,35 @@
   flex-direction: column;
 }
 
-.entryArea label {
+.labelBoxPair {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  margin-bottom: 10px;
 }
 
 .inputBox {
   width: 50%;
+}
+
+.addMemberBox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.addMemberLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.addMemberButton {
+  font-size: small;
+  width: 50%;
+  /* override space-between */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .createChatButton {

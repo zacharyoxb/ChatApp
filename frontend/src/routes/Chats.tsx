@@ -130,10 +130,19 @@ function Chats() {
         title="Create New Chat"
       >
         <form className={styles.entryArea} onSubmit={handleSubmit}>
-          <label>
+          <label className={styles.labelBoxPair}>
             Chat Name:{" "}
             <input className={styles.inputBox} name="chat-name" required />
           </label>
+          <div className={styles.addMemberBox}>
+            <label className={styles.addMemberLabel}>
+              Add Chat Members: <input name="add-member" />
+              <StyledButton className={styles.addMemberButton}>
+                Add
+              </StyledButton>
+            </label>
+            Example div
+          </div>
 
           <StyledButton className={styles.createChatButton} type="submit">
             Create Chat
