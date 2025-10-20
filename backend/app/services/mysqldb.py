@@ -29,26 +29,28 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         c.chat_name,
-        c.last_message_at,
+        c.last_message_at
     FROM chats c
     INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
-    WHERE uic.user_id = ?
+    INNER JOIN users u ON uic.user_id = u.user_id
+    WHERE u.user_name = ?
 
     UNION ALL
 
     SELECT 
         c.chat_id,
-        u.user_name as chat_name,  -- Use the other user's name as chat name for DMs
-        c.last_message_at,
+        other_user.user_name as chat_name,  -- Use the other user's name as chat name for DMs
+        c.last_message_at
     FROM chats c
     INNER JOIN dm_chats dm ON c.chat_id = dm.chat_id
-    INNER JOIN users u ON (
+    INNER JOIN users requesting_user ON requesting_user.user_name = ?
+    INNER JOIN users other_user ON (
         CASE 
-            WHEN dm.user1_id = ? THEN dm.user2_id
+            WHEN dm.user1_id = requesting_user.user_id THEN dm.user2_id
             ELSE dm.user1_id
         END
-    ) = u.user_id
-    WHERE dm.user1_id = ? OR dm.user2_id = ?
+    ) = other_user.user_id
+    WHERE requesting_user.user_id IN (dm.user1_id, dm.user2_id)
     ORDER BY last_message_at DESC;
 """
 
@@ -198,18 +200,18 @@ class DatabaseService:
             await cursor.close()
             return result[0] if result else None
 
-    async def get_all_user_chats(self, user_id: bytes) -> list[UserChat]:
+    async def get_all_user_chats(self, username: str) -> list[UserChat]:
         """ Gets all group chats the user is in, including both group chats and DMs.
 
         Args:
-            user_id (bytes): Id of user to check.
+            username (str): Username of the user whose chats are retrieved.
 
         Returns:
             list[UserChat]: List containing chat information.
         """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
-            await cursor.execute(GET_USER_CHATS_QUERY, (user_id,)*4)
+            await cursor.execute(GET_USER_CHATS_QUERY, (username,)*2)
             results = await cursor.fetchall()
             await cursor.close()
 
