@@ -14,11 +14,6 @@ interface ChatPreviewData {
   last_message_at: string; // ISO datetime format
 }
 
-interface ChatMember {
-  userId: string;
-  username: string;
-}
-
 function Chats() {
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatPreviewData[]>([]);
@@ -26,7 +21,7 @@ function Chats() {
 
   /* Add member modal states */
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [members, setMembers] = useState<ChatMember[]>([]);
+  const [members, setMembers] = useState<string[]>([]);
 
   async function fetchChats() {
     try {
@@ -71,30 +66,43 @@ function Chats() {
     },
   ];
 
-  const handleAddMember = async (newMemberId: string) => {
-    try {
-      const response = await fetch("https://localhost:8000/chats", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ newMemberId }),
-        credentials: "include",
-      });
+  const handleAddMember = async (newMember: string) => {
+    // Check if user is already a member
+    if (members.includes(newMember)) {
+      // Display error message
+      return;
+    }
 
-      if (response.status !== 201) {
-        setError("Error occurred when creating chat.");
+    // Check if user exists
+    try {
+      const response = await fetch(
+        `https://localhost:8000/users/${newMember}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ newMember }),
+          credentials: "include",
+        }
+      );
+
+      if (response.status === 404) {
+        // Display error message
         return;
       }
 
-      fetchChats();
-    } catch (err) {
-      setError("Internal Server Error.");
-    }
+      // Add member
+      if (response.ok) {
+        setMembers((prevMembers) => [...prevMembers, newMember]);
+      }
+    } catch (err) {}
   };
 
-  const handleRemoveMember = (userIdToRemove: string) => {
-    setMembers(members.filter((member) => member.userId !== userIdToRemove));
+  const handleRemoveMember = (usernameToRemove: string) => {
+    setMembers(
+      members.filter((memberUsername) => memberUsername !== usernameToRemove)
+    );
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -183,12 +191,12 @@ function Chats() {
                 <span>You</span>
               </div>
               {members.map((member) => (
-                <div key={member.userId} className={styles.userRectangle}>
-                  <span> {member.username}</span>
+                <div key={member} className={styles.userRectangle}>
+                  <span> {member}</span>
                   <button
                     type="button"
                     className={styles.removeUserButton}
-                    onClick={() => handleRemoveMember(member.userId)}
+                    onClick={() => handleRemoveMember(member)}
                   >
                     Remove
                   </button>

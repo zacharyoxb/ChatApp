@@ -21,6 +21,7 @@ async def get_user_exists(username: str, session_id: str = Cookie(None)) -> None
     Raises:
         HTTPException: Exception thrown if the user does not exist. (404 NOT FOUND)
         HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
+        HTTPException: Exception thrown if a database error occurs. (500 INTERNAL SERVER ERROR)
     """
     session_data = await redis_service.get_session(session_id)
     if session_data is None:
