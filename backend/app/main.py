@@ -10,7 +10,8 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api import (
     login_router,
     session_router,
-    chats_router
+    chats_router,
+    user_router,
 )
 
 from app.services.myredis import redis_service
@@ -20,6 +21,7 @@ from app.utils.service_configs import config_manager
 origins = [
     "https://localhost:3000"
 ]
+
 
 @asynccontextmanager
 async def lifespan(_ls_app: FastAPI):
@@ -40,6 +42,7 @@ app = FastAPI(title="ChatApp API", version="0.1.0", lifespan=lifespan)
 app.include_router(login_router, tags=["login", "signup"])
 app.include_router(session_router, tags=["session", "auth"])
 app.include_router(chats_router, tags=["chat", "group"])
+app.include_router(user_router, tags=["user", "member"])
 
 app.add_middleware(
     CORSMiddleware,

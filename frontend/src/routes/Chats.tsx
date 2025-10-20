@@ -71,9 +71,26 @@ function Chats() {
     },
   ];
 
-  const handleAddMember = () => {
-    // send post to backend to check they are a user + get id,
-    // then add to members
+  const handleAddMember = async (newMemberId: string) => {
+    try {
+      const response = await fetch("https://localhost:8000/chats", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newMemberId }),
+        credentials: "include",
+      });
+
+      if (response.status !== 201) {
+        setError("Error occurred when creating chat.");
+        return;
+      }
+
+      fetchChats();
+    } catch (err) {
+      setError("Internal Server Error.");
+    }
   };
 
   const handleRemoveMember = (userIdToRemove: string) => {
@@ -156,7 +173,7 @@ function Chats() {
               Add Chat Members: <input name="add-member" />
               <StyledButton
                 className={styles.addMemberButton}
-                onClick={() => handleAddMember()}
+                onClick={() => handleAddMember("CHANGE THIS")}
               >
                 Add
               </StyledButton>

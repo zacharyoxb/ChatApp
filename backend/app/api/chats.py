@@ -59,7 +59,7 @@ async def get_user_chat_previews(
 async def create_new_chat(
         res: Response,
         chat_name: str,
-        other_users: Optional[List[bytes]] = None,
+        other_users: Optional[List[str]] = None,
         is_public: bool = False,
         session_id: str = Cookie(None)):
     """ Creates a new chat, adds the user and other_users to it. 
@@ -82,13 +82,13 @@ async def create_new_chat(
     if other_users is None:
         other_users = []
 
-    current_user_id = session_data.get("user_id")
+    username = session_data.get("username")
     chat_id = uuid.uuid4().bytes
 
     create_request = CreateChatRequest(
         chat_id=chat_id,
         chat_name=chat_name,
-        user_id=current_user_id,
+        username=username,
         is_public=is_public,
         other_users=other_users
     )
