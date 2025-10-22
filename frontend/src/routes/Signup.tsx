@@ -54,6 +54,7 @@ function SignUp() {
       });
 
       if (response.ok) {
+        sessionStorage.setItem("currentUser", username);
         navigate("/chats");
       }
 

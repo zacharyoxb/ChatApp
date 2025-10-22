@@ -64,12 +64,18 @@ function Chats() {
           method: "POST",
           credentials: "include",
         });
+        sessionStorage.removeItem("currentUser");
         navigate("/");
       },
     },
   ];
 
   const handleAddMember = async (newMember: string) => {
+    // The user has entered their own username
+    if (sessionStorage.getItem("currentUser") === newMember) {
+      setMemberError(`You have entered your own username.`);
+      return;
+    }
     // User is already a member
     if (members.includes(newMember)) {
       setMemberError(
@@ -82,11 +88,10 @@ function Chats() {
       const response = await fetch(
         `https://localhost:8000/users/${newMember}`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ newMember }),
           credentials: "include",
         }
       );
@@ -102,7 +107,9 @@ function Chats() {
         setMemberError(null);
         setMembers((prevMembers) => [...prevMembers, newMember]);
       }
-    } catch (err) {}
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleRemoveMember = (usernameToRemove: string) => {
@@ -201,6 +208,7 @@ function Chats() {
                 )}
               </div>
               <StyledButton
+                type="button"
                 className={styles.addMemberButton}
                 onClick={() => handleAddMember(memberEntryBox)}
               >
