@@ -21,6 +21,7 @@ function Chats() {
 
   /* Add member modal states */
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [memberEntryBox, setMemberEntryBox] = useState<string>("");
   const [members, setMembers] = useState<string[]>([]);
 
   async function fetchChats() {
@@ -67,13 +68,12 @@ function Chats() {
   ];
 
   const handleAddMember = async (newMember: string) => {
-    // Check if user is already a member
+    // User is already a member
     if (members.includes(newMember)) {
       // Display error message
       return;
     }
 
-    // Check if user exists
     try {
       const response = await fetch(
         `https://localhost:8000/users/${newMember}`,
@@ -87,6 +87,7 @@ function Chats() {
         }
       );
 
+      // User doesn't exist
       if (response.status === 404) {
         // Display error message
         return;
@@ -178,10 +179,14 @@ function Chats() {
           </label>
           <div className={styles.addMemberBox}>
             <label className={styles.addMemberLabel}>
-              Add Chat Members: <input name="add-member" />
+              Add Chat Members:{" "}
+              <input
+                name="add-member"
+                onInput={(e) => setMemberEntryBox(e.currentTarget.value)}
+              />
               <StyledButton
                 className={styles.addMemberButton}
-                onClick={() => handleAddMember("CHANGE THIS")}
+                onClick={() => handleAddMember(memberEntryBox)}
               >
                 Add
               </StyledButton>
