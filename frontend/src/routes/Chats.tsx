@@ -3,6 +3,7 @@ import ChatPreview from "../components/ChatPreview";
 import { useNavigate } from "react-router";
 import threeDots from "../assets/three-dots.png";
 import threeDotsLight from "../assets/three-dots-light.png";
+import errorIcon from "../assets/error-icon.png";
 import Dropdown, { type DropdownOption } from "../components/Dropdown";
 import Modal from "../components/Modal";
 import { StyledButton } from "../components/StyledButton";
@@ -22,6 +23,7 @@ function Chats() {
   /* Add member modal states */
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [memberEntryBox, setMemberEntryBox] = useState<string>("");
+  const [memberError, setMemberError] = useState<string | null>(null);
   const [members, setMembers] = useState<string[]>([]);
 
   async function fetchChats() {
@@ -70,7 +72,9 @@ function Chats() {
   const handleAddMember = async (newMember: string) => {
     // User is already a member
     if (members.includes(newMember)) {
-      // Display error message
+      setMemberError(
+        `User "${newMember} is already in the group of users to be added.`
+      );
       return;
     }
 
@@ -89,12 +93,13 @@ function Chats() {
 
       // User doesn't exist
       if (response.status === 404) {
-        // Display error message
+        setMemberError(`User "${newMember} does not exist."`);
         return;
       }
 
       // Add member
       if (response.ok) {
+        setMemberError(null);
         setMembers((prevMembers) => [...prevMembers, newMember]);
       }
     } catch (err) {}
@@ -180,10 +185,21 @@ function Chats() {
           <div className={styles.addMemberBox}>
             <label className={styles.addMemberLabel}>
               Add Chat Members:{" "}
-              <input
-                name="add-member"
-                onInput={(e) => setMemberEntryBox(e.currentTarget.value)}
-              />
+              <div>
+                <input
+                  name="add-member"
+                  onInput={(e) => setMemberEntryBox(e.currentTarget.value)}
+                />
+
+                {memberError && (
+                  <img
+                    src={errorIcon}
+                    alt="Error icon"
+                    width={25}
+                    height={25}
+                  ></img>
+                )}
+              </div>
               <StyledButton
                 className={styles.addMemberButton}
                 onClick={() => handleAddMember(memberEntryBox)}

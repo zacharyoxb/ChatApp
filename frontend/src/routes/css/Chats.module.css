@@ -50,6 +50,11 @@
   gap: 5px;
 }
 
+.addMemberLabel > div {
+  display: inline-flex;
+  align-items: center;
+}
+
 .addMemberButton {
   font-size: small;
   width: 50%;
