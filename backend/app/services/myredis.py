@@ -3,10 +3,24 @@ import time
 from typing import Optional
 import uuid
 
+from pydantic import BaseModel
 from redis import Redis
 import redis.asyncio as redis
 
 SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 days
+
+
+class SessionData(BaseModel):
+    """ Data structure for session information.
+
+    Attributes:
+        username (str): Username for user.
+        created_at (float): Unix timestamp for when user was created.
+        last_activity (float): Unix timestamp for the user's most recent activity.
+    """
+    username: str
+    created_at: float
+    last_activity: float
 
 
 class RedisService:
@@ -38,26 +52,30 @@ class RedisService:
             str: The session id of the session.
         """
         session_id = str(uuid.uuid4())
-        await self._redis_conn.hset(f"session:{session_id}",
-                                    mapping={
-                                        "username": username,
-                                        "created_at": time.time(),
-                                        "last_activity": time.time()
-                                    }
-                                    )
+        session_data: SessionData = {
+            "username": username,
+            "created_at": time.time(),
+            "last_activity": time.time()
+        }
+
+        await self._redis_conn.hset(
+            f"session:{session_id}",
+            mapping=session_data
+        )
+
         await self._redis_conn.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
 
         return session_id
 
-    async def get_session(self, session_id: str) -> Optional[dict]:
+    async def get_session(self, session_id: str) -> Optional[SessionData]:
         """ Gets the session associated with the session id.
 
         Args:
             session_id (str): The session id of the session.
 
         Returns:
-            Optional[dict]: Returns the dictionary associated with the session id, or 
-             None if the session does not exist/has expired.
+            Optional[SessionData]: Returns the dictionary associated with the session id, 
+            or None if the session does not exist/has expired.
         """
         session_key = f"session:{session_id}"
         session_data = await self._redis_conn.hgetall(session_key)
@@ -65,7 +83,11 @@ class RedisService:
         if not session_data:
             return None
 
-        return session_data
+        return SessionData(
+            username=session_data["username"],
+            created_at=float(session_data["created_at"]),
+            last_activity=float(session_data["last_activity"])
+        )
 
     async def extend_session(self, session_id: str) -> None:
         """ Extend session for sliding TTL 

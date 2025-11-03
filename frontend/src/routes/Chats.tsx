@@ -71,6 +71,12 @@ function Chats() {
   ];
 
   const handleAddMember = async (newMember: string) => {
+    // The user has entered nothing
+    if (!newMember) {
+      setMemberError(`Please enter a username.`);
+      return;
+    }
+
     // The user has entered their own username
     if (sessionStorage.getItem("currentUser") === newMember) {
       setMemberError(`You have entered your own username.`);
@@ -98,11 +104,11 @@ function Chats() {
 
       // User doesn't exist
       if (response.status === 404) {
-        setMemberError(`User "${newMember} does not exist."`);
+        setMemberError(`User "${newMember}" does not exist.`);
         return;
       }
 
-      // Add member
+      // Add member, remove errors
       if (response.ok) {
         setMemberError(null);
         setMembers((prevMembers) => [...prevMembers, newMember]);
@@ -181,7 +187,10 @@ function Chats() {
       <div className={styles.bottomBar}></div>
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setMemberError(null);
+          setIsModalOpen(false);
+        }}
         title="Create New Chat"
       >
         <form className={styles.entryArea} onSubmit={handleSubmit}>
@@ -192,19 +201,21 @@ function Chats() {
           <div className={styles.addMemberBox}>
             <label className={styles.addMemberLabel}>
               Add Chat Members:{" "}
-              <div>
+              <div className={styles.inputContainer}>
                 <input
                   name="add-member"
                   onInput={(e) => setMemberEntryBox(e.currentTarget.value)}
                 />
-
                 {memberError && (
-                  <img
-                    src={errorIcon}
-                    alt="Error icon"
-                    width={25}
-                    height={25}
-                  ></img>
+                  <div className={styles.errorTooltip}>
+                    <img
+                      src={errorIcon}
+                      alt="Error icon"
+                      width={25}
+                      height={25}
+                    />
+                    <div className={styles.tooltip}>{memberError}</div>
+                  </div>
                 )}
               </div>
               <StyledButton

@@ -14,7 +14,13 @@ router = APIRouter()
 
 
 class ChatPreview(BaseModel):
-    """ ChatPreview template """
+    """ Data structure for chat preview information.
+
+    Attributes:
+        chat_id (int): Unique identifier for the chat.
+        chat_name (str): Display name of the chat.
+        last_message_at (datetime): Timestamp of the most recent message.
+    """
     chat_id: int
     chat_name: str
     last_message_at: datetime

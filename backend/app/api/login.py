@@ -15,7 +15,13 @@ router = APIRouter()
 
 
 class SignupLoginRequest(BaseModel):
-    """ Input required for sign in/login """
+    """ Data structure for user authentication requests.
+
+    Attributes:
+        username (str): User's unique identifier for login.
+        password (str): User's password for authentication.
+        remember_me (bool): Whether to create a persistent session.
+    """
     username: str
     password: str
     remember_me: bool

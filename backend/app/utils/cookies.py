@@ -7,7 +7,7 @@ def set_session_cookie(response: Response, session_id: str):
 
     Args:
         response (Response): FastAPI response.
-        session_id (str): The session id of the user. Defaults to Cookie(None).
+        session_id (str): The session id of the user. 
     """
     response.set_cookie(
         key="session_id",
