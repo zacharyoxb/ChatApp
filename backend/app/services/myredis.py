@@ -52,15 +52,15 @@ class RedisService:
             str: The session id of the session.
         """
         session_id = str(uuid.uuid4())
-        session_data: SessionData = {
-            "username": username,
-            "created_at": time.time(),
-            "last_activity": time.time()
-        }
+        session_data = SessionData(
+            username=username,
+            created_at=time.time(),
+            last_activity=time.time()
+        )
 
         await self._redis_conn.hset(
             f"session:{session_id}",
-            mapping=session_data
+            mapping=session_data.model_dump()
         )
 
         await self._redis_conn.expire(f"session:{session_id}", SESSION_TTL_SECONDS)

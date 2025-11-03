@@ -48,7 +48,7 @@ async def get_user_chat_previews(
         remove_session_cookie(res)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
-    user_chats = await db_service.get_all_user_chats(session_data.get("username"))
+    user_chats = await db_service.get_all_user_chats(session_data.username)
 
     # In future remember to change this to get the last message.
     return [
@@ -88,7 +88,7 @@ async def create_new_chat(
     if other_users is None:
         other_users = []
 
-    username = session_data.get("username")
+    username = session_data.username
     chat_id = uuid.uuid4().bytes
 
     create_request = CreateChatRequest(
