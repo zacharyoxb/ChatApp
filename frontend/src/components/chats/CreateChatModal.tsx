@@ -7,7 +7,11 @@ import errorIcon from "/src/assets/error-icon.png";
 interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateChat: (chatName: string, members: string[]) => Promise<void>;
+  onCreateChat: (
+    chatName: string,
+    members: string[],
+    isPublic: boolean
+  ) => Promise<void>;
 }
 
 function CreateChatModal({
@@ -75,7 +79,7 @@ function CreateChatModal({
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Prevent form submission
+      event.preventDefault();
       handleAddMember(memberEntryBox);
     }
   };
@@ -84,9 +88,10 @@ function CreateChatModal({
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const chatName = formData.get("chat-name") as string;
+    const isPublic = formData.get("is-public") === "on";
 
-    await onCreateChat(chatName, members);
-    // Close self?
+    await onCreateChat(chatName, members, isPublic);
+    onClose();
   };
 
   return (
@@ -101,10 +106,11 @@ function CreateChatModal({
       title="Create New Chat"
     >
       <form className={styles.entryArea} onSubmit={handleSubmit}>
-        <label className={styles.labelBoxPair}>
+        <label className={styles.labelInputPair}>
           Chat Name:{" "}
           <input className={styles.inputBox} name="chat-name" required />
         </label>
+
         <div className={styles.addMemberBox}>
           <label className={styles.addMemberLabel}>
             Add Chat Members:{" "}
@@ -152,6 +158,9 @@ function CreateChatModal({
             ))}
           </div>
         </div>
+        <label>
+          Set Public: <input name="is-public" type="checkbox"></input>
+        </label>
 
         <StyledButton className={styles.createChatButton} type="submit">
           Create Chat

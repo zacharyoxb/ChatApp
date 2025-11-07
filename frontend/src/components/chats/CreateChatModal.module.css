@@ -1,9 +1,10 @@
 .entryArea {
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
-.labelBoxPair {
+.labelInputPair {
   display: flex;
   align-items: center;
   justify-content: space-between;

@@ -64,19 +64,29 @@ function Chats() {
     },
   ];
 
-  const handleCreateChat = async (chatName: string, members: string[]) => {
+  const handleCreateChat = async (
+    chatName: string,
+    members: string[],
+    isPublic: boolean
+  ) => {
     try {
       const response = await fetch("https://localhost:8000/chats", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ chatName, members }),
+        body: JSON.stringify({
+          chat_name: chatName,
+          other_users: members,
+          is_public: isPublic,
+        }),
         credentials: "include",
       });
 
       if (response.status !== 201) {
         setError("Error occurred when creating chat.");
+        const errorData = await response.json(); // Add this to see the error details
+        console.log("Error details:", errorData);
         return;
       }
 

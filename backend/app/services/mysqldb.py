@@ -10,7 +10,7 @@ from mysql.connector.aio import MySQLConnectionPool
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
 CREATE_CHAT_QUERY = """
 INSERT INTO chats (chat_id, chat_name, created_by, is_public)
-VALUES (%s, %s, %s, %s)
+VALUES (%s, %s, (SELECT user_id FROM users WHERE user_name = %s), %s)
 """
 ADD_USER_TO_CHAT_QUERY = """
 INSERT INTO users_in_chats (user_id, chat_id, role)
