@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import styles from "./css/Home.module.css";
+import styles from "./Home.module.css";
 import { useNavigate } from "react-router";
 import { StyledButton } from "../components/common/StyledButton";
 

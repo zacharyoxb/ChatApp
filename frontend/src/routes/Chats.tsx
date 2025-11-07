@@ -7,7 +7,7 @@ import errorIcon from "../assets/error-icon.png";
 import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
 import Modal from "../components/common/Modal";
 import { StyledButton } from "../components/common/StyledButton";
-import styles from "./css/Chats.module.css";
+import styles from "./Chats.module.css";
 
 interface ChatPreviewData {
   chat_id: number;
