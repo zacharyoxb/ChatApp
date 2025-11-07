@@ -73,6 +73,13 @@ function CreateChatModal({
     );
   };
 
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent form submission
+      handleAddMember(memberEntryBox);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -104,7 +111,8 @@ function CreateChatModal({
             <div className={styles.inputContainer}>
               <input
                 name="add-member"
-                onInput={(e) => setMemberEntryBox(e.currentTarget.value)}
+                onChange={(e) => setMemberEntryBox(e.currentTarget.value)}
+                onKeyDown={handleKeyPress}
               />
               {error && (
                 <div className={styles.errorTooltip}>
