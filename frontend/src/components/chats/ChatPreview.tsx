@@ -1,11 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import defaultProfile from "../assets/default-profile.jpg";
+import defaultProfile from "/src/assets/default-profile.jpg";
 import {
   formatMessageTimeLong,
   formatMessageTimeShort,
-} from "../utils/formatMessageTime";
-import styles from "./css/ChatPreview.module.css";
+} from "../../utils/formatMessageTime";
+import styles from "./ChatPreview.module.css";
 
 interface ChatPreviewProps {
   profileImage?: string;

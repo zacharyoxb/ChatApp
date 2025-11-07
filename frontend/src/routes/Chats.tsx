@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import ChatPreview from "../components/ChatPreview";
+import ChatPreview from "../components/chats/ChatPreview";
 import { useNavigate } from "react-router";
 import threeDots from "../assets/three-dots.png";
 import threeDotsLight from "../assets/three-dots-light.png";
 import errorIcon from "../assets/error-icon.png";
-import Dropdown, { type DropdownOption } from "../components/Dropdown";
-import Modal from "../components/Modal";
-import { StyledButton } from "../components/StyledButton";
+import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
+import Modal from "../components/common/Modal";
+import { StyledButton } from "../components/common/StyledButton";
 import styles from "./css/Chats.module.css";
 
 interface ChatPreviewData {

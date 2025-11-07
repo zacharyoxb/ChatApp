@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { StyledButton } from "../components/StyledButton";
+import { StyledButton } from "../components/common/StyledButton";
 import styles from "./css/SharedAuth.module.css";
 
 function Login() {

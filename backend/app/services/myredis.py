@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from redis import Redis
 import redis.asyncio as redis
 
-SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 days
+SESSION_TTL_SECONDS = 86400  # 24 hours
 
 
 class SessionData(BaseModel):

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StyledButton } from "./StyledButton";
-import styles from "./css/Dropdown.module.css";
+import styles from "./Dropdown.module.css";
 
 interface DropdownProps {
   label?: string;

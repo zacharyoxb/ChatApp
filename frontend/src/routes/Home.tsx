@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import styles from "./css/Home.module.css";
 import { useNavigate } from "react-router";
-import { StyledButton } from "../components/StyledButton";
+import { StyledButton } from "../components/common/StyledButton";
 
 function Home() {
   const navigate = useNavigate();
