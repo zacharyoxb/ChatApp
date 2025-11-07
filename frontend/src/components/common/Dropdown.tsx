@@ -11,7 +11,7 @@ interface DropdownProps {
 
 export interface DropdownOption {
   label: string;
-  action: () => void | Promise<void>;
+  action: () => void;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
