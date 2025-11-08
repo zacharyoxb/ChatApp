@@ -29,7 +29,8 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         c.chat_name,
-        c.last_message_at
+        c.last_message_at,
+        NULL as other_user_id
     FROM chats c
     INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
     INNER JOIN users u ON uic.user_id = u.user_id
@@ -39,8 +40,9 @@ GET_USER_CHATS_QUERY = """
 
     SELECT 
         c.chat_id,
-        other_user.user_name as chat_name,  -- Use the other user's name as chat name for DMs
-        c.last_message_at
+        other_user.user_name as chat_name,
+        c.last_message_at,
+        other_user.user_id as other_user_id
     FROM chats c
     INNER JOIN dm_chats dm ON c.chat_id = dm.chat_id
     INNER JOIN users requesting_user ON requesting_user.user_name = ?
@@ -89,10 +91,13 @@ class UserChat:
         chat_id (bytes): Id of the chat
         chat_name (str): Name of the chat
         last_message_at (datetime): Timestamp of the last message in the chat
+        other_user_id (bytes): User id of other user. Only present if the chat is
+            a direct message.
     """
     chat_id: bytes
     chat_name: str
     last_message_at: datetime
+    other_user_id: Optional[bytes]
 
 
 class DatabaseService:
@@ -220,6 +225,7 @@ class DatabaseService:
                     chat_id=row[0],
                     chat_name=row[1],
                     last_message_at=row[2],
+                    other_user_id=row[3]
                 )
                 for row in results
             ] if results else []

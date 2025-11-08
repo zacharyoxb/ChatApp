@@ -10,14 +10,29 @@ import styles from "./ChatPreview.module.css";
 interface ChatPreviewProps {
   profileImage?: string;
   name: string;
+  is_dm: boolean;
   message: string;
   last_message_at: string;
   url: string;
 }
 
+const ARIA_LABEL_TEMPLATE = (
+  name: string,
+  is_dm: boolean,
+  message: string,
+  last_message_at: string
+): string => {
+  let [date, time] = formatMessageTimeLong(last_message_at);
+  if (is_dm) {
+    return `Direct chat with ${name}. Last message: ${message}. Last activity ${date} at ${time}`;
+  }
+  return `Group chat ${name}. Last message: ${message}. Last activity ${date} at ${time}`;
+};
+
 const ChatPreview: React.FC<ChatPreviewProps> = ({
   profileImage,
   name,
+  is_dm,
   message,
   last_message_at,
   url,
@@ -35,8 +50,6 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
     }
   }
 
-  const [date, time] = formatMessageTimeLong(last_message_at);
-
   return (
     <div className={styles.layoutDiv}>
       <div className={styles.leftCol}>
@@ -45,7 +58,7 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
           src={profileImage || defaultProfile}
           width={50}
           height={50}
-          alt={`${name}'s profile picture`}
+          alt={is_dm ? `${name}'s profile picture` : `${name} group icon`}
         />
       </div>
       <div
@@ -54,7 +67,7 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
         onKeyDown={onKeyDown}
         role="button"
         tabIndex={0}
-        aria-label={`Chat with ${name}. Last message: ${message}. Sent/Received ${date} at ${time}`}
+        aria-label={ARIA_LABEL_TEMPLATE(name, is_dm, message, last_message_at)}
       >
         <div className={styles.middleCol}>
           <div> {name} </div>

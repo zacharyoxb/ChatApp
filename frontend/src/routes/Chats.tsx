@@ -9,9 +9,10 @@ import { useModal } from "../hooks/common/useModal";
 import CreateChatModal from "../components/chats/CreateChatModal";
 
 interface ChatPreviewData {
-  chat_id: number;
+  chat_id: string; // hex string
   chat_name: string;
   last_message_at: string; // ISO datetime format
+  other_user_id?: string; // hex string
 }
 
 function Chats() {
@@ -33,6 +34,7 @@ function Chats() {
             sessionExpired: true,
           },
         });
+        return;
       }
 
       if (response.ok) {
@@ -85,8 +87,6 @@ function Chats() {
 
       if (response.status !== 201) {
         setError("Error occurred when creating chat.");
-        const errorData = await response.json(); // Add this to see the error details
-        console.log("Error details:", errorData);
         return;
       }
 
@@ -124,6 +124,7 @@ function Chats() {
             <ChatPreview
               key={chat.chat_id}
               name={chat.chat_name}
+              is_dm={!!chat.other_user_id}
               message="Lorem Ipsum"
               last_message_at={chat.last_message_at}
               url="/chats"

@@ -1,6 +1,6 @@
 """ Handles the chat page - both chats preview and the chat itself """
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 import uuid
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
@@ -17,13 +17,15 @@ class ChatPreview(BaseModel):
     """ Data structure for chat preview information.
 
     Attributes:
-        chat_id (bytes): Unique identifier for the chat.
+        chat_id (str): Unique identifier for the chat as hex string.
         chat_name (str): Display name of the chat.
         last_message_at (datetime): Timestamp of the most recent message.
+        other_user_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
     """
-    chat_id: bytes
+    chat_id: str
     chat_name: str
     last_message_at: datetime
+    other_user_id: Optional[str]
 
 
 class CreateChatRequestModel(BaseModel):
@@ -66,9 +68,10 @@ async def get_user_chat_previews(
     # In future remember to change this to get the last message.
     return [
         ChatPreview(
-            chat_id=chat.chat_id,
+            chat_id=chat.chat_id.hex(),
             chat_name=chat.chat_name,
-            last_message_at=chat.last_message_at
+            last_message_at=chat.last_message_at,
+            other_user_id=(id_bytes := chat.other_user_id) and id_bytes.hex()
         )
         for chat in user_chats
     ]
