@@ -2,34 +2,29 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { StyledButton } from "../components/common/StyledButton";
 import styles from "./LoginSignup.module.css";
+import { useSession } from "../hooks/common/useSession";
 
 function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  // Notifies when navigating from expired session
   const location = useLocation();
+  const session = useSession();
 
   useEffect(() => {
-    async function checkSession() {
-      if (location.state?.sessionExpired) {
-        setError("Your session has expired. Please log in again.");
-        navigate(location.pathname, { replace: true, state: {} });
-        return;
+    const checkSession = async () => {
+      const isValid = await session.isValidSession();
+      if (isValid) {
+        navigate("/chats");
       }
-
-      try {
-        const response = await fetch("https://localhost:8000/session", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          navigate("/chats");
-        }
-      } catch {}
+    };
+    if (location.state?.sessionExpired) {
+      setError("Your session has expired. Please log in again.");
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    } else {
+      checkSession();
     }
-    checkSession();
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

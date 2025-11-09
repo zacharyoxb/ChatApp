@@ -49,15 +49,15 @@ export const useChatList = () => {
   }, [api, navigate]);
 
   const createChat = useCallback(
-    async (chatName: string, members: string[], isPublic: boolean) => {
+    async (chatName: string, otherUsers: string[], isPublic: boolean) => {
       try {
         const response = await fetch("https://localhost:8000/chats", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            chat_name: chatName,
-            other_users: members,
-            is_public: isPublic,
+            chatName,
+            otherUsers,
+            isPublic,
           }),
           credentials: "include",
         });
@@ -79,6 +79,7 @@ export const useChatList = () => {
   );
 
   const removeChat = useCallback(
+    // This doesn't actually remove user but is fine placeholder code
     (chatId: string) => {
       if (!api.data) return;
 
@@ -89,22 +90,19 @@ export const useChatList = () => {
   );
 
   return {
-    // State from useApi
     chats: api.data || [],
     loading: api.isLoading,
     error: api.error,
     state: api.state,
 
-    // Actions
     fetchChats,
     createChat,
     removeChat,
 
-    // Computed values
     sortedChats: (api.data || []).sort(
       (prev, next) =>
-        new Date(prev.lastMessageAt).getTime() -
-        new Date(next.lastMessageAt).getTime()
+        new Date(next.lastMessageAt).getTime() -
+        new Date(prev.lastMessageAt).getTime()
     ),
   };
 };

@@ -47,16 +47,13 @@ export const useApi = <T>() => {
   }, []);
 
   return {
-    // State
     ...response,
 
-    // Actions
     setLoading,
     setSuccess,
     setError,
     reset,
 
-    // Convenience properties
     isLoading: response.state === "LOADING",
     isSuccess: response.state === "SUCCESS",
     isError: response.state === "ERROR",

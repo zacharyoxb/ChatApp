@@ -2,24 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { StyledButton } from "../components/common/StyledButton";
 import styles from "./LoginSignup.module.css";
+import { useSession } from "../hooks/common/useSession";
 
 function SignUp() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const session = useSession();
 
   useEffect(() => {
-    async function checkSession() {
-      try {
-        const response = await fetch("https://localhost:8000/session", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          navigate("/chats");
-        }
-      } catch {}
-    }
+    const checkSession = async () => {
+      const isValid = await session.isValidSession();
+      if (isValid) {
+        navigate("/chats");
+      }
+    };
     checkSession();
   }, [navigate]);
 

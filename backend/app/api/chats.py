@@ -40,9 +40,13 @@ class CreateChatRequestModel(BaseModel):
         other_users (List[str]): All other users to add to chat. May be empty.
         is_public (bool): If the chat is public.
     """
-    chat_name: str
-    other_users: List[str]
-    is_public: bool
+    chat_name: str = Field(..., alias="chatName")
+    other_users: List[str] = Field(..., alias="otherUsers")
+    is_public: bool = Field(..., alias="isPublic")
+
+    class Config:
+        """ Sets CreateChat Request Model to expect aliases from frontend """
+        populate_by_name = True
 
 
 @router.get("/chats", response_model=List[ChatListItem])
@@ -116,3 +120,4 @@ async def create_new_chat(
     )
 
     await db_service.create_chat(create_request)
+    res.status_code = status.HTTP_201_CREATED

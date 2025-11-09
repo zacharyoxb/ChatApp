@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
 import threeDots from "../assets/three-dots.png";
 import threeDotsLight from "../assets/three-dots-light.png";
 import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
@@ -8,11 +7,12 @@ import { useModal } from "../hooks/common/useModal";
 import CreateChatModal from "../components/chats/CreateChatModal";
 import { useChatList } from "../hooks/chats/useChatList";
 import ChatList from "../components/chats/ChatList";
+import { useSession } from "../hooks/common/useSession";
 
 function Chats() {
-  const navigate = useNavigate();
   const useChats = useChatList();
   const createChatModal = useModal();
+  const session = useSession();
 
   useEffect(() => {
     useChats.fetchChats();
@@ -25,14 +25,7 @@ function Chats() {
     },
     {
       label: "Logout",
-      action: async () => {
-        await fetch("https://localhost:8000/logout", {
-          method: "POST",
-          credentials: "include",
-        });
-        sessionStorage.removeItem("currentUser");
-        navigate("/");
-      },
+      action: session.logout,
     },
   ];
 
