@@ -14,12 +14,12 @@ const ChatList: React.FC<ChatListProps> = ({ chats }) => {
       ) : (
         chats.map((chat) => (
           <ChatListItem
-            key={chat.chat_id}
-            name={chat.chat_name}
-            is_dm={!!chat.other_user_id}
+            key={chat.chatId}
+            name={chat.chatName}
+            is_dm={!!chat.otherUserId}
             message="Lorem Ipsum"
-            last_message_at={chat.last_message_at}
-            url="/chats"
+            last_message_at={chat.lastMessageAt}
+            url={`/chats/${chat.chatId}`}
           ></ChatListItem>
         ))
       )}

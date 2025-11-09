@@ -8,7 +8,7 @@ import {
 import styles from "./ChatListItem.module.css";
 
 interface ChatListItemProps {
-  profileImage?: string;
+  chatImage?: string;
   name: string;
   is_dm: boolean;
   message: string;
@@ -30,7 +30,7 @@ const ARIA_LABEL_TEMPLATE = (
 };
 
 const ChatListItem: React.FC<ChatListItemProps> = ({
-  profileImage,
+  chatImage,
   name,
   is_dm,
   message,
@@ -55,7 +55,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
       <div className={styles.leftCol}>
         <img
           className={styles.profileImage}
-          src={profileImage || defaultProfile}
+          src={chatImage || defaultProfile}
           width={50}
           height={50}
           alt={is_dm ? `${name}'s profile picture` : `${name} group icon`}

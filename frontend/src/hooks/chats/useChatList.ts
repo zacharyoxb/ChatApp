@@ -1,63 +1,61 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router";
+import { useApi } from "../common/apiStates";
 
+/**
+ * Stores the data needed to preview a chat.
+ *
+ * @param chatId - hex string of the id of the chat
+ * @param chatName - name of the chat
+ * @param lastMessage - text of the last message sent
+ * @param lastMessageAt - time last message was sent in ISO datetime format
+ * @param otherUserId - hex string of the id of the other user (if it is a dm)
+ */
 export interface ChatListItemData {
-  chat_id: string; // hex string
-  chat_name: string;
-  last_message_at: string; // ISO datetime format
-  other_user_id?: string; // hex string
+  chatId: string;
+  chatName: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  otherUserId?: string;
 }
-
-interface UseChatListProps {
-  autoFetch?: boolean;
-}
-
-export const useChatList = (props: UseChatListProps) => {
-  const { autoFetch = true } = props;
-  const [chats, setChats] = useState<ChatListItemData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/**
+ * Hook that allows easy fetching/updating of user chats.
+ */
+export const useChatsList = () => {
   const navigate = useNavigate();
+  const api = useApi<ChatListItemData[]>();
 
   const fetchChats = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    api.setLoading();
 
+    try {
       const response = await fetch("https://localhost:8000/chats", {
         method: "GET",
         credentials: "include",
       });
 
       if (response.status === 401) {
-        navigate("/login", {
-          state: { sessionExpired: true },
-        });
+        navigate("/login", { state: { sessionExpired: true } });
         return;
       }
 
       if (response.ok) {
         const data: ChatListItemData[] = await response.json();
-        setChats(data);
+        api.setSuccess(data);
       } else {
-        setError("Failed to fetch chats");
+        api.setError("Failed to fetch chats");
       }
     } catch (err) {
-      setError("Internal Server Error");
-    } finally {
-      setLoading(false);
+      api.setError("Internal Server Error");
     }
-  }, [navigate]);
+  }, [api, navigate]);
 
   const createChat = useCallback(
     async (chatName: string, members: string[], isPublic: boolean) => {
       try {
-        setError(null);
         const response = await fetch("https://localhost:8000/chats", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_name: chatName,
             other_users: members,
@@ -67,60 +65,48 @@ export const useChatList = (props: UseChatListProps) => {
         });
 
         if (response.status !== 201) {
-          setError("Error occurred when creating chat.");
+          api.setError("Error occurred when creating chat.");
           return false;
         }
 
-        // Refresh the chats list to include the new chat
+        // Refresh chats after creation
         await fetchChats();
         return true;
       } catch (err) {
-        setError("Internal Server Error.");
+        api.setError("Internal Server Error.");
         return false;
       }
     },
-    [fetchChats]
+    [api, fetchChats]
   );
 
-  const updateChat = useCallback(
-    (chatId: string, updates: Partial<ChatListItemData>) => {
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat.chat_id === chatId ? { ...chat, ...updates } : chat
-        )
-      );
+  const removeChat = useCallback(
+    (chatId: string) => {
+      if (!api.data) return;
+
+      const filteredChats = api.data.filter((chat) => chat.chatId !== chatId);
+      api.setSuccess(filteredChats);
     },
-    []
+    [api]
   );
-
-  const removeChat = useCallback((chatId: string) => {
-    setChats((prev) => prev.filter((chat) => chat.chat_id !== chatId));
-  }, []);
-
-  // Auto-fetch chats on mount if enabled
-  useEffect(() => {
-    if (autoFetch) {
-      fetchChats();
-    }
-  }, [autoFetch, fetchChats]);
 
   return {
-    // State
-    chats,
-    loading,
-    error,
+    // State from useApi
+    chats: api.data || [],
+    loading: api.isLoading,
+    error: api.error,
+    state: api.state,
 
     // Actions
     fetchChats,
     createChat,
-    updateChat,
     removeChat,
-    setError,
 
-    sortedChats: [...chats].sort(
-      (prev_chat, next_chat) =>
-        new Date(prev_chat.last_message_at).getTime() -
-        new Date(next_chat.last_message_at).getTime()
+    // Computed values
+    sortedChats: (api.data || []).sort(
+      (prev, next) =>
+        new Date(prev.lastMessageAt).getTime() -
+        new Date(next.lastMessageAt).getTime()
     ),
   };
 };
