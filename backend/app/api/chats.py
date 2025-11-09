@@ -4,7 +4,7 @@ from typing import List, Optional
 import uuid
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.services.myredis import redis_service
 from app.services.mysqldb import CreateChatRequest, db_service
@@ -13,7 +13,7 @@ from app.utils.cookies import remove_session_cookie
 router = APIRouter()
 
 
-class ChatPreview(BaseModel):
+class ChatListItem(BaseModel):
     """ Data structure for chat preview information.
 
     Attributes:
@@ -22,10 +22,14 @@ class ChatPreview(BaseModel):
         last_message_at (datetime): Timestamp of the most recent message.
         other_user_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
     """
-    chat_id: str
-    chat_name: str
-    last_message_at: datetime
-    other_user_id: Optional[str]
+    chat_id: str = Field(..., alias="chatId")
+    chat_name: str = Field(..., alias="chatName")
+    last_message_at: datetime = Field(..., alias="lastMessageAt")
+    other_user_id: Optional[str] = Field(..., alias="otherUserId")
+
+    class Config:
+        """ Sets ChatListItem to serialise to JSON as alias names. """
+        populate_by_name = True
 
 
 class CreateChatRequestModel(BaseModel):
@@ -41,11 +45,11 @@ class CreateChatRequestModel(BaseModel):
     is_public: bool
 
 
-@router.get("/chats", response_model=List[ChatPreview])
+@router.get("/chats", response_model=List[ChatListItem])
 async def get_user_chat_previews(
     res: Response,
     session_id: str = Cookie(None)
-) -> List[ChatPreview]:
+) -> List[ChatListItem]:
     """ Gets all chats a user is in
 
     Args:
@@ -67,7 +71,7 @@ async def get_user_chat_previews(
 
     # In future remember to change this to get the last message.
     return [
-        ChatPreview(
+        ChatListItem(
             chat_id=chat.chat_id.hex(),
             chat_name=chat.chat_name,
             last_message_at=chat.last_message_at,

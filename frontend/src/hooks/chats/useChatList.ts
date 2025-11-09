@@ -7,21 +7,19 @@ import { useApi } from "../common/apiStates";
  *
  * @param chatId - hex string of the id of the chat
  * @param chatName - name of the chat
- * @param lastMessage - text of the last message sent
  * @param lastMessageAt - time last message was sent in ISO datetime format
  * @param otherUserId - hex string of the id of the other user (if it is a dm)
  */
 export interface ChatListItemData {
   chatId: string;
   chatName: string;
-  lastMessage: string;
   lastMessageAt: string;
   otherUserId?: string;
 }
 /**
  * Hook that allows easy fetching/updating of user chats.
  */
-export const useChatsList = () => {
+export const useChatList = () => {
   const navigate = useNavigate();
   const api = useApi<ChatListItemData[]>();
 

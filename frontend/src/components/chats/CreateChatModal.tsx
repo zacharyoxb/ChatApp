@@ -11,7 +11,7 @@ interface CreateChatModalProps {
     chatName: string,
     members: string[],
     isPublic: boolean
-  ) => Promise<void>;
+  ) => Promise<boolean>;
 }
 
 function CreateChatModal({

@@ -15,9 +15,3 @@
   padding: 1rem;
   border-bottom: 1px solid #ddd;
 }
-
-.chatsArea {
-  height: 80vh;
-  display: flex;
-  justify-content: center;
-}
