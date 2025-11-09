@@ -5,9 +5,9 @@ import {
   formatMessageTimeLong,
   formatMessageTimeShort,
 } from "../../utils/formatMessageTime";
-import styles from "./ChatPreview.module.css";
+import styles from "./ChatListItem.module.css";
 
-interface ChatPreviewProps {
+interface ChatListItemProps {
   profileImage?: string;
   name: string;
   is_dm: boolean;
@@ -29,7 +29,7 @@ const ARIA_LABEL_TEMPLATE = (
   return `Group chat ${name}. Last message: ${message}. Last activity ${date} at ${time}`;
 };
 
-const ChatPreview: React.FC<ChatPreviewProps> = ({
+const ChatListItem: React.FC<ChatListItemProps> = ({
   profileImage,
   name,
   is_dm,
@@ -81,4 +81,4 @@ const ChatPreview: React.FC<ChatPreviewProps> = ({
   );
 };
 
-export default ChatPreview;
+export default ChatListItem;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import ChatPreview from "../components/chats/ChatPreview";
+import ChatPreview from "../components/chats/ChatListItem";
 import { useNavigate } from "react-router";
 import threeDots from "../assets/three-dots.png";
 import threeDotsLight from "../assets/three-dots-light.png";
