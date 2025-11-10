@@ -1,11 +1,11 @@
 """ Handles POST requests for logging in, signing up and logging out. """
 import uuid
-from pydantic import BaseModel
 
 from fastapi import APIRouter, Cookie, Response, HTTPException, status
 import bcrypt
 import mysql.connector
 from mysql.connector import errorcode
+from pydantic import BaseModel
 
 from app.services.mysqldb import db_service
 from app.services.myredis import redis_service
@@ -14,7 +14,7 @@ from app.utils.cookies import set_session_cookie, remove_session_cookie
 router = APIRouter()
 
 
-class SignupLoginRequest(BaseModel):
+class SignupLoginData(BaseModel):
     """ Data structure for user authentication requests.
 
     Attributes:
@@ -28,11 +28,11 @@ class SignupLoginRequest(BaseModel):
 
 
 @router.post("/signup")
-async def signup(req: SignupLoginRequest, res: Response) -> None:
+async def signup(req: SignupLoginData, res: Response) -> None:
     """  Sends signup data to db and returns cookie with session id if successful.
 
     Args:
-        req (SignupLoginRequest): Request template sent from frontend.
+        req (SignupLoginData): Request template sent from frontend.
         res (Response): FastAPI response.
 
     Raises:
@@ -61,11 +61,11 @@ async def signup(req: SignupLoginRequest, res: Response) -> None:
 
 
 @router.post("/login")
-async def login(req: SignupLoginRequest, res: Response) -> None:
+async def login(req: SignupLoginData, res: Response) -> None:
     """  Checks user submitted login details and returns session id if successful. 
 
     Args:
-        req (SignupLoginRequest): Request template sent from frontend. 
+        req (SignupLoginData): Request template sent from frontend. 
         res (Response): FastAPI response.
 
     Raises:
