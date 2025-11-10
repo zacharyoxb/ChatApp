@@ -1,56 +1,20 @@
 """ Handles the chat page - both chats preview and the chat itself """
-from datetime import datetime
-from typing import List, Optional
+from typing import List
 import uuid
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
-from pydantic import BaseModel, Field
 
 from app.services.myredis import redis_service
-from app.services.mysqldb import CreateChatRequest, db_service
+from app.services.mysqldb import db_service
+from app.api.templates.chats import NewChatData
+from app.api.templates.chats import ChatListItem
 from app.utils.cookies import remove_session_cookie
 
 router = APIRouter()
 
 
-class ChatListItem(BaseModel):
-    """ Data structure for chat preview information.
-
-    Attributes:
-        chat_id (str): Unique identifier for the chat as hex string.
-        chat_name (str): Display name of the chat.
-        last_message_at (datetime): Timestamp of the most recent message.
-        other_user_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
-    """
-    chat_id: str = Field(..., alias="chatId")
-    chat_name: str = Field(..., alias="chatName")
-    last_message_at: datetime = Field(..., alias="lastMessageAt")
-    other_user_id: Optional[str] = Field(..., alias="otherUserId")
-
-    class Config:
-        """ Sets ChatListItem to serialise to JSON as alias names. """
-        populate_by_name = True
-
-
-class CreateChatRequestModel(BaseModel):
-    """ Data structure for data used to create a new chat.
-
-    Attributes:
-        chat_name (str): Name of the chat
-        other_users (List[str]): All other users to add to chat. May be empty.
-        is_public (bool): If the chat is public.
-    """
-    chat_name: str = Field(..., alias="chatName")
-    other_users: List[str] = Field(..., alias="otherUsers")
-    is_public: bool = Field(..., alias="isPublic")
-
-    class Config:
-        """ Sets CreateChat Request Model to expect aliases from frontend """
-        populate_by_name = True
-
-
-@router.get("/chats", response_model=List[ChatListItem])
-async def get_user_chat_previews(
+@router.get("/chats/my-chats", response_model=List[ChatListItem])
+async def get_user_chat_data(
     res: Response,
     session_id: str = Cookie(None)
 ) -> List[ChatListItem]:
@@ -64,7 +28,44 @@ async def get_user_chat_previews(
         HTTPException: Exception thrown if the user's session has expired.
 
     Returns:
-        ChatPreview: An array of data in the ChatPreview template.
+        ChatListItem: An array of data in the ChatListItem template.
+    """
+    session_data = await redis_service.get_session(session_id)
+    if session_data is None:
+        remove_session_cookie(res)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Session does not exist or has expired")
+    user_chats = await db_service.get_all_user_chats(session_data.username)
+
+    # In future remember to change this to get the last message.
+    return [
+        ChatListItem(
+            chat_id=chat.chat_id.hex(),
+            chat_name=chat.chat_name,
+            last_message_at=chat.last_message_at,
+            other_user_id=(id_bytes := chat.other_user_id) and id_bytes.hex()
+        )
+        for chat in user_chats
+    ]
+
+
+@router.get("/chats/available-chats", response_model=List[ChatListItem])
+async def get_available_chat_data(
+    res: Response,
+    session_id: str = Cookie(None)
+) -> List[ChatListItem]:
+    """ Gets chats the user isn't in, but are available to join
+    (i.e. are public)
+
+    Args:
+        res (Response): FastAPI response.
+        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+
+    Raises:
+        HTTPException: Exception thrown if the user's session has expired.
+
+    Returns:
+        ChatListItem: An array of data in the ChatListItem template.
     """
     session_data = await redis_service.get_session(session_id)
     if session_data is None:
@@ -87,7 +88,7 @@ async def get_user_chat_previews(
 
 @router.post("/chats")
 async def create_new_chat(
-        req: CreateChatRequestModel,
+        req: NewChatData,
         res: Response,
         session_id: str = Cookie(None)):
     """ Creates a new chat, adds the user and other_users to it. 
@@ -111,7 +112,7 @@ async def create_new_chat(
     username = session_data.username
     chat_id = uuid.uuid4().bytes
 
-    create_request = CreateChatRequest(
+    create_request = NewChatData(
         chat_id=chat_id,
         chat_name=req.chat_name,
         username=username,

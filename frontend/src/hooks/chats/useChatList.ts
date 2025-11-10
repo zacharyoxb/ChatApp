@@ -23,14 +23,49 @@ export const useChatList = () => {
   const navigate = useNavigate();
   const api = useApi<ChatListItemData[]>();
 
+  /**
+   * Fetches all chats the user is a part of.
+   */
   const fetchChats = useCallback(async () => {
     api.setLoading();
 
     try {
-      const response = await fetch("https://localhost:8000/chats", {
+      const response = await fetch("https://localhost:8000/chats/my-chats", {
         method: "GET",
         credentials: "include",
       });
+
+      if (response.status === 401) {
+        navigate("/login", { state: { sessionExpired: true } });
+        return;
+      }
+
+      if (response.ok) {
+        const data: ChatListItemData[] = await response.json();
+        api.setSuccess(data);
+      } else {
+        api.setError("Failed to fetch chats");
+      }
+    } catch (err) {
+      api.setError("Internal Server Error");
+    }
+  }, [api, navigate]);
+
+  /**
+   * Fetches all chats the user is not a part of and are publicly
+   * visible to the user.
+   */
+  const fetchAvailableChats = useCallback(async () => {
+    api.setLoading();
+
+    try {
+      const response = await fetch(
+        "https://localhost:8000/chats/available-chats",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
       if (response.status === 401) {
         navigate("/login", { state: { sessionExpired: true } });
@@ -64,15 +99,12 @@ export const useChatList = () => {
 
         if (response.status !== 201) {
           api.setError("Error occurred when creating chat.");
-          return false;
         }
 
         // Refresh chats after creation
         await fetchChats();
-        return true;
       } catch (err) {
         api.setError("Internal Server Error.");
-        return false;
       }
     },
     [api, fetchChats]
@@ -96,6 +128,7 @@ export const useChatList = () => {
     state: api.state,
 
     fetchChats,
+    fetchAvailableChats,
     createChat,
     removeChat,
 

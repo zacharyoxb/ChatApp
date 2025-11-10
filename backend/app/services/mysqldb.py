@@ -230,5 +230,15 @@ class DatabaseService:
                 for row in results
             ] if results else []
 
+    async def get_all_available_chats(self, username: str) -> List[UserChat]:
+        """ Gets all chats that the user isn't in but are available for the user to join. 
+
+        Args:
+            username (str): Username of the user whose chats are retrieved.
+
+        Returns:
+            list[UserChat]: List containing chat information.
+        """
+
 
 db_service = DatabaseService()
