@@ -1,10 +1,11 @@
 """ Connects to mysql database """
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
 from typing import List, Optional
 
 from mysql.connector.aio import MySQLConnectionPool
+
+from app.templates.chats.requests import NewChatData
+from app.templates.chats.responses import ChatListItem
+from app.templates.chats.types import Role
 
 # INSERT queries
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
@@ -57,49 +58,6 @@ GET_USER_CHATS_QUERY = """
 """
 
 
-class Role(Enum):
-    """ Enum for the 3 possible roles. """
-    OWNER = "owner"
-    ADMIN = "admin"
-    MEMBER = "member"
-
-
-@dataclass
-class CreateChatRequest:
-    """ Data class for creating a new chat.
-
-    Attributes:
-        chat_id (bytes): Generated chat id.
-        chat_name (str): Name of the chat.
-        username (str): Username of the chat creator.
-        is_public (bool, optional): Indicates whether the chat is public. Defaults to False.
-        other_users (List[str], optional): Usernames of all other users in the chat. 
-            Defaults to empty list.
-    """
-    chat_id: bytes
-    chat_name: str
-    username: str
-    is_public: bool = False
-    other_users: List[str] = field(default_factory=list)
-
-
-@dataclass
-class UserChat:
-    """ Represents a chat in a user's chat list.
-
-    Attributes:
-        chat_id (bytes): Id of the chat
-        chat_name (str): Name of the chat
-        last_message_at (datetime): Timestamp of the last message in the chat
-        other_user_id (bytes): User id of other user. Only present if the chat is
-            a direct message.
-    """
-    chat_id: bytes
-    chat_name: str
-    last_message_at: datetime
-    other_user_id: Optional[bytes]
-
-
 class DatabaseService:
     """ Singleton instance holding database pool. """
     _instance: Optional['DatabaseService'] = None
@@ -138,20 +96,20 @@ class DatabaseService:
             await conn.commit()
             await cursor.close()
 
-    async def create_chat(self, req: CreateChatRequest) -> None:
+    async def create_chat(self, chat_creator: str, req: NewChatData) -> None:
         """ Adds chat to db. 
 
         Args:
-            req (CreateChatRequest): Dataclass for creating chat.
+            req (NewChatData): Model for creating chat.
         """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             # create chat
-            await cursor.execute(CREATE_CHAT_QUERY, (req.chat_id, req.chat_name, req.username,
+            await cursor.execute(CREATE_CHAT_QUERY, (req.chat_id, req.chat_name, chat_creator,
                                                      req.is_public))
             # add creator as owner
             await cursor.execute(ADD_USER_TO_CHAT_QUERY,
-                                 (req.username, req.chat_id, 'owner'))
+                                 (chat_creator, req.chat_id, 'owner'))
             # add other users if provided
             for other_user_username in req.other_users:
                 await cursor.execute(ADD_USER_TO_CHAT_QUERY,
@@ -205,7 +163,7 @@ class DatabaseService:
             await cursor.close()
             return result[0] if result else None
 
-    async def get_all_user_chats(self, username: str) -> list[UserChat]:
+    async def get_all_user_chats(self, username: str) -> list[ChatListItem]:
         """ Gets all group chats the user is in, including both group chats and DMs.
 
         Args:
@@ -221,16 +179,17 @@ class DatabaseService:
             await cursor.close()
 
             return [
-                UserChat(
-                    chat_id=row[0],
+                ChatListItem(
+                    chat_id=(chat_bytes_id := row[0]) and chat_bytes_id.hex(),
                     chat_name=row[1],
                     last_message_at=row[2],
-                    other_user_id=row[3]
+                    other_user_id=(bytes_id := row[3]) and bytes_id.hex(),
+                    last_message=None
                 )
                 for row in results
             ] if results else []
 
-    async def get_all_available_chats(self, username: str) -> List[UserChat]:
+    async def get_all_available_chats(self, username: str) -> List[ChatListItem]:
         """ Gets all chats that the user isn't in but are available for the user to join. 
 
         Args:
