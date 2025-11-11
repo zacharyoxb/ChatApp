@@ -49,7 +49,10 @@ function Chats() {
           menuOptions={dropdownOptions}
         ></Dropdown>
       </div>
-      <ChatList chats={useChats.sortedChats} />
+      <div className={styles.middleBar}>
+        <ChatList chats={useChats.sortedChats} />
+        <div className={styles.openChatSpace}></div>
+      </div>
       <div className={styles.bottomBar}></div>
       <CreateChatModal
         isOpen={createChatModal.isOpen}

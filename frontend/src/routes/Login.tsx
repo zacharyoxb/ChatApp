@@ -12,8 +12,8 @@ function Login() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const isValid = await session.isValidSession();
-      if (isValid) {
+      await session.isValidSession();
+      if (session.isSuccess) {
         navigate("/chats");
       }
     };
@@ -34,32 +34,10 @@ function Login() {
     const password = formData.get("password") as string;
     const remember_me = formData.get("remember-me") === "on";
 
-    try {
-      const response = await fetch("https://localhost:8000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password, remember_me }),
-        credentials: "include",
-      });
+    await session.login(username, password, remember_me);
 
-      if (response.ok) {
-        sessionStorage.setItem("currentUser", username);
-        navigate("/chats");
-      }
-
-      switch (response.status) {
-        case 401:
-          setError("Username or password is incorrect.");
-          break;
-        default:
-          setError(
-            "Unknown error has occurred. Please contact website administrator."
-          );
-      }
-    } catch (err) {
-      setError("Internal Server Error.");
+    if (session.isError) {
+      setError(session.error);
     }
   };
 

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Cookie, Response, HTTPException, status
 import bcrypt
 import mysql.connector
 from mysql.connector import errorcode
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.services.mysqldb import db_service
 from app.services.myredis import redis_service
@@ -24,7 +24,7 @@ class SignupLoginData(BaseModel):
     """
     username: str
     password: str
-    remember_me: bool
+    remember_me: bool = Field(..., alias="rememberMe")
 
 
 @router.post("/signup")
