@@ -11,13 +11,13 @@ class ChatListItem(BaseModel):
         chat_id (str): Unique identifier for the chat as hex string.
         chat_name (str): Display name of the chat.
         last_activity (datetime): Timestamp of the last activity occuring in the chat.
-        other_user_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
+        dm_participant_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
         last_message (Optional[str]): Last message sent in chat, if exists.
     """
     chat_id: str = Field(..., alias="chatId")
     chat_name: str = Field(..., alias="chatName")
     last_activity: datetime = Field(..., alias="lastActivity")
-    other_user_id: Optional[str] = Field(..., alias="otherUserId")
+    dm_participant_id: Optional[str] = Field(..., alias="dmParticipantId")
     last_message: Optional[str] = Field(..., alias="lastMessage")
 
     class Config:

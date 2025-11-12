@@ -13,7 +13,7 @@ export interface ChatListItemData {
   /** ISO datetime string of when the last chat activity occurred */
   lastActivity: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
-  otherUserId?: string;
+  dmParticipantId?: string;
 }
 
 /**

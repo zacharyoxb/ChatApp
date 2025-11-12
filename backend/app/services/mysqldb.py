@@ -182,7 +182,7 @@ class DatabaseService:
                     chat_id=(chat_bytes_id := row[0]) and chat_bytes_id.hex(),
                     chat_name=row[1],
                     last_activity=row[2],
-                    other_user_id=(bytes_id := row[3]) and bytes_id.hex(),
+                    dm_participant_id=(bytes_id := row[3]) and bytes_id.hex(),
                     last_message=None
                 )
                 for row in results

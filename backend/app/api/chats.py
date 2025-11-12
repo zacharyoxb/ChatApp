@@ -102,6 +102,6 @@ async def create_new_chat(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,
         last_activity=datetime.now(),
-        other_user_id=None,
+        dmParticipantId=None,
         last_message=None
     )
