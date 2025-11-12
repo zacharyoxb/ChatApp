@@ -1,4 +1,5 @@
 """ Handles the chat page - both chats preview and the chat itself """
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, status
@@ -74,7 +75,9 @@ async def create_new_chat(
         req: NewChatData,
         res: Response,
         session_id: str = Cookie(None)):
-    """ Creates a new chat, adds the user and other_users to it. 
+    """ Creates a new chat, adds the user and other_users to it. Returns the generated
+    chat_id and the time the chat was created so the frontend can add the chat to the
+    list without doing another costly db fetch.
 
     Args:
         req (NewChatData): Request data for creating new chat.
@@ -94,3 +97,11 @@ async def create_new_chat(
 
     await db_service.create_chat(username, req)
     res.status_code = status.HTTP_201_CREATED
+
+    return ChatListItem(
+        chat_id=req.chat_id.hex(),
+        chat_name=req.chat_name,
+        lastMessageAt=datetime.now(),
+        otherUserId=None,
+        lastMessage=None
+    )

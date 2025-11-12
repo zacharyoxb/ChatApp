@@ -14,7 +14,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/chats" element={<Chats />} />
+        <Route path="/chats/:chatId?" element={<Chats />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

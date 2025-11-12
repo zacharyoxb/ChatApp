@@ -103,8 +103,7 @@ export const useChatList = () => {
    * @param isPublic - Whether the chat should be publicly discoverable
    *
    * @remarks
-   * Automatically refreshes the chat list after successful creation.
-   * Only indicates success through state refresh, no direct success notification.
+   * Automatically updates chat data after operation.
    */
   const createChat = useCallback(
     async (chatName: string, otherUsers: string[], isPublic: boolean) => {
@@ -122,15 +121,20 @@ export const useChatList = () => {
 
         if (response.status !== 201) {
           api.setError("Error occurred when creating chat.");
+          return;
         }
 
-        // Refresh chats after creation
-        await fetchChats();
+        const newChat: ChatListItemData = await response.json();
+        if (api.data) {
+          api.setSuccess([...api.data, newChat]);
+        } else {
+          api.setSuccess([newChat]);
+        }
       } catch (err) {
         api.setError("Internal Server Error.");
       }
     },
-    [api, fetchChats]
+    [api]
   );
 
   /**
