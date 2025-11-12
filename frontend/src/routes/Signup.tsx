@@ -11,13 +11,19 @@ function SignUp() {
 
   useEffect(() => {
     const checkSession = async () => {
-      await session.isValidSession();
-      if (session.isSuccess) {
+      let valid = await session.isValidSession();
+      if (valid) {
         navigate("/chats");
       }
     };
     checkSession();
   }, [navigate]);
+
+  useEffect(() => {
+    if (session.isError && session.error) {
+      setError(session.error);
+    }
+  }, [session.isError, session.error]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,42 +40,14 @@ function SignUp() {
     const username = formData.get("username") as string;
     const rememberMe = formData.get("remember-me") === "on";
 
-    try {
-      const response = await fetch("https://localhost:8000/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password, rememberMe }),
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        sessionStorage.setItem("currentUser", username);
-        navigate("/chats");
-      }
-
-      switch (response.status) {
-        case 409:
-          setError("This username is already taken. Try another.");
-          break;
-        case 500:
-          setError("Database error. Please contact website administrator.");
-          break;
-        default:
-          setError(
-            "Unknown error has occurred. Please contact website administrator."
-          );
-      }
-    } catch (err) {
-      setError(
-        "Unknown error has occurred. Please contact website administrator."
-      );
+    await session.signup(username, password, rememberMe);
+    if (session.isError) {
+      setError(session.error);
     }
   };
 
   const clearError = () => {
-    if (error) setError(null);
+    if (session.isError) session.reset();
   };
 
   return (

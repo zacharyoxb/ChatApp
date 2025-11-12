@@ -12,8 +12,8 @@ function Login() {
 
   useEffect(() => {
     const checkSession = async () => {
-      await session.isValidSession();
-      if (session.isSuccess) {
+      let valid = await session.isValidSession();
+      if (valid) {
         navigate("/chats");
       }
     };
@@ -26,6 +26,12 @@ function Login() {
     }
   }, [navigate, location]);
 
+  useEffect(() => {
+    if (session.isError && session.error) {
+      setError(session.error);
+    }
+  }, [session.isError, session.error]);
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -35,13 +41,10 @@ function Login() {
     const remember_me = formData.get("remember-me") === "on";
 
     await session.login(username, password, remember_me);
-
-    if (session.isError) {
-      setError(session.error);
-    }
   };
 
   const clearError = () => {
+    if (session.isError) session.reset();
     if (error) setError(null);
   };
 

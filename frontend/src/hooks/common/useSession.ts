@@ -8,17 +8,19 @@ import { useApi } from "./apiStates";
  */
 export const useSession = () => {
   const navigate = useNavigate();
-  const api = useApi();
+  const authApi = useApi();
 
   /**
    * Validates the current user session with the server
    *
    * @remarks
    * Checks if the current session is valid by making a GET request to the session endpoint.
-   * Updates the API state accordingly but does not return a value - check state properties for results.
+   *
+   * This is the only function on the hook to not use api state management as error management
+   * is less important here (the user doesn't need to see a visual cue for a session check
+   * failing when they are on the login/signup pages)
    */
   const isValidSession = async () => {
-    api.setLoading();
     try {
       const response = await fetch("https://localhost:8000/session", {
         method: "GET",
@@ -26,12 +28,68 @@ export const useSession = () => {
       });
 
       if (response.ok) {
-        api.setSuccess(null);
-        return;
+        return true;
       }
-      api.setError("Invalid session / no session exists");
-    } catch {
-      api.setError("Internal Server Error");
+    } catch {}
+    return false;
+  };
+
+  /**
+   * Registers a new user account with the server
+   *
+   * @param username - The desired username for the new account
+   * @param password - The password for the new account
+   * @param rememberMe - Whether to persist the session beyond browser closure
+   *
+   * @remarks
+   * On successful registration:
+   * - Stores username in sessionStorage as currentUser
+   * - Automatically navigates to /chats route
+   *
+   * On failure:
+   * - Sets appropriate error message based on HTTP status code
+   * - Maintains user on current page for error correction
+   * - Handles common cases: username conflict (409) and server errors (500)
+   */
+  const signup = async (
+    username: string,
+    password: string,
+    rememberMe: boolean
+  ) => {
+    authApi.setLoading();
+    try {
+      const response = await fetch("https://localhost:8000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password, rememberMe }),
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        sessionStorage.setItem("currentUser", username);
+        navigate("/chats");
+      }
+
+      switch (response.status) {
+        case 409:
+          authApi.setError("This username is already taken. Try another.");
+          break;
+        case 500:
+          authApi.setError(
+            "Database error. Please contact website administrator."
+          );
+          break;
+        default:
+          authApi.setError(
+            "Unknown error has occurred. Please contact website administrator."
+          );
+      }
+    } catch (err) {
+      authApi.setError(
+        "Unknown error has occurred. Please contact website administrator."
+      );
     }
   };
 
@@ -56,7 +114,7 @@ export const useSession = () => {
     password: string,
     rememberMe: boolean
   ) => {
-    api.setLoading();
+    authApi.setLoading();
     try {
       const response = await fetch("https://localhost:8000/login", {
         method: "POST",
@@ -75,16 +133,16 @@ export const useSession = () => {
 
       switch (response.status) {
         case 401:
-          api.setError("Username or password is incorrect.");
+          authApi.setError("Username or password is incorrect.");
           break;
         default:
-          api.setError(
+          authApi.setError(
             "Unknown error has occurred. Please contact website administrator."
           );
           break;
       }
     } catch (err) {
-      api.setError("Internal Server Error.");
+      authApi.setError("Internal Server Error.");
     }
   };
 
@@ -110,17 +168,19 @@ export const useSession = () => {
 
   return {
     /** Indicates if an authentication request is in progress */
-    isLoading: api.isLoading,
+    isLoading: authApi.isLoading,
     /** Indicates if the last operation was successful */
-    isSuccess: api.isSuccess,
+    isSuccess: authApi.isSuccess,
     /** Indicates if the last operation resulted in an error */
-    isError: api.isError,
+    isError: authApi.isError,
 
     /** Error message from the last operation, or null if no error */
-    error: api.error,
+    error: authApi.error,
 
     isValidSession,
+    signup,
     login,
     logout,
+    reset: authApi.reset,
   };
 };

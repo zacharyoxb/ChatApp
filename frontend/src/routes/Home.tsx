@@ -2,23 +2,19 @@ import { useEffect } from "react";
 import styles from "./Home.module.css";
 import { useNavigate } from "react-router";
 import { StyledButton } from "../components/common/StyledButton";
+import { useSession } from "../hooks/common/useSession";
 
 function Home() {
   const navigate = useNavigate();
+  const session = useSession();
 
   useEffect(() => {
-    async function checkSession() {
-      try {
-        const response = await fetch("https://localhost:8000/session", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          navigate("/chats");
-        }
-      } catch {}
-    }
+    const checkSession = async () => {
+      let valid = await session.isValidSession();
+      if (valid) {
+        navigate("/chats");
+      }
+    };
     checkSession();
   }, [navigate]);
 
