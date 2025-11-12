@@ -101,7 +101,7 @@ async def create_new_chat(
     return ChatListItem(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,
-        lastMessageAt=datetime.now(),
-        otherUserId=None,
-        lastMessage=None
+        last_activity=datetime.now(),
+        other_user_id=None,
+        last_message=None
     )

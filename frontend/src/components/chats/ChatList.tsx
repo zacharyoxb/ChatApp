@@ -16,9 +16,9 @@ const ChatList: React.FC<ChatListProps> = ({ chats }) => {
           <ChatListItem
             key={chat.chatId}
             name={chat.chatName}
-            is_dm={!!chat.otherUserId}
+            isDm={!!chat.otherUserId}
             message="Lorem Ipsum"
-            last_message_at={chat.lastMessageAt}
+            lastActivity={chat.lastActivity}
             url={`/chats/${chat.chatId}`}
           ></ChatListItem>
         ))

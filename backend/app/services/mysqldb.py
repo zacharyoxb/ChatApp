@@ -30,7 +30,7 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         c.chat_name,
-        c.last_message_at,
+        c.last_activity,
         NULL as other_user_id
     FROM chats c
     INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
@@ -42,7 +42,7 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         other_user.user_name as chat_name,
-        c.last_message_at,
+        c.last_activity,
         other_user.user_id as other_user_id
     FROM chats c
     INNER JOIN dm_chats dm ON c.chat_id = dm.chat_id
@@ -54,7 +54,6 @@ GET_USER_CHATS_QUERY = """
         END
     ) = other_user.user_id
     WHERE requesting_user.user_id IN (dm.user1_id, dm.user2_id)
-    ORDER BY last_message_at DESC;
 """
 
 
@@ -182,7 +181,7 @@ class DatabaseService:
                 ChatListItem(
                     chat_id=(chat_bytes_id := row[0]) and chat_bytes_id.hex(),
                     chat_name=row[1],
-                    last_message_at=row[2],
+                    last_activity=row[2],
                     other_user_id=(bytes_id := row[3]) and bytes_id.hex(),
                     last_message=None
                 )

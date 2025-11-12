@@ -10,20 +10,20 @@ import styles from "./ChatListItem.module.css";
 interface ChatListItemProps {
   chatImage?: string;
   name: string;
-  is_dm: boolean;
+  isDm: boolean;
   message: string;
-  last_message_at: string;
+  lastActivity: string;
   url: string;
 }
 
 const ARIA_LABEL_TEMPLATE = (
   name: string,
-  is_dm: boolean,
+  isDm: boolean,
   message: string,
-  last_message_at: string
+  lastActivity: string
 ): string => {
-  let [date, time] = formatMessageTimeLong(last_message_at);
-  if (is_dm) {
+  let [date, time] = formatMessageTimeLong(lastActivity);
+  if (isDm) {
     return `Direct chat with ${name}. Last message: ${message}. Last activity ${date} at ${time}`;
   }
   return `Group chat ${name}. Last message: ${message}. Last activity ${date} at ${time}`;
@@ -32,9 +32,9 @@ const ARIA_LABEL_TEMPLATE = (
 const ChatListItem: React.FC<ChatListItemProps> = ({
   chatImage,
   name,
-  is_dm,
+  isDm,
   message,
-  last_message_at,
+  lastActivity,
   url,
 }) => {
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
           src={chatImage || defaultProfile}
           width={50}
           height={50}
-          alt={is_dm ? `${name}'s profile picture` : `${name} group icon`}
+          alt={isDm ? `${name}'s profile picture` : `${name} group icon`}
         />
       </div>
       <div
@@ -67,14 +67,14 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
         onKeyDown={onKeyDown}
         role="button"
         tabIndex={0}
-        aria-label={ARIA_LABEL_TEMPLATE(name, is_dm, message, last_message_at)}
+        aria-label={ARIA_LABEL_TEMPLATE(name, isDm, message, lastActivity)}
       >
         <div className={styles.middleCol}>
           <div> {name} </div>
           <div> {message} </div>
         </div>
         <div className={styles.rightCol}>
-          {formatMessageTimeShort(last_message_at)}
+          {formatMessageTimeShort(lastActivity)}
         </div>
       </div>
     </div>

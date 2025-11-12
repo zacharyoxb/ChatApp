@@ -11,8 +11,8 @@ function SignUp() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const isValid = await session.isValidSession();
-      if (isValid) {
+      await session.isValidSession();
+      if (session.isSuccess) {
         navigate("/chats");
       }
     };
@@ -31,13 +31,8 @@ function SignUp() {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Passwords must be at least 8 characters.");
-      return;
-    }
-
     const username = formData.get("username") as string;
-    const remember_me = formData.get("remember-me") === "on";
+    const rememberMe = formData.get("remember-me") === "on";
 
     try {
       const response = await fetch("https://localhost:8000/signup", {
@@ -45,7 +40,7 @@ function SignUp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password, remember_me }),
+        body: JSON.stringify({ username, password, rememberMe }),
         credentials: "include",
       });
 

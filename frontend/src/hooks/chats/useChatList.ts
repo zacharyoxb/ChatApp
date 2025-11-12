@@ -10,8 +10,8 @@ export interface ChatListItemData {
   chatId: string;
   /** Display name of the chat */
   chatName: string;
-  /** ISO datetime string of when the last message was sent */
-  lastMessageAt: string;
+  /** ISO datetime string of when the last chat activity occurred */
+  lastActivity: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
   otherUserId?: string;
 }
@@ -175,11 +175,11 @@ export const useChatList = () => {
     /** Function to remove a chat from local state */
     removeChat,
 
-    /** Chats sorted by most recent message activity in descending order */
+    /** Chats sorted by most recent activity in descending order */
     sortedChats: (api.data || []).sort(
       (prev, next) =>
-        new Date(next.lastMessageAt).getTime() -
-        new Date(prev.lastMessageAt).getTime()
+        new Date(next.lastActivity).getTime() -
+        new Date(prev.lastActivity).getTime()
     ),
   };
 };
