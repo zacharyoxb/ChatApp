@@ -1,8 +1,8 @@
 .layoutDiv {
   display: flex;
   flex-flow: row nowrap;
-  max-height: 65px;
   max-width: 100%;
+  min-width: 250px;
   padding: 1vh;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -11,31 +11,36 @@
 }
 
 .leftCol {
-  flex: 0 auto auto;
+  flex: 0 0 0;
   padding: 5px;
 }
 
 .linkContainer {
   display: flex;
-  flex-flow: row;
+  flex-flow: column;
   flex: 1;
   padding: 5px;
   cursor: pointer;
   border-radius: 8px;
   transition: background 0.2s ease;
+  overflow-x: hidden;
 }
 
 .linkContainer:hover {
   background-color: #555555;
 }
 
-.middleCol {
-  text-align: left;
+.nameAndDate {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
-.rightCol {
-  flex: 0 0 auto;
-  margin-left: auto;
+.message {
+  width: 90%;
+  white-space: nowrap;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (prefers-color-scheme: light) {

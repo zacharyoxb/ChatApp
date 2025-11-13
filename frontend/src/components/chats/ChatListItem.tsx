@@ -66,13 +66,11 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
         tabIndex={0}
         aria-label={ARIA_LABEL_TEMPLATE(name, isDm, message, lastActivity)}
       >
-        <div className={styles.middleCol}>
-          <div> {name} </div>
-          <div> {message} </div>
+        <div className={styles.nameAndDate}>
+          <div>{name}</div>
+          <div>{datetime_format(lastActivity, false)}</div>
         </div>
-        <div className={styles.rightCol}>
-          {datetime_format(lastActivity, false)}
-        </div>
+        <div className={styles.message}>{message}</div>
       </div>
     </div>
   );
