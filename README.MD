@@ -14,7 +14,7 @@ CREATE TABLE `chats` (
   `created_by` BINARY(16),
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `is_public` BOOLEAN DEFAULT FALSE,
-  `last_message_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `last_activity` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
 );
 
@@ -34,7 +34,7 @@ CREATE TABLE `dm_chats` (
   `user2_id` BINARY(16) NOT NULL,
   `lower_user_id` BINARY(16) AS (LEAST(user1_id, user2_id)) STORED,
   `higher_user_id` BINARY(16) AS (GREATEST(user1_id, user2_id)) STORED,
-  `last_message_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `last_activity` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`chat_id`) REFERENCES `chats` (`chat_id`) ON DELETE CASCADE,
   FOREIGN KEY (`user1_id`) REFERENCES `users` (`user_id`),
   FOREIGN KEY (`user2_id`) REFERENCES `users` (`user_id`),
