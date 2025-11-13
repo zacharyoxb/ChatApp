@@ -1,7 +1,10 @@
+.mobileHidden {
+  display: none;
+}
+
 .parentDiv {
   display: flex;
   flex-direction: column;
-  height: 100vh;
 }
 
 .topBar {
@@ -13,5 +16,12 @@
   top: 0;
   z-index: 1000;
   padding: 1rem;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #ddd; /* change in light mode? */
+}
+
+/* Media query for tablet+ */
+@media only screen and (min-width: 768px) {
+  .mobileHidden {
+    display: block;
+  }
 }

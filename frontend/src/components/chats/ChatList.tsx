@@ -4,12 +4,15 @@ import ChatListItem from "./ChatListItem";
 
 interface ChatListProps {
   chats: ChatListItemData[];
+  isLoading: boolean;
 }
 
-const ChatList: React.FC<ChatListProps> = ({ chats }) => {
+const ChatList: React.FC<ChatListProps> = ({ chats, isLoading }) => {
   return (
-    <div className={styles.chatsArea}>
-      {chats.length === 0 ? (
+    <div className={styles.chatList}>
+      {isLoading ? (
+        <h2> Chats Loading...</h2>
+      ) : chats.length === 0 ? (
         <h2> You aren't in any chats. </h2>
       ) : (
         chats.map((chat) => (
