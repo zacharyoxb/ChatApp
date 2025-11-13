@@ -138,6 +138,7 @@ function CreateChatModal({
               onClick={() => handleAddMember(memberEntryBox)}
             >
               Add
+              <div className="sr-only">member</div>
             </StyledButton>
           </label>
           <div className={styles.userListContainer}>

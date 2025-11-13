@@ -1,10 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import defaultProfile from "/src/assets/default-profile.jpg";
-import {
-  formatMessageTimeLong,
-  formatMessageTimeShort,
-} from "../../utils/formatMessageTime";
+import { datetime_format } from "../../utils/formatDatetime";
 import styles from "./ChatListItem.module.css";
 
 interface ChatListItemProps {
@@ -22,11 +19,11 @@ const ARIA_LABEL_TEMPLATE = (
   message: string,
   lastActivity: string
 ): string => {
-  let [date, time] = formatMessageTimeLong(lastActivity);
+  let date_time_string = datetime_format(lastActivity, true);
   if (isDm) {
-    return `Direct chat with ${name}. Last message: ${message}. Last activity ${date} at ${time}`;
+    return `Direct chat with ${name}. Last message: ${message}. Last activity ${date_time_string}}`;
   }
-  return `Group chat ${name}. Last message: ${message}. Last activity ${date} at ${time}`;
+  return `Group chat ${name}. Last message: ${message}. Last activity ${date_time_string}`;
 };
 
 const ChatListItem: React.FC<ChatListItemProps> = ({
@@ -74,7 +71,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
           <div> {message} </div>
         </div>
         <div className={styles.rightCol}>
-          {formatMessageTimeShort(lastActivity)}
+          {datetime_format(lastActivity, false)}
         </div>
       </div>
     </div>
