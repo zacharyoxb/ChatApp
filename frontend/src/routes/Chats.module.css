@@ -1,10 +1,18 @@
 .mobileHidden {
-  display: none;
+  display: none !important;
 }
 
 .parentDiv {
   display: flex;
+  width: 100vw;
+  height: 100vh;
+  flex-direction: row;
+}
+
+.chatSelectionList {
+  display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .topBar {
@@ -16,12 +24,43 @@
   top: 0;
   z-index: 1000;
   padding: 1rem;
-  border-bottom: 1px solid #ddd; /* change in light mode? */
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.middleBar {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottomBar {
+  flex-shrink: 0;
+}
+
+.chatArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Media query for tablet+ */
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 1024px) {
   .mobileHidden {
     display: block;
+  }
+
+  .chatSelectionList {
+    width: 30%;
+    border-right: 1px solid #ddd;
+  }
+
+  .chatArea {
+    width: 70%;
+  }
+
+  .parentDiv {
+    flex-direction: row;
   }
 }

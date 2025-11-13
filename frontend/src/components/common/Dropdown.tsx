@@ -38,13 +38,21 @@ const Dropdown: React.FC<DropdownProps> = ({
     setShowMenu(false);
   };
 
+  // Decides which side to place dropdown on based on whether
+  // the dropdown icon is placed furthest to the left or furthest
+  // to the right of its parent
   useEffect(() => {
     if (showMenu && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const spaceOnRight = window.innerWidth - rect.right;
-      const spaceOnLeft = rect.left;
+      const dropdown = containerRef.current;
+      const parent = dropdown.parentElement;
+      if (parent === null) return;
 
-      // menu aligns to side with more space
+      const dropdownRect = dropdown.getBoundingClientRect();
+      const parentRect = parent.getBoundingClientRect();
+
+      const spaceOnRight = parentRect.right - dropdownRect.right;
+      const spaceOnLeft = dropdownRect.left - parentRect.left;
+
       setMenuPosition(spaceOnRight >= spaceOnLeft ? "left" : "right");
     }
   }, [showMenu]);

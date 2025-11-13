@@ -35,6 +35,7 @@ function Chats() {
 
   return (
     <div className={styles.parentDiv}>
+      <h1 className="sr-only"> ChatApp </h1>
       {useChats.error && (
         <div
           className="error-box"
@@ -49,7 +50,7 @@ function Chats() {
         className={`${styles.chatSelectionList} ${chatId ? styles.mobileHidden : ""}`}
       >
         <div className={styles.topBar}>
-          <h1> ChatApp </h1>
+          <h2> ChatApp </h2>
           <Dropdown
             darkLogo={threeDots}
             lightLogo={threeDotsLight}
@@ -58,7 +59,6 @@ function Chats() {
         </div>
         <div className={styles.middleBar}>
           <ChatList chats={useChats.sortedChats} isLoading={useChats.loading} />
-          <div className={styles.openChatSpace}></div>
         </div>
         <div className={styles.bottomBar}></div>
         <CreateChatModal
