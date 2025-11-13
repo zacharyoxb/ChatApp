@@ -45,6 +45,12 @@
   justify-content: center;
 }
 
+@media (prefers-color-scheme: light) {
+  .topBar {
+    border-bottom: 1px solid #000000;
+  }
+}
+
 /* Media query for tablet+ */
 @media only screen and (min-width: 1024px) {
   .mobileHidden {
@@ -62,5 +68,11 @@
 
   .parentDiv {
     flex-direction: row;
+  }
+
+  @media (prefers-color-scheme: light) {
+    .chatSelectionList {
+      border-right: 1px solid #000000;
+    }
   }
 }
