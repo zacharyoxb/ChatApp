@@ -9,6 +9,7 @@ import { useChatList } from "../hooks/chats/useChatList";
 import ChatList from "../components/chats/ChatList";
 import { useSession } from "../hooks/common/useSession";
 import { useParams } from "react-router";
+import LiveChat from "../components/chats/LiveChat";
 
 function Chats() {
   const useChats = useChatList();
@@ -70,7 +71,7 @@ function Chats() {
       <div
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
-        {!chatId && <div>No chat selected</div>}
+        <LiveChat chatId={chatId}></LiveChat>
       </div>
     </div>
   );

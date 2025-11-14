@@ -4,6 +4,7 @@
 
 .parentDiv {
   display: flex;
+  overflow: hidden;
   width: 100vw;
   height: 100vh;
   flex-direction: row;
@@ -51,19 +52,19 @@
   }
 }
 
-/* Media query for desktop */
-@media only screen and (min-width: 1024px) {
+/* Media query for tablet */
+@media only screen and (min-width: 768px) {
   .mobileHidden {
     display: block !important;
   }
 
   .chatSelectionList {
-    width: 30%;
+    width: 40%;
     border-right: 1px solid #ddd;
   }
 
   .chatArea {
-    width: 70%;
+    width: 60%;
   }
 
   .parentDiv {
@@ -74,5 +75,16 @@
     .chatSelectionList {
       border-right: 1px solid #000000;
     }
+  }
+}
+
+/* Media query for laptop + */
+@media only screen and (min-width: 1024px) {
+  .chatSelectionList {
+    width: 30%;
+  }
+
+  .chatArea {
+    width: 70%;
   }
 }
