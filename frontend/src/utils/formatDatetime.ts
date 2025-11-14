@@ -29,11 +29,6 @@ export const datetime_format = (
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  const timeString = date.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "numeric",
-  });
-
   const isToday = date.toDateString() === today.toDateString();
   const isYesterday = date.toDateString() === yesterday.toDateString();
 
@@ -42,13 +37,18 @@ export const datetime_format = (
   if (isToday) {
     formatted_string = isScreenReadable
       ? `Today at ${formatTimeScreenreader(date)}`
-      : timeString;
+      : date.toLocaleTimeString(undefined, {
+          hour: "numeric",
+          minute: "numeric",
+        });
   } else if (isYesterday) {
     formatted_string = "Yesterday";
   } else {
-    formatted_string = date.toLocaleDateString(undefined, {
-      dateStyle: "full",
-    });
+    formatted_string = isScreenReadable
+      ? date.toLocaleDateString(undefined, {
+          dateStyle: "full",
+        })
+      : date.toLocaleDateString(undefined, { dateStyle: "short" });
   }
   return formatted_string;
 };

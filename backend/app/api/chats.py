@@ -66,7 +66,6 @@ async def get_available_chat_data(
                             detail="Session does not exist or has expired")
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
-    # In future remember to change this to get the last message for each chat.
     return user_chats
 
 

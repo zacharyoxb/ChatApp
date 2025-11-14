@@ -23,3 +23,11 @@ class ChatListItem(BaseModel):
     class Config:
         """ Sets ChatListItem to serialise to JSON as alias names. """
         populate_by_name = True
+
+
+class ChatData(BaseModel):
+    """_summary_
+
+    Args:
+        BaseModel (_type_): _description_
+    """
