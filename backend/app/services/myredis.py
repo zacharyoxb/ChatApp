@@ -192,7 +192,7 @@ class RedisService:
         """ Gets history of chat
 
         Args:
-           chat_id (str): The id of the chat stream
+            chat_id (str): The id of the chat stream
             start_id (Optional[str]): Starting message ID (inclusive). Defaults to earliest.
             end_id (Optional[str]): Ending message ID (inclusive). Defaults to latest. 
             count (int): Amount of messages to retrieve. Defaults to 15.

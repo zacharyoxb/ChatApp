@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Cookie, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, status
 
 from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
@@ -104,3 +104,36 @@ async def create_new_chat(
         dmParticipantId=None,
         last_message=None
     )
+
+
+@router.websocket("/chats/{chat_id}/wss/{user_id}")
+async def websocket_chat(
+        websocket: WebSocket,
+        res: Response,
+        chat_id: str,
+        user_id: str,
+        session_id: str = Cookie(None)):
+    """ Websocket endpoint for chats
+
+    Args:
+        websocket (WebSocket): WebSocket for frontend communication.
+        res (Response): FastAPI response.
+        chat_id (str): Hex string for the id of the chat.
+        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+
+    Raises:
+        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
+    """
+    session_data = await redis_service.get_session(session_id)
+    if session_data is None:
+        remove_session_cookie(res)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Session does not exist or has expired")
+    # here we ought to make sure the user is part of the chat, but I don't
+    # want to overcomplicate things rn
+    await websocket.accept()
+
+    # get history
+    history = await redis_service.get_chat_history(chat_id)
+
+    # leave it here for testing
