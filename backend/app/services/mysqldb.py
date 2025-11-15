@@ -30,7 +30,6 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         c.chat_name,
-        c.last_activity,
         NULL as other_user_id
     FROM chats c
     INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
@@ -42,7 +41,6 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         other_user.user_name as chat_name,
-        c.last_activity,
         other_user.user_id as other_user_id
     FROM chats c
     INNER JOIN dm_chats dm ON c.chat_id = dm.chat_id
@@ -181,9 +179,9 @@ class DatabaseService:
                 ChatPreview(
                     chat_id=(chat_bytes_id := row[0]) and chat_bytes_id.hex(),
                     chat_name=row[1],
-                    last_activity=row[2],
-                    dm_participant_id=(bytes_id := row[3]) and bytes_id.hex(),
-                    last_message=None
+                    dm_participant_id=(bytes_id := row[2]) and bytes_id.hex(),
+                    last_message=None,
+                    last_activity=None
                 )
                 for row in results
             ] if results else []

@@ -14,7 +14,6 @@ CREATE TABLE `chats` (
   `created_by` BINARY(16),
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `is_public` BOOLEAN DEFAULT FALSE,
-  `last_activity` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
 );
 

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useApi } from "../common/apiStates";
 
@@ -15,22 +15,20 @@ export interface ChatData {
   chatId: string;
   /** Display name of the chat */
   chatName: string;
-  /** ISO datetime string of when the last chat activity occurred */
-  lastActivity: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
   dmParticipantId?: string;
-  /** Last message sent in the chat. Optional. */
-  lastMessage?: string;
+  /** Last message sent in the chat. Optional as chats the user hasn't joined won't show messages */
+  lastMessage: string;
+  /** ISO datetime string of when the last chat activity occurred */
+  lastActivity: string;
   /** List of all messages sent in chat. Optional */
-  messages?: Messages[];
-  /** Websocket for chat updates */
-  websocket: WebSocket;
+  messages?: Message[];
 }
 
 /**
  * Represents a message within a chat
  */
-interface Messages {
+interface Message {
   messageId: string;
   senderId: string;
   content: string;
@@ -49,6 +47,7 @@ export const useChats = () => {
   const navigate = useNavigate();
   const chatApi = useApi<ChatData[]>();
   // globalChatApi can be added later when needed for available chats
+  const websocketRefs = useRef<Map<string, WebSocket>>(new Map());
 
   /**
    * Fetches all chats that the current user is participating in
@@ -114,6 +113,34 @@ export const useChats = () => {
     //   chatApi.setError("Internal Server Error");
     // }
   }, [chatApi, navigate]);
+
+  /**
+   * Establishes WebSocket connections for real-time chat updates
+   *
+   * @param chats - Array of ChatData objects to connect websockets for
+   *
+   * @remarks
+   * Initializes a WebSocket for each chat to receive live updates.
+   * Stores WebSocket references for future use.
+   */
+  const connectToChats = useCallback((chats: ChatData[]) => {
+    chats.forEach((chat) => {
+      const ws = new WebSocket(`wss://localhost:8000/chats/${chat.chatId}`);
+
+      websocketRefs.current.set(chat.chatId, ws);
+
+      ws.onopen = () => {
+        console.log(`WebSocket connected for chat ${chat.chatId}`);
+      };
+
+      ws.onmessage = (event) => {
+        const messageData: Message = JSON.parse(event.data);
+        chat.lastActivity = messageData.timestamp;
+        chat.lastMessage = messageData.content;
+        chat.messages = [...(chat.messages || []), messageData];
+      };
+    });
+  }, []);
 
   /**
    * Creates a new chat with specified parameters
@@ -192,6 +219,8 @@ export const useChats = () => {
     fetchChats,
     /** Function to fetch discoverable public chats */
     fetchGlobalChats,
+    /** Function to connect websockets for real-time chat updates */
+    connectToChats,
     /** Function to create a new chat */
     createChat,
     /** Function to remove a chat from local state */

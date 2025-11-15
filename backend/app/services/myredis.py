@@ -5,7 +5,7 @@ import time
 from typing import Optional
 import uuid
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from redis import Redis
 import redis.asyncio as redis
 
@@ -30,15 +30,19 @@ class ChatMessage(BaseModel):
 
     Attributes:
         message_id (str): String id for message 
-        user_id (Optional[str]): Hex string id for user if user is sending the message,
+        sender_id (Optional[str]): Hex string id for user if user is sending the message,
           None if the message is a system message.
         message: (str): Message contents.
         timestamp (str): Isoformat string representing when the message was sent.
     """
-    message_id: str
-    user_id: Optional[str]
+    message_id: str = Field(..., alias="messageId")
+    sender_id: Optional[str] = Field(..., alias="senderId")
     message: str
     timestamp: str
+
+    class Config:
+        """ Sets ChatMessage model to send aliases to frontend """
+        populate_by_name = True
 
 
 class RedisService:

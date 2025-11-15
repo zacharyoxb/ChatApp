@@ -38,6 +38,10 @@ async def get_chat_previews(
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
     # In future remember to change this to get the last message for each chat.
+    for chat in user_chats:
+        chat.last_message = "temp message"
+        chat.last_activity = datetime.now()
+
     return user_chats
 
 
@@ -106,12 +110,11 @@ async def create_new_chat(
     )
 
 
-@router.websocket("/chats/{chat_id}/wss/{user_id}")
+@router.websocket("/ws/chats/{chat_id}")
 async def websocket_chat(
         websocket: WebSocket,
         res: Response,
         chat_id: str,
-        user_id: str,
         session_id: str = Cookie(None)):
     """ Websocket endpoint for chats
 
