@@ -6,9 +6,8 @@ import { useApi } from "../common/apiStates";
  * Represents the data structure for displaying a chat in the list view
  *
  * @remarks
- * From chatId to lastMessage, these fields match exactly with the backend ChatPreview type.
- * Websockets are initialized by the frontend when fetching the previews,
- * though Messages are populated lazily when the chat is selected.
+ * From chatId to lastActivity, these fields match exactly with the backend ChatPreview type.
+ * Messages are populated lazily when the chat is selected.
  */
 export interface ChatData {
   /** Unique identifier for the chat in hexadecimal format */
@@ -17,12 +16,12 @@ export interface ChatData {
   chatName: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
   dmParticipantId?: string;
-  /** Last message sent in the chat. Optional as chats the user hasn't joined won't show messages */
+  /** Last message sent in the chat. */
   lastMessage: string;
   /** ISO datetime string of when the last chat activity occurred */
   lastActivity: string;
-  /** List of all messages sent in chat. Optional */
-  messages?: Message[];
+  /** List of all messages sent in chat. */
+  messages: Message[];
 }
 
 /**
@@ -71,7 +70,13 @@ export const useChats = () => {
       }
 
       if (response.ok) {
-        const data: ChatData[] = await response.json();
+        const responseData = await response.json();
+        const data: ChatData[] = responseData.map(
+          (chat: Omit<ChatData, "messages">) => ({
+            ...chat,
+            messages: [],
+          })
+        );
         chatApi.setSuccess(data);
       } else {
         chatApi.setError("Failed to fetch chats");
@@ -104,7 +109,13 @@ export const useChats = () => {
     //     return;
     //   }
     //   if (response.ok) {
-    //     const data: ChatData[] = await response.json();
+    //     const responseData = await response.json();
+    //     const data: ChatData[] = responseData.map(
+    //       (chat: Omit<ChatData, "messages">) => ({
+    //         ...chat,
+    //         messages: [],
+    //       })
+    //     );
     //     chatApi.setSuccess(data);
     //   } else {
     //     chatApi.setError("Failed to fetch chats");
