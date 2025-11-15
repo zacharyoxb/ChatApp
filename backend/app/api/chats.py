@@ -37,7 +37,6 @@ async def get_chat_previews(
                             detail="Session does not exist or has expired")
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
-    # In future remember to change this to get the last message for each chat.
     for chat in user_chats:
         chat.last_message = "temp message"
         chat.last_activity = datetime.now()
@@ -113,23 +112,20 @@ async def create_new_chat(
 @router.websocket("/ws/chats/{chat_id}")
 async def websocket_chat(
         websocket: WebSocket,
-        res: Response,
-        chat_id: str,
-        session_id: str = Cookie(None)):
+        chat_id: str):
     """ Websocket endpoint for chats
 
     Args:
         websocket (WebSocket): WebSocket for frontend communication.
-        res (Response): FastAPI response.
         chat_id (str): Hex string for the id of the chat.
-        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
 
     Raises:
         HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
     """
+    # This cookie check is probably not super secure, but it's better than nothing
+    session_id = websocket.cookies.get("session_id")
     session_data = await redis_service.get_session(session_id)
     if session_data is None:
-        remove_session_cookie(res)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
     # here we ought to make sure the user is part of the chat, but I don't
@@ -138,5 +134,7 @@ async def websocket_chat(
 
     # get history
     history = await redis_service.get_chat_history(chat_id)
+
+    print("History:", history)
 
     # leave it here for testing

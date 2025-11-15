@@ -125,7 +125,10 @@ export const useChats = () => {
    */
   const connectToChats = useCallback((chats: ChatData[]) => {
     chats.forEach((chat) => {
-      const ws = new WebSocket(`wss://localhost:8000/chats/${chat.chatId}`);
+      if (websocketRefs.current.has(chat.chatId)) {
+        return;
+      }
+      const ws = new WebSocket(`wss://localhost:8000/ws/chats/${chat.chatId}`);
 
       websocketRefs.current.set(chat.chatId, ws);
 

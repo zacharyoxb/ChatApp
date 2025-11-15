@@ -23,6 +23,12 @@ function Chats() {
     chats.fetchChats();
   }, []);
 
+  useEffect(() => {
+    if (chats.chats.length > 0 && !chats.loading) {
+      chats.connectToChats(chats.chats);
+    }
+  }, [chats.chats, chats.loading, chats.connectToChats]);
+
   const selectionListDropdown: DropdownOption[] = [
     {
       label: "Create Chat",
