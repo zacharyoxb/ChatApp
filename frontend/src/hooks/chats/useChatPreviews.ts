@@ -180,7 +180,7 @@ export const useChatPreviews = () => {
     removeChat,
 
     /** Chats sorted by most recent activity in descending order */
-    sortedChats: (previewApi.data || []).sort(
+    sortedChatPreviews: (previewApi.data || []).sort(
       (prev, next) =>
         new Date(next.lastActivity).getTime() -
         new Date(prev.lastActivity).getTime()

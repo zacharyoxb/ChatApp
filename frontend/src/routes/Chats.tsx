@@ -12,7 +12,7 @@ import ChatList from "../components/chats/ChatList";
 import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 
 function Chats() {
-  const chats = useChatPreviews();
+  const chatPreviews = useChatPreviews();
   const createChatModal = useModal();
   const session = useSession();
 
@@ -20,7 +20,7 @@ function Chats() {
   const chatId = params.chatId;
 
   useEffect(() => {
-    chats.fetchChatPreviews();
+    chatPreviews.fetchChatPreviews();
   }, []);
 
   const selectionListDropdown: DropdownOption[] = [
@@ -37,14 +37,14 @@ function Chats() {
   return (
     <div className={styles.parentDiv}>
       <h1 className="sr-only"> ChatApp </h1>
-      {chats.error && (
+      {chatPreviews.error && (
         <div
           className="error-box"
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
         >
-          {chats.error}
+          {chatPreviews.error}
         </div>
       )}
       <div
@@ -59,13 +59,16 @@ function Chats() {
           ></Dropdown>
         </div>
         <div className={styles.middleBar}>
-          <ChatList chats={chats.sortedChats} isLoading={chats.loading} />
+          <ChatList
+            chats={chatPreviews.sortedChatPreviews}
+            isLoading={chatPreviews.loading}
+          />
         </div>
         <div className={styles.bottomBar}></div>
         <CreateChatModal
           isOpen={createChatModal.isOpen}
           onClose={createChatModal.close}
-          onCreateChat={chats.createChat}
+          onCreateChat={chatPreviews.createChat}
         ></CreateChatModal>
       </div>
       <div
