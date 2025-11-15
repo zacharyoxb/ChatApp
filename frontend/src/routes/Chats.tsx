@@ -5,14 +5,14 @@ import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
 import styles from "./Chats.module.css";
 import { useModal } from "../hooks/common/useModal";
 import CreateChatModal from "../components/chats/CreateChatModal";
-import { useChatList } from "../hooks/chats/useChatList";
-import ChatList from "../components/chats/ChatList";
 import { useSession } from "../hooks/common/useSession";
 import { useParams } from "react-router";
 import LiveChat from "../components/chats/LiveChat";
+import ChatList from "../components/chats/ChatList";
+import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 
 function Chats() {
-  const useChats = useChatList();
+  const chats = useChatPreviews();
   const createChatModal = useModal();
   const session = useSession();
 
@@ -20,7 +20,7 @@ function Chats() {
   const chatId = params.chatId;
 
   useEffect(() => {
-    useChats.fetchChats();
+    chats.fetchChatPreviews();
   }, []);
 
   const selectionListDropdown: DropdownOption[] = [
@@ -37,14 +37,14 @@ function Chats() {
   return (
     <div className={styles.parentDiv}>
       <h1 className="sr-only"> ChatApp </h1>
-      {useChats.error && (
+      {chats.error && (
         <div
           className="error-box"
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
         >
-          {useChats.error}
+          {chats.error}
         </div>
       )}
       <div
@@ -59,13 +59,13 @@ function Chats() {
           ></Dropdown>
         </div>
         <div className={styles.middleBar}>
-          <ChatList chats={useChats.sortedChats} isLoading={useChats.loading} />
+          <ChatList chats={chats.sortedChats} isLoading={chats.loading} />
         </div>
         <div className={styles.bottomBar}></div>
         <CreateChatModal
           isOpen={createChatModal.isOpen}
           onClose={createChatModal.close}
-          onCreateChat={useChats.createChat}
+          onCreateChat={chats.createChat}
         ></CreateChatModal>
       </div>
       <div

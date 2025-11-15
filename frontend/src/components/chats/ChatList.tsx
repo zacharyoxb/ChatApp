@@ -1,4 +1,4 @@
-import type { ChatListItemData } from "../../hooks/chats/useChatList";
+import type { ChatListItemData } from "../../hooks/chats/useChatPreviews";
 import styles from "./ChatList.module.css";
 import ChatListItem from "./ChatListItem";
 

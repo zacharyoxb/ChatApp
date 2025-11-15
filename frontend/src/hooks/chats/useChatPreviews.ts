@@ -14,19 +14,21 @@ export interface ChatListItemData {
   lastActivity: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
   dmParticipantId?: string;
+  /** Last message sent in the chat. Optional. */
+  lastMessage?: string;
 }
 
 /**
- * Custom hook for managing chat list operations and state
+ * Custom hook for fetching previews of chats and the creation and deletion of chats.
  *
  * @remarks
- * Provides functionality for fetching, creating, and managing chats.
+ * Provides functionality for fetching and creating chats.
  * Handles authentication redirects and maintains chat list state.
  * Includes automatic sorting of chats by most recent activity.
  */
-export const useChatList = () => {
+export const useChatPreviews = () => {
   const navigate = useNavigate();
-  const api = useApi<ChatListItemData[]>();
+  const previewApi = useApi<ChatListItemData[]>();
 
   /**
    * Fetches all chats that the current user is participating in
@@ -35,8 +37,8 @@ export const useChatList = () => {
    * Automatically handles session expiration by redirecting to login page.
    * Updates the chat list state with fetched data on success.
    */
-  const fetchChats = useCallback(async () => {
-    api.setLoading();
+  const fetchChatPreviews = useCallback(async () => {
+    previewApi.setLoading();
 
     try {
       const response = await fetch("https://localhost:8000/chats/my-chats", {
@@ -51,14 +53,14 @@ export const useChatList = () => {
 
       if (response.ok) {
         const data: ChatListItemData[] = await response.json();
-        api.setSuccess(data);
+        previewApi.setSuccess(data);
       } else {
-        api.setError("Failed to fetch chats");
+        previewApi.setError("Failed to fetch chats");
       }
     } catch (err) {
-      api.setError("Internal Server Error");
+      previewApi.setError("Internal Server Error");
     }
-  }, [api, navigate]);
+  }, [previewApi, navigate]);
 
   /**
    * Fetches publicly available chats that the user is not currently participating in
@@ -67,8 +69,8 @@ export const useChatList = () => {
    * Useful for discovering new chats to join. Handles authentication redirects
    * and updates the available chats state.
    */
-  const fetchAvailableChats = useCallback(async () => {
-    api.setLoading();
+  const fetchGlobalChatPreviews = useCallback(async () => {
+    previewApi.setLoading();
 
     try {
       const response = await fetch(
@@ -86,14 +88,14 @@ export const useChatList = () => {
 
       if (response.ok) {
         const data: ChatListItemData[] = await response.json();
-        api.setSuccess(data);
+        previewApi.setSuccess(data);
       } else {
-        api.setError("Failed to fetch chats");
+        previewApi.setError("Failed to fetch chats");
       }
     } catch (err) {
-      api.setError("Internal Server Error");
+      previewApi.setError("Internal Server Error");
     }
-  }, [api, navigate]);
+  }, [previewApi, navigate]);
 
   /**
    * Creates a new chat with specified parameters
@@ -120,21 +122,21 @@ export const useChatList = () => {
         });
 
         if (response.status !== 201) {
-          api.setError("Error occurred when creating chat.");
+          previewApi.setError("Error occurred when creating chat.");
           return;
         }
 
         const newChat: ChatListItemData = await response.json();
-        if (api.data) {
-          api.setSuccess([...api.data, newChat]);
+        if (previewApi.data) {
+          previewApi.setSuccess([...previewApi.data, newChat]);
         } else {
-          api.setSuccess([newChat]);
+          previewApi.setSuccess([newChat]);
         }
       } catch (err) {
-        api.setError("Internal Server Error.");
+        previewApi.setError("Internal Server Error.");
       }
     },
-    [api]
+    [previewApi]
   );
 
   /**
@@ -148,35 +150,37 @@ export const useChatList = () => {
    */
   const removeChat = useCallback(
     (chatId: string) => {
-      if (!api.data) return;
+      if (!previewApi.data) return;
 
-      const filteredChats = api.data.filter((chat) => chat.chatId !== chatId);
-      api.setSuccess(filteredChats);
+      const filteredChats = previewApi.data.filter(
+        (chat) => chat.chatId !== chatId
+      );
+      previewApi.setSuccess(filteredChats);
     },
-    [api]
+    [previewApi]
   );
 
   return {
     /** Array of chat items, empty array if no chats are loaded */
-    chats: api.data || [],
+    chats: previewApi.data || [],
     /** Indicates if a chat operation is currently in progress */
-    loading: api.isLoading,
+    loading: previewApi.isLoading,
     /** Error message from the last failed operation, empty string if no error */
-    error: api.error,
+    error: previewApi.error,
     /** Current state of the chat list operations */
-    state: api.state,
+    state: previewApi.state,
 
     /** Function to fetch user's participating chats */
-    fetchChats,
+    fetchChatPreviews,
     /** Function to fetch discoverable public chats */
-    fetchAvailableChats,
+    fetchGlobalChatPreviews,
     /** Function to create a new chat */
     createChat,
     /** Function to remove a chat from local state */
     removeChat,
 
     /** Chats sorted by most recent activity in descending order */
-    sortedChats: (api.data || []).sort(
+    sortedChats: (previewApi.data || []).sort(
       (prev, next) =>
         new Date(next.lastActivity).getTime() -
         new Date(prev.lastActivity).getTime()
