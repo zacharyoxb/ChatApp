@@ -1,9 +1,9 @@
-import type { ChatListItemData } from "../../hooks/chats/useChatPreviews";
+import type { ChatData } from "../../hooks/chats/useChats";
 import styles from "./ChatList.module.css";
 import ChatListItem from "./ChatListItem";
 
 interface ChatListProps {
-  chats: ChatListItemData[];
+  chats: ChatData[];
   isLoading: boolean;
 }
 
