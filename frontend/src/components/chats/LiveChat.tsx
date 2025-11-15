@@ -1,11 +1,12 @@
+import type { ChatData } from "../../hooks/chats/useChats";
 import styles from "./LiveChat.module.css";
 
 interface LiveChatProps {
-  chatId: string | undefined;
+  chatData: ChatData | undefined;
 }
 
-const LiveChat: React.FC<LiveChatProps> = ({ chatId }) => {
-  if (chatId == undefined) {
+const LiveChat: React.FC<LiveChatProps> = ({ chatData }) => {
+  if (chatData == undefined) {
     return <h2 className={styles.noChat}> No chat selected. </h2>;
   }
 

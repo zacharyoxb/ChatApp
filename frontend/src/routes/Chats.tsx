@@ -80,7 +80,9 @@ function Chats() {
       <div
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
-        <LiveChat chatId={chatId}></LiveChat>
+        <LiveChat
+          chatData={chatId ? chats.getChatFromId(chatId) : undefined}
+        ></LiveChat>
       </div>
     </div>
   );

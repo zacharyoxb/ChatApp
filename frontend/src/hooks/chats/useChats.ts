@@ -146,6 +146,22 @@ export const useChats = () => {
   }, []);
 
   /**
+   * Retrieves a chat by its unique identifier
+   *
+   * @param chatId - Unique identifier of the chat to retrieve
+   * @returns The ChatData object if found, otherwise undefined
+   *
+   * @remarks
+   * Searches the current chat list for a chat matching the provided ID.
+   */
+  const getChatFromId = useCallback(
+    (chatId: string): ChatData | undefined => {
+      return chatApi.data?.find((chat) => chat.chatId === chatId);
+    },
+    [chatApi]
+  );
+
+  /**
    * Creates a new chat with specified parameters
    *
    * @param chatName - Display name for the new chat
@@ -224,6 +240,8 @@ export const useChats = () => {
     fetchGlobalChats,
     /** Function to connect websockets for real-time chat updates */
     connectToChats,
+    /** Function to get a chat by its unique identifier */
+    getChatFromId,
     /** Function to create a new chat */
     createChat,
     /** Function to remove a chat from local state */
