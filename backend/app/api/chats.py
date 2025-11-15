@@ -7,17 +7,17 @@ from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, statu
 from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
 from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatListItem
+from app.templates.chats.responses import ChatPreview
 from app.utils.cookies import remove_session_cookie
 
 router = APIRouter()
 
 
-@router.get("/chats/my-chats", response_model=List[ChatListItem])
-async def get_user_chat_data(
+@router.get("/chats/my-chats", response_model=List[ChatPreview])
+async def get_chat_previews(
     res: Response,
     session_id: str = Cookie(None)
-) -> List[ChatListItem]:
+) -> List[ChatPreview]:
     """ Gets all chats a user is in
 
     Args:
@@ -41,11 +41,11 @@ async def get_user_chat_data(
     return user_chats
 
 
-@router.get("/chats/available-chats", response_model=List[ChatListItem])
-async def get_available_chat_data(
+@router.get("/chats/available-chats", response_model=List[ChatPreview])
+async def get_available_chat_previews(
     res: Response,
     session_id: str = Cookie(None)
-) -> List[ChatListItem]:
+) -> List[ChatPreview]:
     """ Gets chats the user isn't in, but are available to join
     (i.e. are public)
 
@@ -97,7 +97,7 @@ async def create_new_chat(
     await db_service.create_chat(username, req)
     res.status_code = status.HTTP_201_CREATED
 
-    return ChatListItem(
+    return ChatPreview(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,
         last_activity=datetime.now(),

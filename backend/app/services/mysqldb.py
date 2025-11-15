@@ -4,7 +4,7 @@ from typing import List, Optional
 from mysql.connector.aio import MySQLConnectionPool
 
 from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatListItem
+from app.templates.chats.responses import ChatPreview
 from app.templates.chats.types import Role
 
 # INSERT queries
@@ -162,7 +162,7 @@ class DatabaseService:
             await cursor.close()
             return result[0] if result else None
 
-    async def get_all_user_chats(self, username: str) -> list[ChatListItem]:
+    async def get_all_user_chats(self, username: str) -> list[ChatPreview]:
         """ Gets all group chats the user is in, including both group chats and DMs.
 
         Args:
@@ -178,7 +178,7 @@ class DatabaseService:
             await cursor.close()
 
             return [
-                ChatListItem(
+                ChatPreview(
                     chat_id=(chat_bytes_id := row[0]) and chat_bytes_id.hex(),
                     chat_name=row[1],
                     last_activity=row[2],
@@ -188,7 +188,7 @@ class DatabaseService:
                 for row in results
             ] if results else []
 
-    async def get_all_available_chats(self, username: str) -> List[ChatListItem]:
+    async def get_all_available_chats(self, username: str) -> List[ChatPreview]:
         """ Gets all chats that the user isn't in but are available for the user to join. 
 
         Args:

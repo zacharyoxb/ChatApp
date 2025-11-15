@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-class ChatListItem(BaseModel):
+class ChatPreview(BaseModel):
     """ Data structure for chat preview information.
 
     Attributes:

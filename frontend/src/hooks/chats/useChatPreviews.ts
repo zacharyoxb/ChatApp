@@ -5,7 +5,7 @@ import { useApi } from "../common/apiStates";
 /**
  * Represents the data structure for displaying a chat in the list view
  */
-export interface ChatListItemData {
+export interface ChatPreview {
   /** Unique identifier for the chat in hexadecimal format */
   chatId: string;
   /** Display name of the chat */
@@ -28,7 +28,7 @@ export interface ChatListItemData {
  */
 export const useChatPreviews = () => {
   const navigate = useNavigate();
-  const previewApi = useApi<ChatListItemData[]>();
+  const previewApi = useApi<ChatPreview[]>();
 
   /**
    * Fetches all chats that the current user is participating in
@@ -52,7 +52,7 @@ export const useChatPreviews = () => {
       }
 
       if (response.ok) {
-        const data: ChatListItemData[] = await response.json();
+        const data: ChatPreview[] = await response.json();
         previewApi.setSuccess(data);
       } else {
         previewApi.setError("Failed to fetch chats");
@@ -87,7 +87,7 @@ export const useChatPreviews = () => {
       }
 
       if (response.ok) {
-        const data: ChatListItemData[] = await response.json();
+        const data: ChatPreview[] = await response.json();
         previewApi.setSuccess(data);
       } else {
         previewApi.setError("Failed to fetch chats");
@@ -96,6 +96,22 @@ export const useChatPreviews = () => {
       previewApi.setError("Internal Server Error");
     }
   }, [previewApi, navigate]);
+
+  /**
+   * Gets a chat preview from the chatId
+   *
+   * @param chatId - Chat Id to get preview of.
+   *
+   * @returns Preview of chat if exists, undefined otherwise
+   */
+  const getPreviewById = useCallback(
+    async (chatId: string) => {
+      return previewApi.data?.find((item) => {
+        item.chatId == chatId;
+      });
+    },
+    [previewApi]
+  );
 
   /**
    * Creates a new chat with specified parameters
@@ -126,7 +142,7 @@ export const useChatPreviews = () => {
           return;
         }
 
-        const newChat: ChatListItemData = await response.json();
+        const newChat: ChatPreview = await response.json();
         if (previewApi.data) {
           previewApi.setSuccess([...previewApi.data, newChat]);
         } else {
@@ -174,6 +190,8 @@ export const useChatPreviews = () => {
     fetchChatPreviews,
     /** Function to fetch discoverable public chats */
     fetchGlobalChatPreviews,
+    /** Function to get preview by chat's Id */
+    getPreviewById,
     /** Function to create a new chat */
     createChat,
     /** Function to remove a chat from local state */
