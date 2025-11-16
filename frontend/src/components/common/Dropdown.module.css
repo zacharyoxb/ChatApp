@@ -13,8 +13,6 @@
 .lightModeIcon,
 .darkModeIcon {
   display: none;
-  height: clamp(2rem, 5vw + 1rem, 4rem);
-  width: clamp(2rem, 5vw + 1rem, 4rem);
 }
 
 .dropdownMenu {

@@ -57,15 +57,17 @@ const LiveChat: React.FC<LiveChatProps> = ({ chatData }) => {
           <button className={styles.searchButton}>
             <img
               src={searchIconLight}
-              className={styles.lightModeIcon}
+              className={styles.searchLightIcon}
               width={40}
               height={40}
+              alt={"Search chat messages"}
             ></img>
             <img
               src={searchIcon}
-              className={styles.darkModeIcon}
+              className={styles.searchDarkIcon}
               width={40}
               height={40}
+              alt={"Search chat messages"}
             ></img>
           </button>
           <Dropdown
