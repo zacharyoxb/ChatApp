@@ -66,7 +66,6 @@ const Dropdown: React.FC<DropdownProps> = ({
             className={styles.lightModeIcon}
             alt="Miscellaneous menu"
             height={75}
-            object-fit="contain"
           />
         )}
         {darkLogo && (
@@ -75,7 +74,6 @@ const Dropdown: React.FC<DropdownProps> = ({
             className={styles.darkModeIcon}
             alt="Miscellaneous menu"
             height={75}
-            object-fit="contain"
           />
         )}
         {label}
