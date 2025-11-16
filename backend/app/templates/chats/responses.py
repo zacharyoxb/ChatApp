@@ -25,9 +25,21 @@ class ChatPreview(BaseModel):
         populate_by_name = True
 
 
-class ChatData(BaseModel):
-    """_summary_
+class ChatMessage(BaseModel):
+    """ Data structure for chat messages.
 
-    Args:
-        BaseModel (_type_): _description_
+    Attributes:
+        message_id (str): String id for message 
+        sender_id (Optional[str]): Hex string id for user if user is sending the message,
+          None if the message is a system message.
+        message: (str): Message contents.
+        timestamp (str): Isoformat string representing when the message was sent.
     """
+    message_id: str = Field(..., alias="messageId")
+    sender_id: Optional[str] = Field(..., alias="senderId")
+    message: str
+    timestamp: str
+
+    class Config:
+        """ Sets ChatMessage model to send aliases to frontend """
+        populate_by_name = True

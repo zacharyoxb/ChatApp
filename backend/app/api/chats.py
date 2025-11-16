@@ -6,8 +6,8 @@ from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, statu
 
 from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
-from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatPreview
+from app.templates.chats.requests import ChatHistoryRequest, NewChatData
+from app.templates.chats.responses import ChatMessage, ChatPreview
 from app.utils.cookies import remove_session_cookie
 
 router = APIRouter()
@@ -72,6 +72,34 @@ async def get_available_chat_previews(
     return user_chats
 
 
+@router.get("/chats/{chat_id}", response_model=List[ChatMessage])
+async def get_chat_history(
+        chat_id: str,
+        req: ChatHistoryRequest,
+        res: Response,
+        session_id: str = Cookie(None)):
+    """ Gets the chat history for a given chat
+
+    Args:
+        chat_id (str): Hex string for the id of the chat.
+        res (Response): FastAPI response.
+        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+
+    Raises:
+        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
+
+    Returns:
+        List[Message]: An array of chat messages in the chat.
+    """
+    session_data = await redis_service.get_session(session_id)
+    if session_data is None:
+        remove_session_cookie(res)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Session does not exist or has expired")
+    history = await redis_service.get_chat_history(chat_id, req.start_id, req.end_id, req.count)
+    return history
+
+
 @router.post("/chats")
 async def create_new_chat(
         req: NewChatData,
@@ -131,10 +159,5 @@ async def websocket_chat(
     # here we ought to make sure the user is part of the chat, but I don't
     # want to overcomplicate things rn
     await websocket.accept()
-
-    # get history
-    history = await redis_service.get_chat_history(chat_id)
-
-    print("History:", history)
 
     # leave it here for testing

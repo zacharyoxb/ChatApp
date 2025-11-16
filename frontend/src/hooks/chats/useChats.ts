@@ -44,8 +44,10 @@ interface Message {
  */
 export const useChats = () => {
   const navigate = useNavigate();
-  const chatApi = useApi<ChatData[]>();
-  // globalChatApi can be added later when needed for available chats
+  const chatPreviewApi = useApi<ChatData[]>();
+  //const globalChatApi = useApi<ChatData[]>();
+  const chatHistoryApi = useApi<Message[]>();
+  const historyRefs = useRef<Map<string, Message[]>>(new Map());
   const websocketRefs = useRef<Map<string, WebSocket>>(new Map());
 
   /**
@@ -56,7 +58,7 @@ export const useChats = () => {
    * Updates the chat list state with fetched data on success.
    */
   const fetchChats = useCallback(async () => {
-    chatApi.setLoading();
+    chatPreviewApi.setLoading();
 
     try {
       const response = await fetch("https://localhost:8000/chats/my-chats", {
@@ -77,14 +79,14 @@ export const useChats = () => {
             messages: [],
           })
         );
-        chatApi.setSuccess(data);
+        chatPreviewApi.setSuccess(data);
       } else {
-        chatApi.setError("Failed to fetch chats");
+        chatPreviewApi.setError("Failed to fetch chats");
       }
     } catch (err) {
-      chatApi.setError("Internal Server Error");
+      chatPreviewApi.setError("Internal Server Error");
     }
-  }, [chatApi, navigate]);
+  }, [chatPreviewApi, navigate]);
 
   /**
    * Fetches publicly available chats that the user is not currently participating in
@@ -94,8 +96,8 @@ export const useChats = () => {
    * and updates the available chats state.
    */
   const fetchGlobalChats = useCallback(async () => {
-    // When uncommenting / fixing use globalChatApi instead of chatApi
-    // chatApi.setLoading();
+    // When uncommenting / fixing use globalChatApi instead of chatPreviewApi
+    // chatPreviewApi.setLoading();
     // try {
     //   const response = await fetch(
     //     "https://localhost:8000/chats/available-chats",
@@ -116,14 +118,50 @@ export const useChats = () => {
     //         messages: [],
     //       })
     //     );
-    //     chatApi.setSuccess(data);
+    //     chatPreviewApi.setSuccess(data);
     //   } else {
-    //     chatApi.setError("Failed to fetch chats");
+    //     chatPreviewApi.setError("Failed to fetch chats");
     //   }
     // } catch (err) {
-    //   chatApi.setError("Internal Server Error");
+    //   chatPreviewApi.setError("Internal Server Error");
     // }
-  }, [chatApi, navigate]);
+  }, [chatPreviewApi, navigate]);
+
+  const fetchChatHistory = useCallback(
+    async (
+      chatId: string,
+      startMessageId?: string,
+      endMessageId?: string,
+      count?: number
+    ) => {
+      if (historyRefs.current.has(chatId)) {
+        return;
+      }
+      chatHistoryApi.setLoading();
+      try {
+        const response = await fetch(`https://localhost:8000/chats/${chatId}`, {
+          method: "GET",
+          credentials: "include",
+
+          body: JSON.stringify({ startMessageId, endMessageId, count }),
+        });
+
+        if (response.status === 401) {
+          navigate("/login", { state: { sessionExpired: true } });
+          return;
+        }
+
+        if (response.ok) {
+          const messages: Message[] = await response.json();
+          historyRefs.current.set(chatId, messages);
+          chatHistoryApi.setSuccess(messages);
+        }
+      } catch (err) {
+        chatHistoryApi.setError("Internal Server Error");
+      }
+    },
+    [chatHistoryApi, navigate]
+  );
 
   /**
    * Establishes WebSocket connections for real-time chat updates
@@ -172,9 +210,9 @@ export const useChats = () => {
    */
   const getChatFromId = useCallback(
     (chatId: string): ChatData | undefined => {
-      return chatApi.data?.find((chat) => chat.chatId === chatId);
+      return chatPreviewApi.data?.find((chat) => chat.chatId === chatId);
     },
-    [chatApi]
+    [chatPreviewApi]
   );
 
   /**
@@ -202,21 +240,21 @@ export const useChats = () => {
         });
 
         if (response.status !== 201) {
-          chatApi.setError("Error occurred when creating chat.");
+          chatPreviewApi.setError("Error occurred when creating chat.");
           return;
         }
 
         const newChat: ChatData = await response.json();
-        if (chatApi.data) {
-          chatApi.setSuccess([...chatApi.data, newChat]);
+        if (chatPreviewApi.data) {
+          chatPreviewApi.setSuccess([...chatPreviewApi.data, newChat]);
         } else {
-          chatApi.setSuccess([newChat]);
+          chatPreviewApi.setSuccess([newChat]);
         }
       } catch (err) {
-        chatApi.setError("Internal Server Error.");
+        chatPreviewApi.setError("Internal Server Error.");
       }
     },
-    [chatApi]
+    [chatPreviewApi]
   );
 
   /**
@@ -230,30 +268,48 @@ export const useChats = () => {
    */
   const removeChat = useCallback(
     (chatId: string) => {
-      if (!chatApi.data) return;
+      if (!chatPreviewApi.data) return;
 
-      const filteredChats = chatApi.data.filter(
+      const filteredChats = chatPreviewApi.data.filter(
         (chat) => chat.chatId !== chatId
       );
-      chatApi.setSuccess(filteredChats);
+      chatPreviewApi.setSuccess(filteredChats);
     },
-    [chatApi]
+    [chatPreviewApi]
   );
 
   return {
     /** Array of chat items, empty array if no chats are loaded */
-    chats: chatApi.data || [],
+    chats: chatPreviewApi.data || [],
     /** Indicates if a chat operation is currently in progress */
-    loading: chatApi.isLoading,
+    loading: chatPreviewApi.isLoading,
     /** Error message from the last failed operation, empty string if no error */
-    error: chatApi.error,
-    /** Current state of the chat list operations */
-    state: chatApi.state,
+    error: chatPreviewApi.error,
+
+    /** Array of global chat items, empty array if no chats are loaded */
+    // globalChats: globalChatApi.data || [],
+    /** Indicates if a global chat operation is currently in progress */
+    // globalLoading: globalChatApi.isLoading,
+    /** Error message from the last failed global chat operation, empty string if no error */
+    // globalError: globalChatApi.error,e
+    /** Current state of the global chat list operations */
+    // globalState: globalChatApi.state,
+
+    /** Array of messages in the currently selected chat */
+    chatMessages: chatHistoryApi.data || [],
+    /** Indicates if a chat history operation is currently in progress */
+    chatHistoryLoading: chatHistoryApi.isLoading,
+    /** Error message from the last failed chat history operation, empty string if no error */
+    chatHistoryError: chatHistoryApi.error,
+    /** Current state of the chat history operations */
+    chatHistoryState: chatHistoryApi.state,
 
     /** Function to fetch user's participating chats */
     fetchChats,
     /** Function to fetch discoverable public chats */
     fetchGlobalChats,
+    /** Function to fetch message history for a specific chat */
+    fetchChatHistory,
     /** Function to connect websockets for real-time chat updates */
     connectToChats,
     /** Function to get a chat by its unique identifier */
@@ -264,7 +320,7 @@ export const useChats = () => {
     removeChat,
 
     /** Chats sorted by most recent activity in descending order */
-    sortedChatPreviews: (chatApi.data || []).sort(
+    sortedChatPreviews: (chatPreviewApi.data || []).sort(
       (prev, next) =>
         new Date(next.lastActivity).getTime() -
         new Date(prev.lastActivity).getTime()

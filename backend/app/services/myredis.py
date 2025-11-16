@@ -5,9 +5,11 @@ import time
 from typing import Optional
 import uuid
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from redis import Redis
 import redis.asyncio as redis
+
+from app.templates.chats.responses import ChatMessage
 
 SESSION_TTL_SECONDS = 86400  # 24 hours
 
@@ -23,26 +25,6 @@ class SessionData(BaseModel):
     username: str
     created_at: float
     last_activity: float
-
-
-class ChatMessage(BaseModel):
-    """ Data structure for chat messages.
-
-    Attributes:
-        message_id (str): String id for message 
-        sender_id (Optional[str]): Hex string id for user if user is sending the message,
-          None if the message is a system message.
-        message: (str): Message contents.
-        timestamp (str): Isoformat string representing when the message was sent.
-    """
-    message_id: str = Field(..., alias="messageId")
-    sender_id: Optional[str] = Field(..., alias="senderId")
-    message: str
-    timestamp: str
-
-    class Config:
-        """ Sets ChatMessage model to send aliases to frontend """
-        populate_by_name = True
 
 
 class RedisService:

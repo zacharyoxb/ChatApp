@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import threeDots from "../assets/three-dots.png";
 import threeDotsLight from "../assets/three-dots-light.png";
 import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
@@ -19,8 +19,13 @@ function Chats() {
   const params = useParams();
   const chatId = params.chatId;
 
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
-    chats.fetchChats();
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      chats.fetchChats();
+    }
   }, []);
 
   useEffect(() => {
@@ -28,6 +33,12 @@ function Chats() {
       chats.connectToChats(chats.chats);
     }
   }, [chats.chats, chats.loading, chats.connectToChats]);
+
+  useEffect(() => {
+    if (chatId) {
+      chats.fetchChatHistory(chatId);
+    }
+  }, [chatId]);
 
   const selectionListDropdown: DropdownOption[] = [
     {

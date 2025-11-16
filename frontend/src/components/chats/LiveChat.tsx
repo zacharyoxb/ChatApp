@@ -84,7 +84,6 @@ const LiveChat: React.FC<LiveChatProps> = ({ chatData }) => {
             <span className={styles.content}>{message.content}</span>
           </div>
         ))}
-        chat here
       </div>
       <div className={styles.inputContainer}>
         <input
