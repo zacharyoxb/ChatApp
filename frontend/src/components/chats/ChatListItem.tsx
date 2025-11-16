@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import defaultProfile from "/src/assets/default-profile.jpg";
+import defaultDm from "/src/assets/default-dm.png";
+import defaultGroup from "/src/assets/default-group.png";
 import { datetime_format } from "../../utils/formatDatetime";
 import styles from "./ChatListItem.module.css";
 
@@ -47,12 +48,14 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
     }
   }
 
+  let image = chatImage || (isDm ? defaultDm : defaultGroup);
+
   return (
     <div className={styles.layoutDiv}>
       <div className={styles.leftCol}>
         <img
           className={styles.profileImage}
-          src={chatImage || defaultProfile}
+          src={image}
           width={50}
           height={50}
           alt={isDm ? `${name}'s profile picture` : `${name} group icon`}

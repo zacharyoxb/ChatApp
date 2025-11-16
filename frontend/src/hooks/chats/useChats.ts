@@ -153,6 +153,11 @@ export const useChats = () => {
         chat.lastMessage = messageData.content;
         chat.messages = [...(chat.messages || []), messageData];
       };
+
+      ws.onclose = () => {
+        console.log(`WebSocket disconnected for chat ${chat.chatId}`);
+        websocketRefs.current.delete(chat.chatId);
+      };
     });
   }, []);
 
