@@ -14,6 +14,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  background-color: #1a1a1a;
 }
 
 .topBar {
@@ -25,7 +26,6 @@
   top: 0;
   z-index: 1000;
   padding: 1rem;
-  border-bottom: 1px solid #ddd;
   flex-shrink: 0;
 }
 
@@ -47,12 +47,6 @@
   width: 100%;
 }
 
-@media (prefers-color-scheme: light) {
-  .topBar {
-    border-bottom: 1px solid #000000;
-  }
-}
-
 /* Media query for tablet */
 @media only screen and (min-width: 768px) {
   .mobileHidden {
@@ -61,7 +55,7 @@
 
   .chatSelectionList {
     width: 40%;
-    border-right: 1px solid #ddd;
+    border: 1px solid #3d3d3d;
   }
 
   .chatArea {
@@ -74,7 +68,8 @@
 
   @media (prefers-color-scheme: light) {
     .chatSelectionList {
-      border-right: 1px solid #000000;
+      background-color: #ffffff;
+      border: 1px solid #c4c4c4;
     }
   }
 }

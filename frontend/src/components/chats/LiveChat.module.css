@@ -10,6 +10,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  /*background-color: #242424;*/
   width: 100%;
   height: 100%;
 }
@@ -21,6 +22,7 @@
   height: auto;
   flex-direction: row;
   justify-content: space-between;
+  background-color: #1a1a1a;
 }
 
 .leftSide {
@@ -28,13 +30,31 @@
   flex-direction: row;
 }
 
+.chatTitle {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 15px;
+}
+
 .rightSide {
   display: flex;
   flex-direction: row;
 }
 
+.rightSide button {
+  padding: 5px;
+}
+
+.lightModeIcon,
+.darkModeIcon {
+  display: none;
+}
+
 .messagesContainer {
   display: flex;
+  flex: 1;
   flex-direction: column;
   width: 100%;
   height: auto;
@@ -75,4 +95,28 @@
 
 .sendButton:hover {
   background-color: #0056b3;
+}
+
+@media (prefers-color-scheme: dark) {
+  .darkModeIcon {
+    display: block;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .liveChat {
+    background-color: #63636373;
+  }
+
+  .titleBar {
+    background-color: #ffffff;
+  }
+
+  .lightModeIcon {
+    display: block;
+  }
+
+  .rightSide button {
+    background-color: #ffffff;
+  }
 }

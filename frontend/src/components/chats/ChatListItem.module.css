@@ -4,7 +4,7 @@
   max-width: 100%;
   min-width: 250px;
   padding: 1vh;
-  border: 1px solid #ddd;
+  border: 1px solid #3d3d3d;
   margin-bottom: 8px;
   background-color: #131313;
 }
@@ -25,7 +25,7 @@
 }
 
 .linkContainer:hover {
-  background-color: #555555;
+  background-color: #3d3d3d;
 }
 
 .nameAndDate {
@@ -44,10 +44,11 @@
 @media (prefers-color-scheme: light) {
   .layoutDiv {
     color: #000;
+    border: 1px solid #c4c4c4;
     background-color: #ffffff;
   }
 
   .linkContainer:hover {
-    background-color: #a1a1a1;
+    background-color: #c9c9c9;
   }
 }
