@@ -34,6 +34,9 @@ interface Message {
   timestamp: string;
 }
 
+// Default number of messages backend fetches in chat history
+const COUNT_DEFAULT = 20;
+
 /**
  * Custom hook for fetching previews of chats and the creation and deletion of chats.
  *
@@ -44,10 +47,13 @@ interface Message {
  */
 export const useChats = () => {
   const navigate = useNavigate();
-  const chatPreviewApi = useApi<ChatData[]>();
-  //const globalChatApi = useApi<ChatData[]>();
-  const chatHistoryApi = useApi<Message[]>();
-  const historyRefs = useRef<Map<string, Message[]>>(new Map());
+  // ChatList data
+  // Stores data for chat previews
+  const chatApi = useApi<ChatData[]>();
+  // Stores data for global chat previews
+  const globalChatApi = useApi<ChatData[]>();
+
+  // References to store websockets
   const websocketRefs = useRef<Map<string, WebSocket>>(new Map());
 
   /**
@@ -58,7 +64,7 @@ export const useChats = () => {
    * Updates the chat list state with fetched data on success.
    */
   const fetchChats = useCallback(async () => {
-    chatPreviewApi.setLoading();
+    chatApi.setLoading();
 
     try {
       const response = await fetch("https://localhost:8000/chats/my-chats", {
@@ -79,14 +85,14 @@ export const useChats = () => {
             messages: [],
           })
         );
-        chatPreviewApi.setSuccess(data);
+        chatApi.setSuccess(data);
       } else {
-        chatPreviewApi.setError("Failed to fetch chats");
+        chatApi.setError("Failed to fetch chats");
       }
     } catch (err) {
-      chatPreviewApi.setError("Internal Server Error");
+      chatApi.setError("Internal Server Error");
     }
-  }, [chatPreviewApi, navigate]);
+  }, [chatApi, navigate]);
 
   /**
    * Fetches publicly available chats that the user is not currently participating in
@@ -96,8 +102,8 @@ export const useChats = () => {
    * and updates the available chats state.
    */
   const fetchGlobalChats = useCallback(async () => {
-    // When uncommenting / fixing use globalChatApi instead of chatPreviewApi
-    // chatPreviewApi.setLoading();
+    // When uncommenting / fixing use globalChatApi instead of chatApi
+    // chatApi.setLoading();
     // try {
     //   const response = await fetch(
     //     "https://localhost:8000/chats/available-chats",
@@ -118,39 +124,57 @@ export const useChats = () => {
     //         messages: [],
     //       })
     //     );
-    //     chatPreviewApi.setSuccess(data);
+    //     chatApi.setSuccess(data);
     //   } else {
-    //     chatPreviewApi.setError("Failed to fetch chats");
+    //     chatApi.setError("Failed to fetch chats");
     //   }
     // } catch (err) {
-    //   chatPreviewApi.setError("Internal Server Error");
+    //   chatApi.setError("Internal Server Error");
     // }
-  }, [chatPreviewApi, navigate]);
+  }, [chatApi, navigate]);
 
+  /** Fetches Chat History from backend. If some message history has already been fetched,
+   *  fetch "count" number of messages before the earliest fetched message.
+   *
+   * @param chatId - ID of the chat to fetch history for
+   * @param count - Number of messages to fetch (Backend's default is 20)
+   */
   const fetchChatHistory = useCallback(
-    async (
-      chatId: string,
-      startMessageId?: string,
-      endMessageId?: string,
-      count?: number
-    ) => {
-      if (historyRefs.current.has(chatId)) {
+    async (chatId: string, count?: number) => {
+      const currentChats = chatApi.data;
+      if (!currentChats) {
+        chatApi.setError("No chats data available");
         return;
       }
-      chatHistoryApi.setLoading();
+
+      let chatData = currentChats.find((chat) => chat.chatId === chatId);
+      if (!chatData) {
+        chatApi.setError("Chat not found");
+        return;
+      }
+
+      // If count not specified and we already have enough messages, do not fetch more
+      if (!count && chatData.messages.length >= COUNT_DEFAULT) {
+        console.log("Skipping fetch - already have enough messages");
+        return;
+      }
+
+      chatApi.setLoading();
 
       let url = `https://localhost:8000/chats/${chatId}?`;
-      if (startMessageId) {
+      if (chatData.messages.length > 0) {
+        let startMessageId =
+          chatData.messages[chatData.messages.length - 1].messageId;
         url += `start_id=${startMessageId}&`;
-      }
-      if (endMessageId) {
-        url += `end_id=${endMessageId}&`;
       }
       if (count) {
         url += `count=${count}&`;
       }
+
+      console.log("Fetching from URL:", url);
+
       try {
-        const response = await fetch(`https://localhost:8000/chats/${chatId}`, {
+        const response = await fetch(url, {
           method: "GET",
           credentials: "include",
         });
@@ -162,14 +186,26 @@ export const useChats = () => {
 
         if (response.ok) {
           const messages: Message[] = await response.json();
-          historyRefs.current.set(chatId, messages);
-          chatHistoryApi.setSuccess(messages);
+          console.log("Received messages:", messages.length);
+
+          // Simple update without complex filtering first
+          const updatedChats = currentChats.map((chat) =>
+            chat.chatId === chatId
+              ? { ...chat, messages: [...chat.messages, ...messages] }
+              : chat
+          );
+
+          console.log("Setting updated chats:", updatedChats);
+          chatApi.setSuccess(updatedChats);
+        } else {
+          chatApi.setError(`Failed to fetch: ${response.status}`);
         }
       } catch (err) {
-        chatHistoryApi.setError("Internal Server Error");
+        console.error("Fetch error:", err);
+        chatApi.setError("Internal Server Error");
       }
     },
-    [chatHistoryApi, navigate]
+    [chatApi, navigate]
   );
 
   /**
@@ -219,9 +255,9 @@ export const useChats = () => {
    */
   const getChatFromId = useCallback(
     (chatId: string): ChatData | undefined => {
-      return chatPreviewApi.data?.find((chat) => chat.chatId === chatId);
+      return chatApi.data?.find((chat) => chat.chatId === chatId);
     },
-    [chatPreviewApi]
+    [chatApi]
   );
 
   /**
@@ -249,21 +285,21 @@ export const useChats = () => {
         });
 
         if (response.status !== 201) {
-          chatPreviewApi.setError("Error occurred when creating chat.");
+          chatApi.setError("Error occurred when creating chat.");
           return;
         }
 
         const newChat: ChatData = await response.json();
-        if (chatPreviewApi.data) {
-          chatPreviewApi.setSuccess([...chatPreviewApi.data, newChat]);
+        if (chatApi.data) {
+          chatApi.setSuccess([...chatApi.data, newChat]);
         } else {
-          chatPreviewApi.setSuccess([newChat]);
+          chatApi.setSuccess([newChat]);
         }
       } catch (err) {
-        chatPreviewApi.setError("Internal Server Error.");
+        chatApi.setError("Internal Server Error.");
       }
     },
-    [chatPreviewApi]
+    [chatApi]
   );
 
   /**
@@ -277,23 +313,23 @@ export const useChats = () => {
    */
   const removeChat = useCallback(
     (chatId: string) => {
-      if (!chatPreviewApi.data) return;
+      if (!chatApi.data) return;
 
-      const filteredChats = chatPreviewApi.data.filter(
+      const filteredChats = chatApi.data.filter(
         (chat) => chat.chatId !== chatId
       );
-      chatPreviewApi.setSuccess(filteredChats);
+      chatApi.setSuccess(filteredChats);
     },
-    [chatPreviewApi]
+    [chatApi]
   );
 
   return {
     /** Array of chat items, empty array if no chats are loaded */
-    chats: chatPreviewApi.data || [],
+    chats: chatApi.data || [],
     /** Indicates if a chat operation is currently in progress */
-    loading: chatPreviewApi.isLoading,
+    loading: chatApi.isLoading,
     /** Error message from the last failed operation, empty string if no error */
-    error: chatPreviewApi.error,
+    error: chatApi.error,
 
     /** Array of global chat items, empty array if no chats are loaded */
     // globalChats: globalChatApi.data || [],
@@ -303,15 +339,6 @@ export const useChats = () => {
     // globalError: globalChatApi.error,e
     /** Current state of the global chat list operations */
     // globalState: globalChatApi.state,
-
-    /** Array of messages in the currently selected chat */
-    chatMessages: chatHistoryApi.data || [],
-    /** Indicates if a chat history operation is currently in progress */
-    chatHistoryLoading: chatHistoryApi.isLoading,
-    /** Error message from the last failed chat history operation, empty string if no error */
-    chatHistoryError: chatHistoryApi.error,
-    /** Current state of the chat history operations */
-    chatHistoryState: chatHistoryApi.state,
 
     /** Function to fetch user's participating chats */
     fetchChats,
@@ -329,7 +356,7 @@ export const useChats = () => {
     removeChat,
 
     /** Chats sorted by most recent activity in descending order */
-    sortedChatPreviews: (chatPreviewApi.data || []).sort(
+    sortedChatPreviews: (chatApi.data || []).sort(
       (prev, next) =>
         new Date(next.lastActivity).getTime() -
         new Date(prev.lastActivity).getTime()

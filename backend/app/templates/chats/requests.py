@@ -1,24 +1,7 @@
 """ Templates for chats.py requests """
-from typing import List, Optional
+from typing import List
 import uuid
 from pydantic import BaseModel, Field
-
-
-class ChatHistoryRequest(BaseModel):
-    """ Data structure for chat history request.
-
-    Attributes:
-        start_id (Optional[str]): Hex string identifier for the start message.
-        end_id (Optional[str]): Hex string identifier for the end message.
-        count (Optional[int]): Number of messages to retrieve.
-    """
-    start_id: Optional[str] = Field(None, alias="startMessageId")
-    end_id: Optional[str] = Field(None, alias="endMessageId")
-    count: Optional[int] = Field(..., alias="count")
-
-    class Config:
-        """ Sets ChatHistoryRequest to expect aliases from frontend """
-        populate_by_name = True
 
 
 class NewChatData(BaseModel):

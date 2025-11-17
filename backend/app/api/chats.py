@@ -7,7 +7,7 @@ from fastapi.params import Query
 
 from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
-from app.templates.chats.requests import ChatHistoryRequest, NewChatData
+from app.templates.chats.requests import NewChatData
 from app.templates.chats.responses import ChatMessage, ChatPreview
 from app.utils.cookies import remove_session_cookie
 
@@ -81,7 +81,7 @@ async def get_chat_history(
             None, description="Hex string for the id of the start message"),
         end_id: str = Query(
             None, description="Hex string for the id of the end message"),
-        count: int = Query(15, description="Number of messages to retrieve"),
+        count: int = Query(20, description="Number of messages to retrieve"),
         session_id: str = Cookie(None)):
     """ Gets the chat history for a given chat
 
@@ -90,7 +90,7 @@ async def get_chat_history(
        chat_id (str): Hex string for the id of the chat.
        start_id (str, optional): Hex string for the id of the start message. Defaults to None.
        end_id (str, optional): Hex string for the id of the end message. Defaults to None.
-       count (int, optional): Number of messages to retrieve. Defaults to 15.
+       count (int, optional): Number of messages to retrieve. Defaults to 20.
        session_id (str, optional): The session id of the user. Defaults to Cookie(None). 
 
     Raises:

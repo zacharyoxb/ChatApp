@@ -20,6 +20,7 @@ function Chats() {
   const chatId = params.chatId;
 
   const hasFetchedRef = useRef(false);
+  const hasFetchedHistoryRef = useRef<Map<string, boolean>>(new Map());
 
   useEffect(() => {
     if (!hasFetchedRef.current) {
@@ -29,25 +30,27 @@ function Chats() {
   }, []);
 
   useEffect(() => {
+    // If there is at least 1 chat and the first fetch is complete,
+    // get the history for the selected chat and connect to all chats
     if (chats.chats.length > 0 && !chats.loading) {
-      if (chatId) chats.fetchChatHistory(chatId);
+      if (chatId && !hasFetchedHistoryRef.current.get(chatId)) {
+        hasFetchedHistoryRef.current.set(chatId, true);
+        chats.fetchChatHistory(chatId);
+      }
       chats.connectToChats(chats.chats);
 
       if (chats.error) {
         console.error("Error connecting to chats:", chats.error);
       }
-
-      if (chats.chatHistoryError) {
-        console.error("Error fetching chat history:", chats.chatHistoryError);
-      }
     }
-  }, [chats.chats, chats.loading, chats.connectToChats]);
+  }, [chatId, chats.chats, chats.loading, chats.connectToChats]);
 
-  useEffect(() => {
-    if (chatId) {
-      chats.fetchChatHistory(chatId);
-    }
-  }, [chatId]);
+  // useEffect(() => {
+  //   // if (chatId) {
+  //   //   while (!chats.chats.find((chat) => chat.chatId === chatId)?.messages)
+  //   //     chats.fetchChatHistory(chatId);
+  //   // }
+  // }, [chatId, chats.loading]);
 
   const selectionListDropdown: DropdownOption[] = [
     {
@@ -63,14 +66,14 @@ function Chats() {
   return (
     <div className={styles.parentDiv}>
       <h1 className="sr-only"> ChatApp </h1>
-      {(chats.error || chats.chatHistoryError) && (
+      {chats.error && (
         <div
           className="error-box"
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
         >
-          {chats.error ? chats.error : chats.chatHistoryError}
+          {chats.error}
         </div>
       )}
       <div
