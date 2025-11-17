@@ -184,7 +184,6 @@ export const useChats = () => {
         if (response.ok) {
           const messages: Message[] = await response.json();
 
-          // Simple update without complex filtering first
           const updatedChats = currentChats.map((chat) =>
             chat.chatId === chatId
               ? { ...chat, messages: [...chat.messages, ...messages] }
@@ -252,6 +251,22 @@ export const useChats = () => {
       return chatApi.data?.find((chat) => chat.chatId === chatId);
     },
     [chatApi]
+  );
+
+  /**
+   * Retrieves the WebSocket connection for a specific chat by its ID
+   *
+   * @param chatId - Unique identifier of the chat
+   * @returns The WebSocket object if a connection exists, otherwise undefined
+   *
+   * @remarks
+   * Useful for sending messages or performing actions over the chat's WebSocket.
+   */
+  const getSocketFromId = useCallback(
+    (chatId: string): WebSocket | undefined => {
+      return websocketRefs.current.get(chatId);
+    },
+    []
   );
 
   /**
@@ -344,6 +359,8 @@ export const useChats = () => {
     connectToChats,
     /** Function to get a chat by its unique identifier */
     getChatFromId,
+    /** Function to get the WebSocket for a specific chat by its ID */
+    getSocketFromId,
     /** Function to create a new chat */
     createChat,
     /** Function to remove a chat from local state */

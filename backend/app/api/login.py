@@ -49,7 +49,7 @@ async def signup(req: SignupLoginData, res: Response) -> None:
 
     try:
         await db_service.create_user(user_id, req.username, pass_hash)
-        session_id = await redis_service.create_session(req.username)
+        session_id = await redis_service.create_session(user_id, req.username)
         set_session_cookie(res, session_id)
         res.status_code = status.HTTP_201_CREATED
     except mysql.connector.Error as e:
@@ -85,7 +85,9 @@ async def login(req: SignupLoginData, res: Response) -> None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Username or password is incorrect.")
 
-    session_id = await redis_service.create_session(req.username)
+    user_id = await db_service.get_id_from_username(req.username)
+
+    session_id = await redis_service.create_session(user_id, req.username)
     set_session_cookie(res, session_id)
     res.status_code = status.HTTP_201_CREATED
 

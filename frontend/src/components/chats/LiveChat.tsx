@@ -8,9 +8,11 @@ import threeDots from "/src/assets/three-dots.png";
 import threeDotsLight from "/src/assets/three-dots-light.png";
 import type { DropdownOption } from "../common/Dropdown";
 import Dropdown from "../common/Dropdown";
+import { useState } from "react";
 
 interface LiveChatProps {
   chatData: ChatData | undefined;
+  chatWebSocket: WebSocket | undefined;
 }
 
 const dropdownGroupChat: DropdownOption[] = [
@@ -27,7 +29,29 @@ const dropdownDmChat: DropdownOption[] = [
   },
 ];
 
-const LiveChat: React.FC<LiveChatProps> = ({ chatData }) => {
+const LiveChat: React.FC<LiveChatProps> = ({ chatData, chatWebSocket }) => {
+  const [messageInput, setMessageInput] = useState("");
+
+  const handleSendMessage = () => {
+    if (messageInput.trim() === "") return;
+
+    chatWebSocket?.send(
+      JSON.stringify({
+        type: "message",
+        chatId: chatData?.chatId,
+        content: messageInput,
+      })
+    );
+
+    setMessageInput("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  };
+
   if (chatData == undefined) {
     return <h2 className={styles.noChat}> No chat selected. </h2>;
   }
@@ -90,8 +114,13 @@ const LiveChat: React.FC<LiveChatProps> = ({ chatData }) => {
           type="text"
           className={styles.messageInput}
           placeholder="Type your message..."
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
-        <button className={styles.sendButton}>Send</button>
+        <button className={styles.sendButton} onClick={handleSendMessage}>
+          Send
+        </button>
       </div>
     </div>
   );

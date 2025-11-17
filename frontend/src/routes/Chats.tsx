@@ -98,6 +98,7 @@ function Chats() {
       >
         <LiveChat
           chatData={chatId ? chats.getChatFromId(chatId) : undefined}
+          chatWebSocket={chatId ? chats.getSocketFromId(chatId) : undefined}
         ></LiveChat>
       </div>
     </div>

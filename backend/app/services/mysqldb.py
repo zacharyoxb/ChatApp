@@ -144,6 +144,21 @@ class DatabaseService:
             await cursor.close()
             return bool(result[0])
 
+    async def get_id_from_username(self, username: str) -> Optional[bytes]:
+        """ Gets the user id for a given username.
+
+        Args:
+            username (str): Username of user.
+        Returns:
+            Optional[bytes]: If user exists, the user id. Otherwise none.
+        """
+        async with await self._pool.get_connection() as conn:
+            cursor = await conn.cursor(prepared=True)
+            await cursor.execute(GET_USER_ID_QUERY, (username,))
+            result = await cursor.fetchone()
+            await cursor.close()
+            return result[0] if result else None
+
     async def get_password(self, username: str) -> Optional[str]:
         """ Gets the password hash for a user.
 

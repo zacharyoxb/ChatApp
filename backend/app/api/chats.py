@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, status
+from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, WebSocketDisconnect, status
 from fastapi.params import Query
 
 from app.services.myredis import redis_service
@@ -168,4 +168,13 @@ async def websocket_chat(
     # want to overcomplicate things rn
     await websocket.accept()
 
-    # leave it here for testing
+    try:
+        while True:
+            data = await websocket.receive_text()
+            print(f"Received data on chat {chat_id}: {data}")
+            redis_service.send_chat_message(
+                chat_id, session_data.user_id, data)
+    except WebSocketDisconnect:
+        print(f"WebSocket for chat {chat_id} disconnected")
+    except Exception as e:
+        print(f"WebSocket for chat {chat_id} disconnected: {e}")

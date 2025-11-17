@@ -18,10 +18,12 @@ class SessionData(BaseModel):
     """ Data structure for session information.
 
     Attributes:
+        user_id (str): User's unique identifier.
         username (str): Username for user.
         created_at (float): Unix timestamp for when user was created.
         last_activity (float): Unix timestamp for the user's most recent activity.
     """
+    user_id: str
     username: str
     created_at: float
     last_activity: float
@@ -46,7 +48,7 @@ class RedisService:
         self._redis_conn = redis.Redis(**redis_config)
 
     # =============== SESSION METHODS ===============
-    async def create_session(self, username: str) -> str:
+    async def create_session(self, user_id: bytes, username: str) -> str:
         """ Creates a session and returns a session cookie. 
 
         Args:
@@ -58,6 +60,7 @@ class RedisService:
         """
         session_id = str(uuid.uuid4())
         session_data = SessionData(
+            user_id=user_id.hex(),
             username=username,
             created_at=time.time(),
             last_activity=time.time()
@@ -89,6 +92,7 @@ class RedisService:
             return None
 
         return SessionData(
+            user_id=session_data["user_id"],
             username=session_data["username"],
             created_at=float(session_data["created_at"]),
             last_activity=float(session_data["last_activity"])
