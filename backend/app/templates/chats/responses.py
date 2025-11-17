@@ -32,12 +32,12 @@ class ChatMessage(BaseModel):
         message_id (str): String id for message 
         sender_id (Optional[str]): Hex string id for user if user is sending the message,
           None if the message is a system message.
-        message: (str): Message contents.
+        content: (str): Message contents.
         timestamp (str): Isoformat string representing when the message was sent.
     """
     message_id: str = Field(..., alias="messageId")
     sender_id: Optional[str] = Field(..., alias="senderId")
-    message: str
+    content: str
     timestamp: str
 
     class Config:
