@@ -1,4 +1,4 @@
-import type { ChatData } from "../../hooks/chats/useChats";
+import type { ChatData, Message } from "../../hooks/chats/useChats";
 import styles from "./LiveChat.module.css";
 import defaultDm from "/src/assets/default-dm.png";
 import defaultGroup from "/src/assets/default-group.png";
@@ -12,6 +12,7 @@ import { useState } from "react";
 
 interface LiveChatProps {
   chatData: ChatData | undefined;
+  chatMessages: Message[] | undefined;
   chatWebSocket: WebSocket | undefined;
 }
 
@@ -29,7 +30,11 @@ const dropdownDmChat: DropdownOption[] = [
   },
 ];
 
-const LiveChat: React.FC<LiveChatProps> = ({ chatData, chatWebSocket }) => {
+const LiveChat: React.FC<LiveChatProps> = ({
+  chatData,
+  chatMessages,
+  chatWebSocket,
+}) => {
   const [messageInput, setMessageInput] = useState("");
 
   const handleSendMessage = () => {
@@ -55,7 +60,7 @@ const LiveChat: React.FC<LiveChatProps> = ({ chatData, chatWebSocket }) => {
     }
   };
 
-  if (chatData == undefined) {
+  if (!chatData || !chatMessages || !chatWebSocket) {
     return <h2 className={styles.noChat}> No chat selected. </h2>;
   }
   const isDm = !!chatData.dmParticipantId;
@@ -105,7 +110,7 @@ const LiveChat: React.FC<LiveChatProps> = ({ chatData, chatWebSocket }) => {
         </div>
       </div>
       <div className={styles.messagesContainer}>
-        {chatData.messages.map((message, index) => (
+        {chatMessages.map((message, index) => (
           <div key={index} className={styles.message}>
             <span className={styles.sender}>{message.senderId}:</span>
             <span className={styles.content}>{message.content}</span>

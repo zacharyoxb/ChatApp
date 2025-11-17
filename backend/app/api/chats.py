@@ -4,7 +4,8 @@ from datetime import datetime
 import json
 from typing import List
 
-from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, WebSocketDisconnect, status
+from fastapi import (APIRouter, Cookie, HTTPException,
+                     Response, WebSocket, WebSocketDisconnect, status)
 from fastapi.params import Query
 
 from app.services.myredis import redis_service
@@ -151,24 +152,21 @@ async def create_new_chat(
 
 async def listen_for_messages(pubsub, websocket: WebSocket):
     """Listen for messages from Redis Pub/Sub and send them to the WebSocket"""
-    try:
-        async for message in pubsub.listen():
-            if message['type'] == 'message':
-                message_data = message['data']
-                raw_message = json.loads(message_data)
-                (message_id, sender_id, raw_message_json,
-                 timestamp) = raw_message.values()
-                content = json.loads(raw_message_json)["content"]
+    async for message in pubsub.listen():
+        if message['type'] == 'message':
+            message_data = message['data']
+            raw_message = json.loads(message_data)
+            (message_id, sender_id, raw_message_json,
+             timestamp) = raw_message.values()
+            content = json.loads(raw_message_json)["content"]
 
-                message_obj = ChatMessage(
-                    message_id=message_id,
-                    sender_id=sender_id,
-                    content=content,
-                    timestamp=timestamp
-                )
-                await websocket.send_json(message_obj.model_dump_json(by_alias=True))
-    except Exception as e:
-        print(f"Error in listen_for_messages: {e}")
+            message_obj = ChatMessage(
+                message_id=message_id,
+                sender_id=sender_id,
+                content=content,
+                timestamp=timestamp
+            )
+            await websocket.send_json(message_obj.model_dump_json(by_alias=True))
 
 
 @router.websocket("/ws/chats/{chat_id}")

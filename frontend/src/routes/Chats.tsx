@@ -97,7 +97,8 @@ function Chats() {
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
         <LiveChat
-          chatData={chatId ? chats.getChatFromId(chatId) : undefined}
+          chatData={chatId ? chats.getChatDataFromId(chatId) : undefined}
+          chatMessages={chatId ? chats.getMessagesForChat(chatId) : undefined}
           chatWebSocket={chatId ? chats.getSocketFromId(chatId) : undefined}
         ></LiveChat>
       </div>

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useApi } from "../common/apiStates";
 
@@ -20,22 +20,17 @@ export interface ChatData {
   lastMessage: string;
   /** ISO datetime string of when the last chat activity occurred */
   lastActivity: string;
-  /** List of all messages sent in chat. */
-  messages: Message[];
 }
 
 /**
  * Represents a message within a chat
  */
-interface Message {
+export interface Message {
   messageId: string;
   senderId: string;
   content: string;
   timestamp: string;
 }
-
-// Default number of messages backend fetches in chat history
-const COUNT_DEFAULT = 20;
 
 /**
  * Custom hook for fetching previews of chats and the creation and deletion of chats.
@@ -52,6 +47,10 @@ export const useChats = () => {
   const chatApi = useApi<ChatData[]>();
   // Stores data for global chat previews
   const globalChatApi = useApi<ChatData[]>();
+  // Stores messages
+  const [messagesByChatId, setMessagesByChatId] = useState<
+    Map<string, Message[]>
+  >(new Map());
 
   // References to store websockets
   const websocketRefs = useRef<Map<string, WebSocket>>(new Map());
@@ -78,13 +77,7 @@ export const useChats = () => {
       }
 
       if (response.ok) {
-        const responseData = await response.json();
-        const data: ChatData[] = responseData.map(
-          (chat: Omit<ChatData, "messages">) => ({
-            ...chat,
-            messages: [],
-          })
-        );
+        const data: ChatData[] = await response.json();
         chatApi.setSuccess(data);
       } else {
         chatApi.setError("Failed to fetch chats");
@@ -117,13 +110,7 @@ export const useChats = () => {
     //     return;
     //   }
     //   if (response.ok) {
-    //     const responseData = await response.json();
-    //     const data: ChatData[] = responseData.map(
-    //       (chat: Omit<ChatData, "messages">) => ({
-    //         ...chat,
-    //         messages: [],
-    //       })
-    //     );
+    //     const data = await response.json();
     //     chatApi.setSuccess(data);
     //   } else {
     //     chatApi.setError("Failed to fetch chats");
@@ -133,6 +120,50 @@ export const useChats = () => {
     // }
   }, [chatApi, navigate]);
 
+  /**
+   * Helper function to add a message to a specific chat
+   */
+  const addMessageToChat = useCallback(
+    (chatId: string, message: Message) => {
+      setMessagesByChatId((prev) => {
+        const newMap = new Map(prev);
+        const existingMessages = newMap.get(chatId) || [];
+        newMap.set(chatId, [...existingMessages, message]);
+        return newMap;
+      });
+
+      // Also update the chat preview
+      if (chatApi.data) {
+        const updatedChats = chatApi.data.map((chat) =>
+          chat.chatId === chatId
+            ? {
+                ...chat,
+                lastActivity: message.timestamp,
+                lastMessage: message.content,
+              }
+            : chat
+        );
+        chatApi.setSuccess(updatedChats);
+      }
+    },
+    [chatApi]
+  );
+
+  /**
+   * Helper function to add multiple messages to a specific chat
+   */
+  const addMessagesToChat = useCallback(
+    (chatId: string, newMessages: Message[]) => {
+      setMessagesByChatId((prev) => {
+        const newMap = new Map(prev);
+        const existingMessages = newMap.get(chatId) || [];
+        newMap.set(chatId, [...existingMessages, ...newMessages]);
+        return newMap;
+      });
+    },
+    []
+  );
+
   /** Fetches Chat History from backend. If some message history has already been fetched,
    *  fetch "count" number of messages before the earliest fetched message.
    *
@@ -141,29 +172,16 @@ export const useChats = () => {
    */
   const fetchChatHistory = useCallback(
     async (chatId: string, count?: number) => {
-      const currentChats = chatApi.data;
-      if (!currentChats) {
-        chatApi.setError("No chats data available");
-        return;
-      }
-
-      let chatData = currentChats.find((chat) => chat.chatId === chatId);
-      if (!chatData) {
-        chatApi.setError("Chat not found");
-        return;
-      }
-
-      // If count not specified and we already have enough messages, do not fetch more
-      if (!count && chatData.messages.length >= COUNT_DEFAULT) {
-        return;
+      let messages = messagesByChatId.get(chatId);
+      if (!messages) {
+        messages = [];
       }
 
       chatApi.setLoading();
 
       let url = `https://localhost:8000/chats/${chatId}?`;
-      if (chatData.messages.length > 0) {
-        let startMessageId =
-          chatData.messages[chatData.messages.length - 1].messageId;
+      if (messages.length > 0) {
+        let startMessageId = messages[messages.length - 1].messageId;
         url += `start_id=${startMessageId}&`;
       }
       if (count) {
@@ -183,14 +201,7 @@ export const useChats = () => {
 
         if (response.ok) {
           const messages: Message[] = await response.json();
-
-          const updatedChats = currentChats.map((chat) =>
-            chat.chatId === chatId
-              ? { ...chat, messages: [...chat.messages, ...messages] }
-              : chat
-          );
-
-          chatApi.setSuccess(updatedChats);
+          addMessagesToChat(chatId, messages);
         } else {
           chatApi.setError(`Failed to fetch: ${response.status}`);
         }
@@ -198,7 +209,7 @@ export const useChats = () => {
         chatApi.setError("Internal Server Error");
       }
     },
-    [chatApi, navigate]
+    [messagesByChatId, chatApi, navigate, addMessagesToChat]
   );
 
   /**
@@ -227,11 +238,7 @@ export const useChats = () => {
         const firstParse = JSON.parse(event.data);
         const messageData: Message = JSON.parse(firstParse);
 
-        console.log(messageData.content);
-
-        chat.lastActivity = messageData.timestamp;
-        chat.lastMessage = messageData.content;
-        chat.messages = [...(chat.messages || []), messageData];
+        addMessageToChat(chat.chatId, messageData);
       };
 
       ws.onclose = () => {
@@ -250,11 +257,21 @@ export const useChats = () => {
    * @remarks
    * Searches the current chat list for a chat matching the provided ID.
    */
-  const getChatFromId = useCallback(
+  const getChatDataFromId = useCallback(
     (chatId: string): ChatData | undefined => {
       return chatApi.data?.find((chat) => chat.chatId === chatId);
     },
     [chatApi]
+  );
+
+  /**
+   * Get messages for a specific chat
+   */
+  const getMessagesForChat = useCallback(
+    (chatId: string): Message[] => {
+      return messagesByChatId.get(chatId) || [];
+    },
+    [messagesByChatId]
   );
 
   /**
@@ -362,7 +379,9 @@ export const useChats = () => {
     /** Function to connect websockets for real-time chat updates */
     connectToChats,
     /** Function to get a chat by its unique identifier */
-    getChatFromId,
+    getChatDataFromId,
+    /** Function to get a chat's messages by its unique identifier */
+    getMessagesForChat,
     /** Function to get the WebSocket for a specific chat by its ID */
     getSocketFromId,
     /** Function to create a new chat */

@@ -204,6 +204,8 @@ class RedisService:
 
         messages = await self._redis_conn.xrange(chat_id, min_range, max_range, count)
 
+        print("hi?")
+
         formatted_messages = []
         for msg_id, fields in messages:
             (user_id, raw_message_json, timestamp) = fields.values()
