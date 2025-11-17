@@ -188,14 +188,22 @@ async def websocket_chat(
 
     try:
         async with redis_service.subscribe_to_chat(chat_id) as pubsub:
-            asyncio.create_task(
+            listen_task = asyncio.create_task(
                 listen_for_messages(pubsub, websocket))
-            while True:
-                data = await websocket.receive_text()
-                print(f"Received data on chat {chat_id}: {data}")
-                await redis_service.send_chat_message(
-                    chat_id, session_data.user_id, data)
-    except WebSocketDisconnect:
-        print(f"WebSocket for chat {chat_id} disconnected")
+
+            try:
+                while True:
+                    data = await websocket.receive_text()
+                    print(f"Received data on chat {chat_id}: {data}")
+                    await redis_service.send_chat_message(
+                        chat_id, session_data.user_id, data)
+            except WebSocketDisconnect:
+                print(f"WebSocket for chat {chat_id} disconnected")
+            finally:
+                listen_task.cancel()
+                try:
+                    await listen_task
+                except asyncio.CancelledError:
+                    pass
     except Exception as e:
         print(f"WebSocket for chat {chat_id} disconnected: {e}")
