@@ -224,7 +224,11 @@ export const useChats = () => {
       };
 
       ws.onmessage = (event) => {
-        const messageData: Message = JSON.parse(event.data);
+        const firstParse = JSON.parse(event.data);
+        const messageData: Message = JSON.parse(firstParse);
+
+        console.log(messageData.content);
+
         chat.lastActivity = messageData.timestamp;
         chat.lastMessage = messageData.content;
         chat.messages = [...(chat.messages || []), messageData];

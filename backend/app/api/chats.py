@@ -1,6 +1,7 @@
 """ Handles the chat page - both chats preview and the chat itself """
 import asyncio
 from datetime import datetime
+import json
 from typing import List
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, WebSocketDisconnect, status
@@ -153,12 +154,19 @@ async def listen_for_messages(pubsub, websocket: WebSocket):
     try:
         async for message in pubsub.listen():
             if message['type'] == 'message':
-                # Parse and send the message to the WebSocket client
                 message_data = message['data']
-                if isinstance(message_data, bytes):
-                    message_data = message_data.decode('utf-8')
+                raw_message = json.loads(message_data)
+                (message_id, sender_id, raw_message_json,
+                 timestamp) = raw_message.values()
+                content = json.loads(raw_message_json)["content"]
 
-                await websocket.send_text(message_data)
+                message_obj = ChatMessage(
+                    message_id=message_id,
+                    sender_id=sender_id,
+                    content=content,
+                    timestamp=timestamp
+                )
+                await websocket.send_json(message_obj.model_dump_json(by_alias=True))
     except Exception as e:
         print(f"Error in listen_for_messages: {e}")
 

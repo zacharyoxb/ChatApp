@@ -122,10 +122,10 @@ class RedisService:
         """
         pubsub = self._redis_conn.pubsub()
         try:
-            await pubsub.subscribe(f"chat:{chat_id}")
+            await pubsub.subscribe(chat_id)
             yield pubsub
         finally:
-            await pubsub.unsubscribe(f"chat:{chat_id}")
+            await pubsub.unsubscribe(chat_id)
             await pubsub.close()
 
     async def send_system_message(self, chat_id: str, message: str) -> str:
@@ -136,40 +136,50 @@ class RedisService:
         Returns:
             str: Id of the message just sent.
         """
-        message = {
-            "user_id": "SERVER",
-            "message": message,
+        message_dict = {
+            "sender_id": "SERVER",
+            "content": message,
             "timestamp": datetime.now().isoformat()
         }
+        message_id = await self._redis_conn.xadd(chat_id, message_dict)
 
-        # log message to redis
-        message_id = await self._redis_conn.xadd(chat_id, message)
-        # publish for online users
-        await self._redis_conn.publish(chat_id, message)
+        message_with_id = {
+            "message_id": message_id,
+            "sender_id": "SERVER",
+            "content": message,
+            "timestamp": message_dict["timestamp"]
+        }
+        message_json = json.dumps(message_with_id)
+        await self._redis_conn.publish(chat_id, message_json)
 
         return message_id
 
-    async def send_chat_message(self, chat_id: str, user_id: str, message: str):
+    async def send_chat_message(self, chat_id: str, sender_id: str, message: str):
         """ Log a message to the chat's stream.
 
         Args:
-            chat_id (str): Hex id of the chat which the stream will contain.
+            sender_id (str): Hex id of the chat which the stream will contain.
             user_id (str): Hex id of the subscribing user.
             message (str): Message to send. 
 
         Returns:
             str: Id of the message just sent.
         """
-        message = {
-            "user_id": user_id,
-            "message": message,
+        message_dict = {
+            "sender_id": sender_id,
+            "content": message,
             "timestamp": datetime.now().isoformat()
         }
+        message_id = await self._redis_conn.xadd(chat_id, message_dict)
 
-        # log message to redis
-        message_id = await self._redis_conn.xadd(chat_id, message)
-        # publish for online users
-        await self._redis_conn.publish(chat_id, message)
+        message_with_id = {
+            "message_id": message_id,
+            "sender_id": sender_id,
+            "content": message,
+            "timestamp": message_dict["timestamp"]
+        }
+        message_json = json.dumps(message_with_id)
+        await self._redis_conn.publish(chat_id, message_json)
 
         return message_id
 

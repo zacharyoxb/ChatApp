@@ -43,6 +43,9 @@ const LiveChat: React.FC<LiveChatProps> = ({ chatData, chatWebSocket }) => {
       })
     );
 
+    // Carry out local update of messages
+    // (when websocket echoes back the message, it can be marked as sent)
+
     setMessageInput("");
   };
 
