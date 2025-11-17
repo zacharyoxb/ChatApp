@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Cookie, HTTPException, Response, WebSocket, status
+from fastapi.params import Query
 
 from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
@@ -74,16 +75,23 @@ async def get_available_chat_previews(
 
 @router.get("/chats/{chat_id}", response_model=List[ChatMessage])
 async def get_chat_history(
-        chat_id: str,
-        req: ChatHistoryRequest,
         res: Response,
+        chat_id: str,
+        start_id: str = Query(
+            None, description="Hex string for the id of the start message"),
+        end_id: str = Query(
+            None, description="Hex string for the id of the end message"),
+        count: int = Query(15, description="Number of messages to retrieve"),
         session_id: str = Cookie(None)):
     """ Gets the chat history for a given chat
 
     Args:
-        chat_id (str): Hex string for the id of the chat.
-        res (Response): FastAPI response.
-        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+       res (Response): FastAPI response.
+       chat_id (str): Hex string for the id of the chat.
+       start_id (str, optional): Hex string for the id of the start message. Defaults to None.
+       end_id (str, optional): Hex string for the id of the end message. Defaults to None.
+       count (int, optional): Number of messages to retrieve. Defaults to 15.
+       session_id (str, optional): The session id of the user. Defaults to Cookie(None). 
 
     Raises:
         HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
@@ -96,7 +104,7 @@ async def get_chat_history(
         remove_session_cookie(res)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
-    history = await redis_service.get_chat_history(chat_id, req.start_id, req.end_id, req.count)
+    history = await redis_service.get_chat_history(chat_id, start_id, end_id, count)
     return history
 
 

@@ -138,12 +138,21 @@ export const useChats = () => {
         return;
       }
       chatHistoryApi.setLoading();
+
+      let url = `https://localhost:8000/chats/${chatId}?`;
+      if (startMessageId) {
+        url += `start_id=${startMessageId}&`;
+      }
+      if (endMessageId) {
+        url += `end_id=${endMessageId}&`;
+      }
+      if (count) {
+        url += `count=${count}&`;
+      }
       try {
         const response = await fetch(`https://localhost:8000/chats/${chatId}`, {
           method: "GET",
           credentials: "include",
-
-          body: JSON.stringify({ startMessageId, endMessageId, count }),
         });
 
         if (response.status === 401) {

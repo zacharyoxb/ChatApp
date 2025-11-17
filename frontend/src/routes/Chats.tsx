@@ -30,7 +30,16 @@ function Chats() {
 
   useEffect(() => {
     if (chats.chats.length > 0 && !chats.loading) {
+      if (chatId) chats.fetchChatHistory(chatId);
       chats.connectToChats(chats.chats);
+
+      if (chats.error) {
+        console.error("Error connecting to chats:", chats.error);
+      }
+
+      if (chats.chatHistoryError) {
+        console.error("Error fetching chat history:", chats.chatHistoryError);
+      }
     }
   }, [chats.chats, chats.loading, chats.connectToChats]);
 
@@ -54,14 +63,14 @@ function Chats() {
   return (
     <div className={styles.parentDiv}>
       <h1 className="sr-only"> ChatApp </h1>
-      {chats.error && (
+      {(chats.error || chats.chatHistoryError) && (
         <div
           className="error-box"
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
         >
-          {chats.error}
+          {chats.error ? chats.error : chats.chatHistoryError}
         </div>
       )}
       <div
