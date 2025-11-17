@@ -155,7 +155,6 @@ export const useChats = () => {
 
       // If count not specified and we already have enough messages, do not fetch more
       if (!count && chatData.messages.length >= COUNT_DEFAULT) {
-        console.log("Skipping fetch - already have enough messages");
         return;
       }
 
@@ -171,8 +170,6 @@ export const useChats = () => {
         url += `count=${count}&`;
       }
 
-      console.log("Fetching from URL:", url);
-
       try {
         const response = await fetch(url, {
           method: "GET",
@@ -186,7 +183,6 @@ export const useChats = () => {
 
         if (response.ok) {
           const messages: Message[] = await response.json();
-          console.log("Received messages:", messages.length);
 
           // Simple update without complex filtering first
           const updatedChats = currentChats.map((chat) =>
@@ -195,13 +191,11 @@ export const useChats = () => {
               : chat
           );
 
-          console.log("Setting updated chats:", updatedChats);
           chatApi.setSuccess(updatedChats);
         } else {
           chatApi.setError(`Failed to fetch: ${response.status}`);
         }
       } catch (err) {
-        console.error("Fetch error:", err);
         chatApi.setError("Internal Server Error");
       }
     },

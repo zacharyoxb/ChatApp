@@ -45,13 +45,6 @@ function Chats() {
     }
   }, [chatId, chats.chats, chats.loading, chats.connectToChats]);
 
-  // useEffect(() => {
-  //   // if (chatId) {
-  //   //   while (!chats.chats.find((chat) => chat.chatId === chatId)?.messages)
-  //   //     chats.fetchChatHistory(chatId);
-  //   // }
-  // }, [chatId, chats.loading]);
-
   const selectionListDropdown: DropdownOption[] = [
     {
       label: "Create Chat",
