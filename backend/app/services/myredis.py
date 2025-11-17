@@ -1,6 +1,7 @@
 """ Accesses redis for sessions / pubsub functionality """
 from contextlib import asynccontextmanager
 from datetime import datetime
+import json
 import time
 from typing import Optional
 import uuid
@@ -193,18 +194,17 @@ class RedisService:
 
         messages = await self._redis_conn.xrange(chat_id, min_range, max_range, count)
 
-        # this is ai generated and probably wrong as looking at the
-        # redis-py github I don't think this is how the parser stores the RESP3
-        # strings. In hindsight I should have done frontend first: fix this
-        # after I can test it via frontend.
         formatted_messages = []
         for msg_id, fields in messages:
+            (user_id, raw_message_json, timestamp) = fields.values()
+            message = json.loads(raw_message_json)["content"]
+
             formatted_messages.append(ChatMessage(
-                message_id=msg_id.decode(),
-                user_id=fields.get(b"user_id", b"").decode(),
-                message=fields.get(b"message", b"").decode(),
-                timestamp=float(fields.get(b"timestamp", time.time())),
-            ))
+                message_id=msg_id,
+                sender_id=user_id,
+                message=message,
+                timestamp=timestamp),
+            )
 
         return formatted_messages
 

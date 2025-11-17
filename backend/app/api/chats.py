@@ -1,4 +1,5 @@
 """ Handles the chat page - both chats preview and the chat itself """
+import asyncio
 from datetime import datetime
 from typing import List
 
@@ -144,6 +145,23 @@ async def create_new_chat(
         last_message=None
     )
 
+# =============== WEBSOCKET METHODS ===============
+
+
+async def listen_for_messages(pubsub, websocket: WebSocket):
+    """Listen for messages from Redis Pub/Sub and send them to the WebSocket"""
+    try:
+        async for message in pubsub.listen():
+            if message['type'] == 'message':
+                # Parse and send the message to the WebSocket client
+                message_data = message['data']
+                if isinstance(message_data, bytes):
+                    message_data = message_data.decode('utf-8')
+
+                await websocket.send_text(message_data)
+    except Exception as e:
+        print(f"Error in listen_for_messages: {e}")
+
 
 @router.websocket("/ws/chats/{chat_id}")
 async def websocket_chat(
@@ -169,11 +187,14 @@ async def websocket_chat(
     await websocket.accept()
 
     try:
-        while True:
-            data = await websocket.receive_text()
-            print(f"Received data on chat {chat_id}: {data}")
-            redis_service.send_chat_message(
-                chat_id, session_data.user_id, data)
+        async with redis_service.subscribe_to_chat(chat_id) as pubsub:
+            asyncio.create_task(
+                listen_for_messages(pubsub, websocket))
+            while True:
+                data = await websocket.receive_text()
+                print(f"Received data on chat {chat_id}: {data}")
+                await redis_service.send_chat_message(
+                    chat_id, session_data.user_id, data)
     except WebSocketDisconnect:
         print(f"WebSocket for chat {chat_id} disconnected")
     except Exception as e:
