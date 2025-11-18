@@ -217,12 +217,12 @@ class RedisService:
         formatted_messages = []
         for msg_id, fields in messages:
             (user_id, raw_message_json, timestamp) = fields.values()
-            content = json.loads(raw_message_json)["content"]
+            # content = json.loads(raw_message_json)["content"]
 
             formatted_messages.append(ChatMessage(
                 message_id=msg_id,
                 sender_id=user_id,
-                content=content,
+                content=raw_message_json,
                 timestamp=timestamp),
             )
 
@@ -241,8 +241,7 @@ class RedisService:
         if message == []:
             return None
         (msg_id, fields) = message[0]
-        (user_id, raw_message_json, timestamp) = fields.values()
-        content = json.loads(raw_message_json)["content"]
+        (user_id, content, timestamp) = fields.values()
 
         formatted_message = ChatMessage(
             message_id=msg_id,

@@ -201,6 +201,8 @@ export const useChats = () => {
 
         if (response.ok) {
           const messages: Message[] = await response.json();
+          console.log(messages[0].content);
+          console.log(messages[1].content);
           addMessagesToChat(chatId, messages);
         } else {
           chatApi.setError(`Failed to fetch: ${response.status}`);

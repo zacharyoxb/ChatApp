@@ -49,7 +49,8 @@ async def get_chat_previews(
             chat.last_activity = None
         else:
             chat.last_message = last_message_data.content
-            chat.last_activity = last_message_data.timestamp
+            chat.last_activity = datetime.fromisoformat(
+                last_message_data.timestamp)
 
     return user_chats
 
@@ -143,6 +144,7 @@ async def create_new_chat(
     username = session_data.username
 
     await db_service.create_chat(username, req)
+    await redis_service.send_system_message(req.chat_id.hex(), "NEW CHAT CREATED")
     res.status_code = status.HTTP_201_CREATED
 
     return ChatPreview(
@@ -205,8 +207,10 @@ async def websocket_chat(
         try:
             while True:
                 data = await websocket.receive_text()
+                parsed_data = json.loads(data)
+                content = parsed_data.get("content")
                 await redis_service.send_chat_message(
-                    chat_id, session_data.user_id, data)
+                    chat_id, session_data.user_id, content)
         except WebSocketDisconnect:
             print(f"WebSocket for chat {chat_id} disconnected")
         finally:
