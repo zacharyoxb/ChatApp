@@ -30,8 +30,6 @@ function Chats() {
   }, []);
 
   useEffect(() => {
-    // If there is at least 1 chat and the first fetch is complete,
-    // get the history for the selected chat and connect to all chats
     if (chats.chats.length > 0 && !chats.loading) {
       if (chatId && !hasFetchedHistoryRef.current.get(chatId)) {
         hasFetchedHistoryRef.current.set(chatId, true);
@@ -97,9 +95,10 @@ function Chats() {
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
         <LiveChat
-          chatData={chatId ? chats.getChatDataFromId(chatId) : undefined}
-          chatMessages={chatId ? chats.getMessagesForChat(chatId) : undefined}
-          chatWebSocket={chatId ? chats.getSocketFromId(chatId) : undefined}
+          chatId={chatId}
+          getChatDataFromId={chats.getChatDataFromId}
+          getMessagesForChat={chats.getMessagesForChat}
+          getSocketFromId={chats.getSocketFromId}
         ></LiveChat>
       </div>
     </div>

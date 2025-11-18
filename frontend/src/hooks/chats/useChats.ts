@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useApi } from "../common/apiStates";
 
@@ -133,20 +133,24 @@ export const useChats = () => {
         newMap.set(chatId, [...existingMessages, message]);
         return newMap;
       });
+      console.log(chatApi.data);
 
-      // Also update the chat preview
-      if (chatApi.data) {
-        const updatedChats = chatApi.data.map((chat) =>
+      chatApi.setSuccess((prevData) => {
+        if (!prevData) {
+          return [];
+        }
+
+        const updatedChats = prevData.map((chat) =>
           chat.chatId === chatId
             ? {
                 ...chat,
                 lastActivity: message.timestamp,
                 lastMessage: message.content,
               }
-            : chat
+            : { ...chat }
         );
-        chatApi.setSuccess(updatedChats);
-      }
+        return updatedChats;
+      });
     },
     [chatApi]
   );
@@ -353,6 +357,14 @@ export const useChats = () => {
     [chatApi]
   );
 
+  const sortedChatPreviews = useMemo(() => {
+    return (chatApi.data || []).sort(
+      (prev, next) =>
+        new Date(next.lastActivity).getTime() -
+        new Date(prev.lastActivity).getTime()
+    );
+  }, [chatApi.data]);
+
   return {
     /** Array of chat items, empty array if no chats are loaded */
     chats: chatApi.data || [],
@@ -390,10 +402,6 @@ export const useChats = () => {
     removeChat,
 
     /** Chats sorted by most recent activity in descending order */
-    sortedChatPreviews: (chatApi.data || []).sort(
-      (prev, next) =>
-        new Date(next.lastActivity).getTime() -
-        new Date(prev.lastActivity).getTime()
-    ),
+    sortedChatPreviews,
   };
 };

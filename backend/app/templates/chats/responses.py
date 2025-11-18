@@ -1,5 +1,4 @@
 """ Templates for chats.py responses """
-from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -12,13 +11,13 @@ class ChatPreview(BaseModel):
         chat_name (str): Display name of the chat.
         dm_participant_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
         last_message (Optional[str]): Last message sent in chat.
-        last_activity (Optional[datetime]): Timestamp of the last activity occuring in the chat.
+        last_activity (Optional[str]): Timestamp of the last activity occuring in the chat in iso format.
     """
     chat_id: str = Field(..., alias="chatId")
     chat_name: str = Field(..., alias="chatName")
     dm_participant_id: Optional[str] = Field(..., alias="dmParticipantId")
     last_message: Optional[str] = Field(..., alias="lastMessage")
-    last_activity: Optional[datetime] = Field(..., alias="lastActivity")
+    last_activity: Optional[str] = Field(..., alias="lastActivity")
 
     class Config:
         """ Sets ChatListItem to serialise to JSON as alias names. """

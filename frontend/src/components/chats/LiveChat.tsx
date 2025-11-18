@@ -11,9 +11,10 @@ import Dropdown from "../common/Dropdown";
 import { useState } from "react";
 
 interface LiveChatProps {
-  chatData: ChatData | undefined;
-  chatMessages: Message[] | undefined;
-  chatWebSocket: WebSocket | undefined;
+  chatId?: string;
+  getChatDataFromId: (chatId: string) => ChatData | undefined;
+  getMessagesForChat: (chatId: string) => Message[];
+  getSocketFromId: (chatId: string) => WebSocket | undefined;
 }
 
 const dropdownGroupChat: DropdownOption[] = [
@@ -31,11 +32,20 @@ const dropdownDmChat: DropdownOption[] = [
 ];
 
 const LiveChat: React.FC<LiveChatProps> = ({
-  chatData,
-  chatMessages,
-  chatWebSocket,
+  chatId,
+  getChatDataFromId,
+  getMessagesForChat,
+  getSocketFromId,
 }) => {
   const [messageInput, setMessageInput] = useState("");
+
+  const chatData = chatId ? getChatDataFromId(chatId) : undefined;
+  const chatMessages = chatId ? getMessagesForChat(chatId) : undefined;
+  const chatWebSocket = chatId ? getSocketFromId(chatId) : undefined;
+
+  if (!chatData || !chatMessages || !chatWebSocket) {
+    return <h2 className={styles.noChat}> No chat selected. </h2>;
+  }
 
   const handleSendMessage = () => {
     if (messageInput.trim() === "") return;
@@ -48,9 +58,6 @@ const LiveChat: React.FC<LiveChatProps> = ({
       })
     );
 
-    // Carry out local update of messages
-    // (when websocket echoes back the message, it can be marked as sent)
-
     setMessageInput("");
   };
 
@@ -60,9 +67,6 @@ const LiveChat: React.FC<LiveChatProps> = ({
     }
   };
 
-  if (!chatData || !chatMessages || !chatWebSocket) {
-    return <h2 className={styles.noChat}> No chat selected. </h2>;
-  }
   const isDm = !!chatData.dmParticipantId;
   // Placeholder for chat image logic
   let chatImage = undefined;

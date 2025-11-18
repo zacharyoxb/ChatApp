@@ -49,13 +49,20 @@ export const useApi = <T>() => {
   /**
    * Sets the API state to SUCCESS with the provided data
    *
-   * @param data - The successful response data to store
+   * @param data - The successful response data to store, or a function that receives previous data and returns new data
    */
-  const setSuccess = useCallback((data: T) => {
-    setResponse({
-      data,
-      state: "SUCCESS",
-      error: "",
+  const setSuccess = useCallback((data: T | ((prevData: T | null) => T)) => {
+    setResponse((prev) => {
+      const newData =
+        typeof data === "function"
+          ? (data as (prevData: T | null) => T)(prev.data)
+          : data;
+
+      return {
+        data: newData,
+        state: "SUCCESS",
+        error: "",
+      };
     });
   }, []);
 
@@ -72,21 +79,6 @@ export const useApi = <T>() => {
     }));
   }, []);
 
-  /**
-   * Resets the API state to initial IDLE state
-   *
-   * @remarks
-   * Clears all data, error messages, and returns to IDLE state.
-   * Useful for form resets or when starting a new operation.
-   */
-  const reset = useCallback(() => {
-    setResponse({
-      data: null,
-      state: "IDLE",
-      error: "",
-    });
-  }, []);
-
   return {
     /** The current data from successful API calls, or null */
     data: response.data,
@@ -98,7 +90,6 @@ export const useApi = <T>() => {
     setLoading,
     setSuccess,
     setError,
-    reset,
 
     /** Convenience boolean indicating if the API is in LOADING state */
     isLoading: response.state === "LOADING",
@@ -106,7 +97,5 @@ export const useApi = <T>() => {
     isSuccess: response.state === "SUCCESS",
     /** Convenience boolean indicating if the API is in ERROR state */
     isError: response.state === "ERROR",
-    /** Convenience boolean indicating if the API is in IDLE state */
-    isIdle: response.state === "IDLE",
   };
 };

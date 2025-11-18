@@ -49,8 +49,7 @@ async def get_chat_previews(
             chat.last_activity = None
         else:
             chat.last_message = last_message_data.content
-            chat.last_activity = datetime.fromisoformat(
-                last_message_data.timestamp)
+            chat.last_activity = last_message_data.timestamp
 
     return user_chats
 
