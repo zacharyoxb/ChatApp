@@ -29,10 +29,11 @@ async def lifespan(_ls_app: FastAPI):
     # Startup code
     config_manager.initialize()
     db_config = config_manager.get_db_config()
-    redis_config = config_manager.get_redis_config()
+    session_redis_config = config_manager.get_session_redis_config()
+    streams_redis_config = config_manager.get_streams_redis_config()
 
     await db_service.init_db_pool(db_config)
-    redis_service.init_redis(redis_config)
+    redis_service.init_redis(session_redis_config, streams_redis_config)
 
     yield
     # Shutdown code (optional cleanup)

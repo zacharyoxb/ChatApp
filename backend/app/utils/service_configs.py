@@ -10,13 +10,25 @@ class ConfigManager:
     """ Singleton configuration manager """
     _instance: Optional['ConfigManager'] = None
     _db_config: Optional[Dict[str, Any]] = None
-    _redis_config: Optional[Dict[str, Any]] = None
+    _sessions_redis_config: Optional[Dict[str, Any]] = None
+    _streams_redis_config: Optional[Dict[str, Any]] = None
     _initialized: bool = False
 
     # List of required environment variables
     REQUIRED_DB_VARS = ["DB_USER", "DB_PASS", "DB_HOST", "DB_NAME"]
-    REQUIRED_REDIS_VARS = ["REDIS_HOST", "REDIS_PORT", "REDIS_DB",
-                           "REDIS_DECODE_RESPONSES", "REDIS_SSL"]
+    REQUIRED_REDIS_VARS = [
+        "SESSIONS_REDIS_HOST",
+        "STREAMS_REDIS_HOST",
+
+        "SESSIONS_REDIS_PORT",
+        "STREAMS_REDIS_PORT",
+
+        "SESSIONS_REDIS_DB",
+        "STREAMS_REDIS_DB",
+
+        "SESSIONS_REDIS_SSL",
+        "STREAMS_REDIS_SSL",
+    ]
 
     def __new__(cls):
         if cls._instance is None:
@@ -40,14 +52,24 @@ class ConfigManager:
             'ssl_disabled': os.getenv('DB_SSL_DISABLED', "False").lower() == "true"
         }
 
-        # Validate and load Redis config
-        self._validate_env_vars(self.REQUIRED_REDIS_VARS, "Redis")
-        self._redis_config = {
-            'host': os.getenv('REDIS_HOST'),
-            'port': int(os.getenv('REDIS_PORT')),
-            'db': int(os.getenv('REDIS_DB', "0")),
-            'decode_responses': os.getenv('REDIS_DECODE_RESPONSES', "True").lower() == "true",
-            'ssl': os.getenv('REDIS_SSL', "False").lower() == "true"
+        # Validate and load Redis sessions config
+        self._validate_env_vars(self.REQUIRED_REDIS_VARS, "Redis sessions")
+        self._sessions_redis_config = {
+            'host': os.getenv('SESSIONS_REDIS_HOST'),
+            'port': int(os.getenv('SESSIONS_REDIS_PORT')),
+            'db': int(os.getenv('SESSIONS_REDIS_DB', "0")),
+            'decode_responses': True,
+            'ssl': os.getenv('SESSIONS_REDIS_SSL', "False").lower() == "true"
+        }
+
+        # Validate and load Redis streams config
+        self._validate_env_vars(self.REQUIRED_REDIS_VARS, "Redis sessions")
+        self._streams_redis_config = {
+            'host': os.getenv('STREAMS_REDIS_HOST'),
+            'port': int(os.getenv('STREAMS_REDIS_PORT')),
+            'db': int(os.getenv('STREAMS_REDIS_DB', "0")),
+            'decode_responses': True,
+            'ssl': os.getenv('STREAMS_REDIS_SSL', "False").lower() == "true"
         }
 
         self._initialized = True
@@ -70,11 +92,17 @@ class ConfigManager:
             self.initialize()
         return self._db_config.copy()
 
-    def get_redis_config(self) -> Dict[str, Any]:
+    def get_session_redis_config(self) -> Dict[str, Any]:
         """ Get Redis configuration """
         if not self._initialized:
             self.initialize()
-        return self._redis_config.copy()
+        return self._sessions_redis_config.copy()
+
+    def get_streams_redis_config(self) -> Dict[str, Any]:
+        """ Get Redis streams config"""
+        if not self._initialized:
+            self.initialize()
+        return self._streams_redis_config.copy()
 
 
 config_manager = ConfigManager()

@@ -47,6 +47,8 @@ export const useChats = () => {
   const chatApi = useApi<ChatData[]>();
   // Stores data for global chat previews
   const globalChatApi = useApi<ChatData[]>();
+  // Stores state for chatHistory
+  const historyApi = useApi<ChatData[]>();
   // Stores messages
   const [messagesByChatId, setMessagesByChatId] = useState<
     Map<string, Message[]>
@@ -176,8 +178,6 @@ export const useChats = () => {
       if (!messages) {
         messages = [];
       }
-
-      chatApi.setLoading();
 
       let url = `https://localhost:8000/chats/${chatId}?`;
       if (messages.length > 0) {

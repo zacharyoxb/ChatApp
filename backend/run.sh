@@ -44,34 +44,55 @@ else
   echo -e "${GREEN}Dependencies already up to date${NC}"
 fi
 
-# Makes sure docker Valkey instance is created [IF USING EXTERNAL MICROSERVICE, COMMENT THIS OUT]
-if ! docker ps --filter "name=valkey" --format '{{.Names}}' | grep -q 'valkey'; then
-  echo -e "${YELLOW}Valkey container not running. Starting Valkey...${NC}"
-  
-  # Remove if exists but stopped
-  if docker ps -a --filter "name=valkey" --format '{{.Names}}' | grep -q 'valkey'; then
-    docker rm valkey
-  fi
-  
-  docker run -d --name valkey -p 6379:6379 valkey/valkey:8.1.3
-  check_success "Valkey container started"
-  
-  # Wait for Valkey to be ready
-  echo -e "${YELLOW}Waiting for Valkey to become responsive...${NC}"
-  for i in {1..10}; do
-    if docker exec valkey redis-cli ping 2>/dev/null | grep -q "PONG"; then
-      echo -e "${GREEN}Valkey is ready!${NC}"
-      break
-    fi
-    sleep 1
-    if [ $i -eq 10 ]; then
-      echo -e "${RED}Valkey failed to start within 10 seconds${NC}"
-      exit 1
-    fi
-  done
-else
-  echo -e "${GREEN}Valkey container is already running${NC}"
+# Check if docker-compose.yml exists
+if [ ! -f docker-compose.yml ]; then
+  echo -e "${RED}docker-compose.yml not found in current directory${NC}"
+  exit 1
 fi
+
+# Start Valkey services using docker-compose
+echo -e "${YELLOW}Starting Valkey services with Docker Compose...${NC}"
+
+# Check if services are already running
+if docker-compose ps --services --filter "status=running" | grep -q -E "(valkey-sessions|valkey-streams)"; then
+  echo -e "${YELLOW}Valkey services already running, restarting...${NC}"
+  docker-compose down
+  check_success "Stopped existing Valkey services"
+fi
+
+# Start the services
+docker-compose up -d
+check_success "Valkey services started"
+
+# Wait for Valkey services to be ready
+echo -e "${YELLOW}Waiting for Valkey services to become responsive...${NC}"
+
+# Check valkey-sessions
+for i in {1..10}; do
+  if docker-compose exec -T valkey-sessions redis-cli ping 2>/dev/null | grep -q "PONG"; then
+    echo -e "${GREEN}valkey-sessions is ready!${NC}"
+    break
+  fi
+  sleep 1
+  if [ $i -eq 10 ]; then
+    echo -e "${RED}valkey-sessions failed to start within 10 seconds${NC}"
+    exit 1
+  fi
+done
+
+# Check valkey-streams
+for i in {1..10}; do
+  if docker-compose exec -T valkey-streams redis-cli ping 2>/dev/null | grep -q "PONG"; then
+    echo -e "${GREEN}valkey-streams is ready!${NC}"
+    break
+  fi
+  sleep 1
+  if [ $i -eq 10 ]; then
+    echo -e "${RED}valkey-streams failed to start within 10 seconds${NC}"
+    exit 1
+  fi
+done
+
 
 echo -e "${GREEN}Starting application...${NC}"
 uvicorn app.main:app \

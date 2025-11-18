@@ -7,7 +7,7 @@ from typing import Optional
 import uuid
 
 from pydantic import BaseModel
-from redis import Redis
+from redis.asyncio import ConnectionPool, Redis
 import redis.asyncio as redis
 
 from app.templates.chats.responses import ChatMessage
@@ -33,22 +33,32 @@ class SessionData(BaseModel):
 class RedisService:
     """ Singleton instance holding the redis connection. """
     _instance: Optional['RedisService'] = None
-    _redis_conn: Optional[Redis] = None
+    _sessions_pool: Optional[ConnectionPool] = None
+    _streams_pool: Optional[ConnectionPool] = None
+    _sessions_redis: Optional[Redis] = None
+    _streams_redis: Optional[Redis] = None
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def init_redis(self, redis_config: dict) -> None:
+    def init_redis(self, session_redis_config: dict, streams_redis_config: dict) -> None:
         """ Initialises redis/valkey 
 
         Args:
             redis_config (dict): Redis configuration provided by service_configs.
         """
-        self._redis_conn = redis.Redis(**redis_config)
+        self._sessions_pool = ConnectionPool(
+            host='localhost', port=6379, decode_responses=True, max_connections=10)
+        self._streams_pool = ConnectionPool(
+            host='localhost', port=6380, decode_responses=True, max_connections=10)
+
+        self._sessions_redis = redis.Redis(connection_pool=self._sessions_pool)
+        self._streams_redis = redis.Redis(connection_pool=self._streams_pool)
 
     # =============== SESSION METHODS ===============
+
     async def create_session(self, user_id: bytes, username: str) -> str:
         """ Creates a session and returns a session cookie. 
 
@@ -67,12 +77,12 @@ class RedisService:
             last_activity=time.time()
         )
 
-        await self._redis_conn.hset(
+        await self._sessions_redis.hset(
             f"session:{session_id}",
             mapping=session_data.model_dump()
         )
 
-        await self._redis_conn.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
+        await self._sessions_redis.expire(f"session:{session_id}", SESSION_TTL_SECONDS)
 
         return session_id
 
@@ -87,7 +97,8 @@ class RedisService:
             or None if the session does not exist/has expired.
         """
         session_key = f"session:{session_id}"
-        session_data = await self._redis_conn.hgetall(session_key)
+
+        session_data = await self._sessions_redis.hgetall(session_key)
 
         if not session_data:
             return None
@@ -106,7 +117,8 @@ class RedisService:
             session_id (str): The session id of the session. 
         """
         session_key = f"session:{session_id}"
-        await self._redis_conn.delete(session_key)
+
+        await self._sessions_redis.delete(session_key)
 
     # =============== CHAT METHODS ===============
 
@@ -120,7 +132,7 @@ class RedisService:
         Yields:
             PubSub: Redis pubsub instance. 
         """
-        pubsub = self._redis_conn.pubsub()
+        pubsub = self._streams_redis.pubsub()
         try:
             await pubsub.subscribe(chat_id)
             yield pubsub
@@ -141,7 +153,7 @@ class RedisService:
             "content": message,
             "timestamp": datetime.now().isoformat()
         }
-        message_id = await self._redis_conn.xadd(chat_id, message_dict)
+        message_id = await self._streams_redis.xadd(chat_id, message_dict)
 
         message_with_id = {
             "message_id": message_id,
@@ -150,7 +162,7 @@ class RedisService:
             "timestamp": message_dict["timestamp"]
         }
         message_json = json.dumps(message_with_id)
-        await self._redis_conn.publish(chat_id, message_json)
+        await self._streams_redis.publish(chat_id, message_json)
 
         return message_id
 
@@ -170,7 +182,7 @@ class RedisService:
             "content": message,
             "timestamp": datetime.now().isoformat()
         }
-        message_id = await self._redis_conn.xadd(chat_id, message_dict)
+        message_id = await self._streams_redis.xadd(chat_id, message_dict)
 
         message_with_id = {
             "message_id": message_id,
@@ -179,7 +191,7 @@ class RedisService:
             "timestamp": message_dict["timestamp"]
         }
         message_json = json.dumps(message_with_id)
-        await self._redis_conn.publish(chat_id, message_json)
+        await self._streams_redis.publish(chat_id, message_json)
 
         return message_id
 
@@ -202,9 +214,7 @@ class RedisService:
         min_range = start_id if start_id is not None else "-"
         max_range = end_id if end_id is not None else "+"
 
-        messages = await self._redis_conn.xrange(chat_id, min_range, max_range, count)
-
-        print("hi?")
+        messages = await self._streams_redis.xrange(chat_id, min_range, max_range, count)
 
         formatted_messages = []
         for msg_id, fields in messages:
@@ -219,6 +229,30 @@ class RedisService:
             )
 
         return formatted_messages
+
+    async def get_last_message(self, chat_id: str) -> Optional[ChatMessage]:
+        """ Fetches the very last message from the chat
+
+        Args:
+            chat_id (str): The id of the chat
+
+        Returns:
+            ChatMessage: The last message of the chat
+        """
+        message = await self._streams_redis.xread({chat_id: '$'}, count=1)
+        if message == []:
+            return None
+        (msg_id, fields) = message
+        (user_id, raw_message_json, timestamp) = fields.values()
+        content = json.loads(raw_message_json)["content"]
+
+        formatted_message = (ChatMessage(
+            message_id=msg_id,
+            sender_id=user_id,
+            content=content,
+            timestamp=timestamp),
+        )
+        return formatted_message
 
 
 redis_service = RedisService()

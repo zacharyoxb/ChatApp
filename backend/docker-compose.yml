@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  valkey-sessions:
+    image: valkey/valkey:8.1.3
+    ports:
+      - "6379:6379"
+    command: ["valkey-server", "--save", ""]
+  
+  valkey-streams:
+    image: valkey/valkey:8.1.3
+    ports: 
+    - "6380:6379"
+    volumes:
+      - stream_data:/data
+    command: ["valkey-server", "--appendonly", "yes"]
+
+volumes:
+  stream_data:
