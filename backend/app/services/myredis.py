@@ -49,10 +49,8 @@ class RedisService:
         Args:
             redis_config (dict): Redis configuration provided by service_configs.
         """
-        self._sessions_pool = ConnectionPool(
-            host='localhost', port=6379, decode_responses=True, max_connections=10)
-        self._streams_pool = ConnectionPool(
-            host='localhost', port=6380, decode_responses=True, max_connections=10)
+        self._sessions_pool = ConnectionPool(**session_redis_config)
+        self._streams_pool = ConnectionPool(**streams_redis_config)
 
         self._sessions_redis = redis.Redis(connection_pool=self._sessions_pool)
         self._streams_redis = redis.Redis(connection_pool=self._streams_pool)
@@ -239,19 +237,20 @@ class RedisService:
         Returns:
             ChatMessage: The last message of the chat
         """
-        message = await self._streams_redis.xread({chat_id: '$'}, count=1)
+        message = await self._streams_redis.xrevrange(chat_id, count=1)
         if message == []:
             return None
-        (msg_id, fields) = message
+        (msg_id, fields) = message[0]
         (user_id, raw_message_json, timestamp) = fields.values()
         content = json.loads(raw_message_json)["content"]
 
-        formatted_message = (ChatMessage(
+        formatted_message = ChatMessage(
             message_id=msg_id,
             sender_id=user_id,
             content=content,
-            timestamp=timestamp),
+            timestamp=timestamp
         )
+
         return formatted_message
 
 

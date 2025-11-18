@@ -22,12 +22,6 @@ class ConfigManager:
 
         "SESSIONS_REDIS_PORT",
         "STREAMS_REDIS_PORT",
-
-        "SESSIONS_REDIS_DB",
-        "STREAMS_REDIS_DB",
-
-        "SESSIONS_REDIS_SSL",
-        "STREAMS_REDIS_SSL",
     ]
 
     def __new__(cls):
@@ -57,9 +51,7 @@ class ConfigManager:
         self._sessions_redis_config = {
             'host': os.getenv('SESSIONS_REDIS_HOST'),
             'port': int(os.getenv('SESSIONS_REDIS_PORT')),
-            'db': int(os.getenv('SESSIONS_REDIS_DB', "0")),
             'decode_responses': True,
-            'ssl': os.getenv('SESSIONS_REDIS_SSL', "False").lower() == "true"
         }
 
         # Validate and load Redis streams config
@@ -67,9 +59,7 @@ class ConfigManager:
         self._streams_redis_config = {
             'host': os.getenv('STREAMS_REDIS_HOST'),
             'port': int(os.getenv('STREAMS_REDIS_PORT')),
-            'db': int(os.getenv('STREAMS_REDIS_DB', "0")),
             'decode_responses': True,
-            'ssl': os.getenv('STREAMS_REDIS_SSL', "False").lower() == "true"
         }
 
         self._initialized = True
