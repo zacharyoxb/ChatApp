@@ -11,11 +11,11 @@ from app.templates.chats.types import Role
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
 CREATE_CHAT_QUERY = """
 INSERT INTO chats (chat_id, chat_name, created_by, is_public)
-VALUES (%s, %s, (SELECT user_id FROM users WHERE user_name = %s), %s)
+VALUES (%s, %s, %s, %s)
 """
 ADD_USER_TO_CHAT_QUERY = """
 INSERT INTO users_in_chats (user_id, chat_id, role)
-VALUES ((SELECT user_id FROM users WHERE user_name = %s), %s, %s)
+VALUES (%s, %s, %s)
 """
 
 # SELECT queries
@@ -93,7 +93,7 @@ class DatabaseService:
             await conn.commit()
             await cursor.close()
 
-    async def create_chat(self, chat_creator: str, req: NewChatData) -> None:
+    async def create_chat(self, chat_creator_id: bytes, req: NewChatData) -> None:
         """ Adds chat to db. 
 
         Args:
@@ -102,11 +102,11 @@ class DatabaseService:
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             # create chat
-            await cursor.execute(CREATE_CHAT_QUERY, (req.chat_id, req.chat_name, chat_creator,
+            await cursor.execute(CREATE_CHAT_QUERY, (req.chat_id, req.chat_name, chat_creator_id,
                                                      req.is_public))
             # add creator as owner
             await cursor.execute(ADD_USER_TO_CHAT_QUERY,
-                                 (chat_creator, req.chat_id, 'owner'))
+                                 (chat_creator_id, req.chat_id, 'owner'))
             # add other users if provided
             for other_user_username in req.other_users:
                 await cursor.execute(ADD_USER_TO_CHAT_QUERY,
@@ -127,22 +127,6 @@ class DatabaseService:
             await cursor.execute(ADD_USER_TO_CHAT_QUERY, (username, chat_id, role))
             await conn.commit()
             await cursor.close()
-
-    async def get_user_exists(self, username: str) -> bool:
-        """ Checks if a user exists in the database
-
-        Args:
-            username (str): Username to check
-
-        Returns:
-            bool: Indicates whether the user exists or not.
-        """
-        async with await self._pool.get_connection() as conn:
-            cursor = await conn.cursor(prepared=True)
-            await cursor.execute(GET_USER_EXISTS_QUERY, (username,))
-            result = await cursor.fetchone()
-            await cursor.close()
-            return bool(result[0])
 
     async def get_id_from_username(self, username: str) -> Optional[bytes]:
         """ Gets the user id for a given username.

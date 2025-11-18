@@ -1,6 +1,7 @@
 """ Functions related to users / user information """
 from fastapi import APIRouter, Cookie, HTTPException, status
 import mysql
+from pydantic import BaseModel, Field
 
 from app.services.myredis import redis_service
 from app.services.mysqldb import db_service
@@ -8,8 +9,21 @@ from app.services.mysqldb import db_service
 router = APIRouter()
 
 
-@router.get("/users/{username}")
-async def get_user_exists(username: str, session_id: str = Cookie(None)) -> None:
+class UserIdResponse(BaseModel):
+    """ Response to send user_id of user as response
+
+    Attributes:
+        user_id: hex string of user_id
+    """
+    user_id: str = Field(..., alias="userId")
+
+    class Config:
+        """ Sets CreateChat Request Model to expect aliases from frontend """
+        populate_by_name = True
+
+
+@router.get("/users/{username}", response_model=UserIdResponse)
+async def get_user_id(username: str, session_id: str = Cookie(None)) -> None:
     """ Check if a user with the given username exists.
 
     Returns 200 if they do, 404 if they don't.
@@ -29,10 +43,13 @@ async def get_user_exists(username: str, session_id: str = Cookie(None)) -> None
                             detail="Session expired or invalid")
 
     try:
-        user_exists = await db_service.get_user_exists(username)
-        if not user_exists:
+        user_id = await db_service.get_id_from_username(username)
+        if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist")
+        return UserIdResponse(
+            user_id=user_id.hex()
+        )
     except mysql.connector.Error as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="Database operation failed") from e

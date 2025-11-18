@@ -140,16 +140,18 @@ async def create_new_chat(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
 
-    username = session_data.username
+    user_id_hex = session_data.user_id
+    user_id = bytes.fromhex(session_data.user_id)
 
-    await db_service.create_chat(username, req)
-    await redis_service.send_system_message(req.chat_id.hex(), "NEW CHAT CREATED")
+    await db_service.create_chat(user_id, req)
+    await redis_service.send_system_message(req.chat_id.hex(),
+                                            f"NEW CHAT CREATED BY @{user_id_hex}")
     res.status_code = status.HTTP_201_CREATED
 
     return ChatPreview(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,
-        last_activity=datetime.now(),
+        last_activity=datetime.now().isoformat(),
         dmParticipantId=None,
         last_message=None
     )

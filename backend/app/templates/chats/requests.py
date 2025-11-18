@@ -10,7 +10,7 @@ class NewChatData(BaseModel):
     Attributes:
         chat_id (bytes): Generated uuid for chat.
         chat_name (str): Name of the chat
-        other_users (List[str]): All other users to add to chat. May be empty.
+        other_users (List[str]): The ids of all other users to add to chat. May be empty.
         is_public (bool): If the chat is public.
     """
     chat_id: bytes = Field(default_factory=lambda: uuid.uuid4().bytes)

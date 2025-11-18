@@ -35,13 +35,6 @@ function CreateChatModal({
       setError(`You have entered your own username.`);
       return;
     }
-    // User is already a member
-    if (members.includes(newMember)) {
-      setError(
-        `User "${newMember} is already in the group of users to be added.`
-      );
-      return;
-    }
 
     try {
       const response = await fetch(
@@ -61,10 +54,20 @@ function CreateChatModal({
         return;
       }
 
+      const user_id = await response.json();
+
+      // User is already a member
+      if (members.includes(user_id)) {
+        setError(
+          `User "${newMember} is already in the group of users to be added.`
+        );
+        return;
+      }
+
       // Add member, remove errors
       if (response.ok) {
         setError(null);
-        setMembers((prevMembers) => [...prevMembers, newMember]);
+        setMembers((prevMembers) => [...prevMembers, user_id]);
       }
     } catch (err) {
       console.log(err);
