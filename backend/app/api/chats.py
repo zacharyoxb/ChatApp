@@ -164,9 +164,7 @@ async def listen_for_messages(pubsub, websocket: WebSocket):
         if message['type'] == 'message':
             message_data = message['data']
             raw_message = json.loads(message_data)
-            (message_id, sender_id, raw_message_json,
-             timestamp) = raw_message.values()
-            content = json.loads(raw_message_json)["content"]
+            (message_id, sender_id, content, timestamp) = raw_message.values()
 
             message_obj = ChatMessage(
                 message_id=message_id,
