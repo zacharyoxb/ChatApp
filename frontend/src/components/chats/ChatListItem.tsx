@@ -23,7 +23,7 @@ const ARIA_LABEL_TEMPLATE = (
   if (isDm) {
     return `Direct chat with ${name}. Last message: ${message.content}. Last activity ${date_time_string}}`;
   }
-  return `Group chat ${name}. Last message: ${message.content}. Last activity ${date_time_string}`;
+  return `Group chat ${name}. Last message sent by ${message.senderId}: ${message.content}. Last activity ${date_time_string}`;
 };
 
 const ChatListItem: React.FC<ChatListItemProps> = ({
