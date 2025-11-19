@@ -7,20 +7,20 @@ router = APIRouter()
 
 
 async def auth_session(res: Response, session_id: str | None = Cookie(None)) -> SessionData:
-    """ Authenticates the session cookie
+    """ Authenticates the session cookie and removes invalid cookies.
 
-    Args:
-        response (Response): FastAPI response.
-        session_id (str, optional): Session id. Defaults to Cookie.
+     Args:
+         res (Response): FastAPI response object used to clear invalid session cookies.
+         session_id (str | None): Session ID from the session cookie. Defaults to Cookie(None).
 
-    Raises:
-        HTTPException: Exception thrown if the user's session has expired. If the cookie
-            never existed, detail returns COOKIE_NOT_PRESENT. If the cookie existed but
-            had an expired token returns SESSION_EXPIRED. (401 UNAUTHORIZED)
+     Raises:
+         HTTPException: 401 UNAUTHORIZED with detail:
+         - "COOKIE_NOT_PRESENT" if no session cookie was provided
+         - "SESSION_EXPIRED" if the session was found but has expired (cookie will be cleared)
 
-    Returns:
-        SessionData: _description_
-    """
+     Returns:
+         SessionData: The validated session data stored in Redis.
+     """
     if session_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="COOKIE_NOT_PRESENT")
@@ -37,13 +37,22 @@ async def auth_session(res: Response, session_id: str | None = Cookie(None)) -> 
 @router.get("/session")
 async def get_session_endpoint(
     _: SessionData = Depends(auth_session)
-) -> None:
-    """ Checks if the session id of the user is valid.
+) -> dict:
+    """ Validates the user's session authentication.
 
-    Args:
-        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+    This endpoint uses the auth_session dependency to verify that:
+    - A session cookie is present
+    - The session exists in Redis and is valid
+
+    If authentication fails, the auth_session dependency will raise
+    an appropriate HTTPException.
+
+    Returns:
+        dict: Confirmation message if session is valid.
 
     Raises:
-        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
+        HTTPException: 401 UNAUTHORIZED if:
+            - No session cookie provided ("COOKIE_NOT_PRESENT")
+            - Session expired or invalid ("SESSION_EXPIRED")
     """
     return {"message": "Session is valid"}

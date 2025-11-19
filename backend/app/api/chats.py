@@ -21,17 +21,19 @@ router = APIRouter()
 async def get_chat_previews(
     session_data: SessionData = Depends(auth_session)
 ) -> List[ChatPreview]:
-    """ Gets all chats a user is in
+    """ Gets all chats that the authenticated user is participating in.
+
+    Retrieves the user's chat list from the database and enriches each chat
+    with the last message content and activity timestamp from Redis.
 
     Args:
-        res (Response): FastAPI response.
-        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
-
-    Raises:
-        HTTPException: Exception thrown if the user's session has expired.
+        session_data (SessionData): Authenticated user session data containing username.
 
     Returns:
-        ChatListItem: An array of data in the ChatListItem template.
+        List[ChatPreview]: List of chat previews with last message information.
+
+    Raises:
+        HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session dependency.
     """
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
@@ -52,18 +54,19 @@ async def get_chat_previews(
 async def get_available_chat_previews(
     session_data: SessionData = Depends(auth_session),
 ) -> List[ChatPreview]:
-    """ Gets chats the user isn't in, but are available to join
-    (i.e. are public)
+    """ Gets public chats that the user is not currently participating in.
+
+    Retrieves a list of available public chats that the authenticated user
+    can join.
 
     Args:
-        res (Response): FastAPI response.
-        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
-
-    Raises:
-        HTTPException: Exception thrown if the user's session has expired.
+        session_data (SessionData): Authenticated user session data containing username.
 
     Returns:
-        ChatListItem: An array of data in the ChatListItem template.
+        List[ChatPreview]: List of available public chats that the user can join.
+
+    Raises:
+        HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session dependency.
     """
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
@@ -80,21 +83,21 @@ async def get_chat_history(
         count: int = Query(20, description="Number of messages to retrieve"),
         _: SessionData = Depends(auth_session)
 ):
-    """ Gets the chat history for a given chat
+    """ Retrieves the chat history for a specific chat.
+
+    Fetches messages from Redis within the specified range and pagination.
 
     Args:
-       res (Response): FastAPI response.
-       chat_id (str): Hex string for the id of the chat.
-       start_id (str, optional): Hex string for the id of the start message. Defaults to None.
-       end_id (str, optional): Hex string for the id of the end message. Defaults to None.
-       count (int, optional): Number of messages to retrieve. Defaults to 20.
-       session_id (str, optional): The session id of the user. Defaults to Cookie(None).
-
-    Raises:
-        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
+        chat_id (str): Hex string identifier of the chat.
+        start_id (str, optional): Hex string ID of the starting message for the range.
+        end_id (str, optional): Hex string ID of the ending message for the range.
+        count (int, optional): Maximum number of messages to retrieve. Defaults to 20.
 
     Returns:
-        List[Message]: An array of chat messages in the chat.
+        List[ChatMessage]: Array of chat messages in the specified chat.
+
+    Raises:
+        HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session dependency.
     """
     history = await redis_service.get_chat_history(chat_id, start_id, end_id, count)
     return history
@@ -106,18 +109,23 @@ async def create_new_chat(
         res: Response,
         session_data: SessionData = Depends(auth_session)
 ):
-    """ Creates a new chat, adds the user and other_users to it. Returns the generated
-    chat_id and the time the chat was created so the frontend can add the chat to the
-    list without doing another costly db fetch.
+    """ Creates a new chat and adds the user and other participants.
 
-    Args:
-        req (NewChatData): Request data for creating new chat.
-        res (Response): FastAPI response.
-        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+     Creates a new chat in the database, sends a system message to Redis,
+     and returns the chat preview to avoid additional database queries.
 
-    Raises:
-        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
-    """
+     Args:
+         req (NewChatData): Request data containing chat creation details.
+         res (Response): FastAPI response object for setting status code.
+         session_data (SessionData): Authenticated user session data.
+
+     Returns:
+         ChatPreview: Preview of the newly created chat with generated chat_id and timestamp.
+
+     Raises:
+         HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session
+         dependency.
+     """
 
     user_id_hex = session_data.user_id
     user_id = bytes.fromhex(session_data.user_id)
@@ -139,7 +147,16 @@ async def create_new_chat(
 
 
 async def listen_for_messages(pubsub, websocket: WebSocket):
-    """Listen for messages from Redis Pub/Sub and send them to the WebSocket"""
+    """ Listens for Redis Pub/Sub messages and forwards them to the WebSocket client.
+
+    Args:
+        pubsub: Redis Pub/Sub connection for receiving messages.
+        websocket (WebSocket): WebSocket connection to send messages to the client.
+
+    Note:
+        Runs continuously until the WebSocket connection is closed.
+        Only processes messages of type 'message' from Redis.
+    """
     async for message in pubsub.listen():
         if message['type'] == 'message':
             message_data = message['data']

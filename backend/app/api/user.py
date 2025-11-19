@@ -26,20 +26,20 @@ class UserIdResponse(BaseModel):
 @router.get("/users/{username}", response_model=UserIdResponse)
 async def get_user_id(
     username: str,
-    _session_data: SessionData = Depends(auth_session)
+    _: SessionData = Depends(auth_session)
 ) -> None:
-    """ Check if a user with the given username exists.
-
-    Returns 200 if they do, 404 if they don't.
+    """ Checks if a user with the given username exists and returns their user ID.
 
     Args:
-        username (str, optional): The username to check.
-        session_id (str, optional): The session id of the user. Defaults to Cookie(None).
+        username (str): The username to look up.
+
+    Returns:
+        UserIdResponse: The user ID in hexadecimal format if the user exists.
 
     Raises:
-        HTTPException: Exception thrown if the user does not exist. (404 NOT FOUND)
-        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
-        HTTPException: Exception thrown if a database error occurs. (500 INTERNAL SERVER ERROR)
+        HTTPException: 404 NOT FOUND if the user does not exist.
+        HTTPException: 401 UNAUTHORIZED if session authentication fails.
+        HTTPException: 500 INTERNAL SERVER_ERROR if a database error occurs.
     """
     try:
         user_id = await db_service.get_id_from_username(username)
