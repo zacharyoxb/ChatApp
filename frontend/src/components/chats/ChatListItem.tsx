@@ -51,7 +51,12 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   let image = chatImage || (isDm ? defaultDm : defaultGroup);
 
   return (
-    <div className={styles.layoutDiv}>
+    <button
+      className={styles.layoutDiv}
+      onClick={onClick}
+      tabIndex={0}
+      aria-label={ARIA_LABEL_TEMPLATE(name, isDm, message, lastActivity)}
+    >
       <div className={styles.leftCol}>
         <img
           className={styles.profileImage}
@@ -61,21 +66,14 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
           alt={isDm ? `${name}'s profile picture` : `${name} group icon`}
         />
       </div>
-      <div
-        className={styles.linkContainer}
-        onClick={onClick}
-        onKeyDown={onKeyDown}
-        role="button"
-        tabIndex={0}
-        aria-label={ARIA_LABEL_TEMPLATE(name, isDm, message, lastActivity)}
-      >
+      <div className={styles.rightCol}>
         <div className={styles.nameAndDate}>
           <div>{name}</div>
           <div>{datetime_format(lastActivity, false)}</div>
         </div>
         <div className={styles.message}>{message}</div>
       </div>
-    </div>
+    </button>
   );
 };
 

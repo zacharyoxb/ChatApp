@@ -6,7 +6,6 @@
   padding: 1vh;
   border: 1px solid #3d3d3d;
   margin-bottom: 8px;
-  background-color: #131313;
 }
 
 .leftCol {
@@ -14,18 +13,11 @@
   padding: 5px;
 }
 
-.linkContainer {
+.rightCol {
   display: flex;
   flex-flow: column;
   flex: 1;
-  padding: 5px;
-  cursor: pointer;
-  transition: background 0.2s ease;
   overflow-x: hidden;
-}
-
-.linkContainer:hover {
-  background-color: #3d3d3d;
 }
 
 .nameAndDate {
@@ -36,6 +28,7 @@
 
 .message {
   width: 90%;
+  text-align: start;
   white-space: nowrap;
   overflow-x: hidden;
   text-overflow: ellipsis;
@@ -46,9 +39,5 @@
     color: #000;
     border: 1px solid #c4c4c4;
     background-color: #ffffff;
-  }
-
-  .linkContainer:hover {
-    background-color: #c9c9c9;
   }
 }
