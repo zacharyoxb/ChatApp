@@ -6,8 +6,7 @@ import { useApi } from "../common/apiStates";
  * Represents the data structure for displaying a chat in the list view
  *
  * @remarks
- * From chatId to lastActivity, these fields match exactly with the backend ChatPreview type.
- * Messages are populated lazily when the chat is selected.
+ * These fields match exactly with the backend ChatPreview type.
  */
 export interface ChatData {
   /** Unique identifier for the chat in hexadecimal format */
@@ -16,19 +15,21 @@ export interface ChatData {
   chatName: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
   dmParticipantId?: string;
-  /** Last message sent in the chat. */
-  lastMessage: string;
-  /** ISO datetime string of when the last chat activity occurred */
-  lastActivity: string;
+  /** Last message sent in the chat */
+  lastMessage: Message;
 }
 
 /**
  * Represents a message within a chat
  */
 export interface Message {
+  /** Unique identifier for the message */
   messageId: string;
-  senderId: string;
+  /** Sender's user ID in hexadecimal format (null for system messages) */
+  senderId: string | null;
+  /** Content of the message */
   content: string;
+  /** ISO datetime string of when the message was sent */
   timestamp: string;
 }
 
@@ -133,7 +134,6 @@ export const useChats = () => {
         newMap.set(chatId, [...existingMessages, message]);
         return newMap;
       });
-      console.log(chatApi.data);
 
       chatApi.setSuccess((prevData) => {
         if (!prevData) {
@@ -144,8 +144,7 @@ export const useChats = () => {
           chat.chatId === chatId
             ? {
                 ...chat,
-                lastActivity: message.timestamp,
-                lastMessage: message.content,
+                lastMessage: message,
               }
             : { ...chat }
         );
@@ -329,6 +328,7 @@ export const useChats = () => {
         } else {
           chatApi.setSuccess([newChat]);
         }
+        navigate(`/chats/${newChat.chatId}`);
       } catch (err) {
         chatApi.setError("Internal Server Error.");
       }
@@ -360,8 +360,8 @@ export const useChats = () => {
   const sortedChatPreviews = useMemo(() => {
     return (chatApi.data || []).sort(
       (prev, next) =>
-        new Date(next.lastActivity).getTime() -
-        new Date(prev.lastActivity).getTime()
+        new Date(next.lastMessage.timestamp).getTime() -
+        new Date(prev.lastMessage.timestamp).getTime()
     );
   }, [chatApi.data]);
 

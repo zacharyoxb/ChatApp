@@ -180,7 +180,6 @@ class DatabaseService:
                     chat_name=row[1],
                     dm_participant_id=(bytes_id := row[2]) and bytes_id.hex(),
                     last_message=None,
-                    last_activity=None
                 )
                 for row in results
             ] if results else []

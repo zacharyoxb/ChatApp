@@ -3,28 +3,6 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-class ChatPreview(BaseModel):
-    """ Data structure for chat preview information.
-
-    Attributes:
-        chat_id (str): Unique identifier for the chat as hex string.
-        chat_name (str): Display name of the chat.
-        dm_participant_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
-        last_message (Optional[str]): Last message sent in chat.
-        last_activity (Optional[str]): Timestamp of the last activity 
-            occuring in the chat in iso format.
-    """
-    chat_id: str = Field(..., alias="chatId")
-    chat_name: str = Field(..., alias="chatName")
-    dm_participant_id: Optional[str] = Field(..., alias="dmParticipantId")
-    last_message: Optional[str] = Field(..., alias="lastMessage")
-    last_activity: Optional[str] = Field(..., alias="lastActivity")
-
-    class Config:
-        """ Sets ChatListItem to serialise to JSON as alias names. """
-        populate_by_name = True
-
-
 class ChatMessage(BaseModel):
     """ Data structure for chat messages.
 
@@ -42,4 +20,23 @@ class ChatMessage(BaseModel):
 
     class Config:
         """ Sets ChatMessage model to send aliases to frontend """
+        populate_by_name = True
+
+
+class ChatPreview(BaseModel):
+    """Data structure for chat preview information.
+
+    Attributes:
+        chat_id (str): Unique identifier for the chat as hex string.
+        chat_name (str): Display name of the chat.
+        dm_participant_id (Optional[str]): Hex string identifier for other user if the chat is a dm.
+        last_message (Optional[ChatMessage]): Last message sent in chat.
+    """
+    chat_id: str = Field(..., alias="chatId")
+    chat_name: str = Field(..., alias="chatName")
+    dm_participant_id: Optional[str] = Field(..., alias="dmParticipantId")
+    last_message: Optional[ChatMessage] = Field(..., alias="lastMessage")
+
+    class Config:
+        """Sets ChatPreview to serialize to JSON as alias names."""
         populate_by_name = True

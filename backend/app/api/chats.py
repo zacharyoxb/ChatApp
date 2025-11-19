@@ -41,11 +41,14 @@ async def get_chat_previews(
         last_message_data = await redis_service.get_last_message(chat.chat_id)
 
         if last_message_data is None:
-            chat.last_message = None
-            chat.last_activity = None
+            chat.last_message = ChatMessage(
+                messageId="N/A",
+                senderId=None,
+                content="N/A",
+                timestamp=None
+            )
         else:
-            chat.last_message = last_message_data.content
-            chat.last_activity = last_message_data.timestamp
+            chat.last_message = last_message_data
 
     return user_chats
 
@@ -69,6 +72,7 @@ async def get_available_chat_previews(
         HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session dependency.
     """
     user_chats = await db_service.get_all_user_chats(session_data.username)
+    # add last message
 
     return user_chats
 
@@ -133,15 +137,22 @@ async def create_new_chat(
     await db_service.create_chat(user_id, req)
 
     message_text = f"NEW CHAT CREATED BY @{user_id_hex}"
-    await redis_service.send_system_message(req.chat_id.hex(), message_text)
+    message_id = await redis_service.send_system_message(req.chat_id.hex(), message_text)
     res.status_code = status.HTTP_201_CREATED
+
+    message = ChatMessage(
+        messageId=message_id,
+        senderId="SERVER",
+        content=message_text,
+        timestamp=datetime.now().isoformat()
+    )
 
     return ChatPreview(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,
         last_activity=datetime.now().isoformat(),
         dmParticipantId=None,
-        last_message=message_text
+        last_message=message
     )
 
 # =============== WEBSOCKET METHODS ===============

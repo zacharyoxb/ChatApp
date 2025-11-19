@@ -20,8 +20,8 @@ const ChatList: React.FC<ChatListProps> = ({ chats, isLoading }) => {
             key={chat.chatId}
             name={chat.chatName}
             isDm={!!chat.dmParticipantId}
-            message={chat.lastMessage}
-            lastActivity={chat.lastActivity}
+            message={chat.lastMessage.content}
+            lastActivity={chat.lastMessage.timestamp}
             url={`/chats/${chat.chatId}`}
           ></ChatListItem>
         ))

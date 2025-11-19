@@ -41,13 +41,6 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
     navigate(url);
   }
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      navigate(url);
-    }
-  }
-
   let image = chatImage || (isDm ? defaultDm : defaultGroup);
 
   return (
