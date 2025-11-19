@@ -131,8 +131,9 @@ async def create_new_chat(
     user_id = bytes.fromhex(session_data.user_id)
 
     await db_service.create_chat(user_id, req)
-    await redis_service.send_system_message(req.chat_id.hex(),
-                                            f"NEW CHAT CREATED BY @{user_id_hex}")
+
+    message_text = f"NEW CHAT CREATED BY @{user_id_hex}"
+    await redis_service.send_system_message(req.chat_id.hex(), message_text)
     res.status_code = status.HTTP_201_CREATED
 
     return ChatPreview(
@@ -140,7 +141,7 @@ async def create_new_chat(
         chat_name=req.chat_name,
         last_activity=datetime.now().isoformat(),
         dmParticipantId=None,
-        last_message=None
+        last_message=message_text
     )
 
 # =============== WEBSOCKET METHODS ===============
