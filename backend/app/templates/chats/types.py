@@ -43,6 +43,10 @@ class ChatMessage(BaseModel):
     """
     message_id: str = Field(..., alias="messageId")
     sender_id: str = Field(..., alias="senderId")
+    # USE PARTICIPANTS TO FILL THIS OPTIONAL, DOING A
+    # DB CHECK FOR ANY SENDER_IDs OF USERS THAT HAVE
+    # SINCE LEFT THE CHAT, SO THIS SHOWS CURRENT USERNAME
+    # SO I CAN IMPLEMENT USERNAME CHANGES
     sender_username: Optional[str] = Field(None, alias="senderUsername")
     content: str
     timestamp: str
@@ -58,15 +62,14 @@ class ChatPreview(BaseModel):
     Attributes:
         chat_id: Unique identifier for the chat
         chat_name: Display name of the chat
+        is_dm: Indicates if chat is a dm.
         last_message: The most recent message in the chat, if any exists
-        dm_participant: For direct messages, contains info about the other user.
-                       None for group chats.
         my_role: Current user's role within this chat. Determines UI permissions.
     """
     chat_id: str = Field(..., alias="chatId")
     chat_name: str = Field(..., alias="chatName")
+    is_dm: bool = Field(..., alias="isDm")
     last_message: Optional[ChatMessage] = Field(..., alias="lastMessage")
-    dm_participant: Optional[UserInfo] = Field(..., alias="dmParticipant")
     my_role: Optional[UserRole] = Field(..., alias="myRole")
 
     class Config:
