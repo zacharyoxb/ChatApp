@@ -1,9 +1,10 @@
 """ Functions related to users / user information """
-from fastapi import APIRouter, Cookie, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 import mysql
 from pydantic import BaseModel, Field
 
-from app.services.myredis import redis_service
+from app.api.session import auth_session
+from app.services.myredis import SessionData
 from app.services.mysqldb import db_service
 
 router = APIRouter()
@@ -23,7 +24,10 @@ class UserIdResponse(BaseModel):
 
 
 @router.get("/users/{username}", response_model=UserIdResponse)
-async def get_user_id(username: str, session_id: str = Cookie(None)) -> None:
+async def get_user_id(
+    username: str,
+    _session_data: SessionData = Depends(auth_session)
+) -> None:
     """ Check if a user with the given username exists.
 
     Returns 200 if they do, 404 if they don't.
@@ -37,11 +41,6 @@ async def get_user_id(username: str, session_id: str = Cookie(None)) -> None:
         HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
         HTTPException: Exception thrown if a database error occurs. (500 INTERNAL SERVER ERROR)
     """
-    session_data = await redis_service.get_session(session_id)
-    if session_data is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Session expired or invalid")
-
     try:
         user_id = await db_service.get_id_from_username(username)
         if not user_id:

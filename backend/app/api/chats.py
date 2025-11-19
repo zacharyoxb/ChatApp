@@ -4,23 +4,22 @@ from datetime import datetime
 import json
 from typing import List
 
-from fastapi import (APIRouter, Cookie, HTTPException,
+from fastapi import (APIRouter, Depends, HTTPException,
                      Response, WebSocket, WebSocketDisconnect, status)
 from fastapi.params import Query
 
-from app.services.myredis import redis_service
+from app.api.session import auth_session
+from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
 from app.templates.chats.requests import NewChatData
 from app.templates.chats.responses import ChatMessage, ChatPreview
-from app.utils.cookies import remove_session_cookie
 
 router = APIRouter()
 
 
 @router.get("/chats/my-chats", response_model=List[ChatPreview])
 async def get_chat_previews(
-    res: Response,
-    session_id: str = Cookie(None)
+    session_data: SessionData = Depends(auth_session)
 ) -> List[ChatPreview]:
     """ Gets all chats a user is in
 
@@ -34,11 +33,6 @@ async def get_chat_previews(
     Returns:
         ChatListItem: An array of data in the ChatListItem template.
     """
-    session_data = await redis_service.get_session(session_id)
-    if session_data is None:
-        remove_session_cookie(res)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Session does not exist or has expired")
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
     for chat in user_chats:
@@ -56,8 +50,7 @@ async def get_chat_previews(
 
 @router.get("/chats/available-chats", response_model=List[ChatPreview])
 async def get_available_chat_previews(
-    res: Response,
-    session_id: str = Cookie(None)
+    session_data: SessionData = Depends(auth_session),
 ) -> List[ChatPreview]:
     """ Gets chats the user isn't in, but are available to join
     (i.e. are public)
@@ -72,11 +65,6 @@ async def get_available_chat_previews(
     Returns:
         ChatListItem: An array of data in the ChatListItem template.
     """
-    session_data = await redis_service.get_session(session_id)
-    if session_data is None:
-        remove_session_cookie(res)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Session does not exist or has expired")
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
     return user_chats
@@ -84,14 +72,14 @@ async def get_available_chat_previews(
 
 @router.get("/chats/{chat_id}", response_model=List[ChatMessage])
 async def get_chat_history(
-        res: Response,
         chat_id: str,
         start_id: str = Query(
             None, description="Hex string for the id of the start message"),
         end_id: str = Query(
             None, description="Hex string for the id of the end message"),
         count: int = Query(20, description="Number of messages to retrieve"),
-        session_id: str = Cookie(None)):
+        _: SessionData = Depends(auth_session)
+):
     """ Gets the chat history for a given chat
 
     Args:
@@ -108,11 +96,6 @@ async def get_chat_history(
     Returns:
         List[Message]: An array of chat messages in the chat.
     """
-    session_data = await redis_service.get_session(session_id)
-    if session_data is None:
-        remove_session_cookie(res)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Session does not exist or has expired")
     history = await redis_service.get_chat_history(chat_id, start_id, end_id, count)
     return history
 
@@ -121,7 +104,8 @@ async def get_chat_history(
 async def create_new_chat(
         req: NewChatData,
         res: Response,
-        session_id: str = Cookie(None)):
+        session_data: SessionData = Depends(auth_session)
+):
     """ Creates a new chat, adds the user and other_users to it. Returns the generated
     chat_id and the time the chat was created so the frontend can add the chat to the
     list without doing another costly db fetch.
@@ -134,11 +118,6 @@ async def create_new_chat(
     Raises:
         HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
     """
-    session_data = await redis_service.get_session(session_id)
-    if session_data is None:
-        remove_session_cookie(res)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Session does not exist or has expired")
 
     user_id_hex = session_data.user_id
     user_id = bytes.fromhex(session_data.user_id)

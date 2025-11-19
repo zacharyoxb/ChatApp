@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 
 from app.services.mysqldb import db_service
 from app.services.myredis import redis_service
-from app.utils.cookies import set_session_cookie, remove_session_cookie
 
 router = APIRouter()
 
@@ -50,7 +49,13 @@ async def signup(req: SignupLoginData, res: Response) -> None:
     try:
         await db_service.create_user(user_id, req.username, pass_hash)
         session_id = await redis_service.create_session(user_id, req.username)
-        set_session_cookie(res, session_id)
+        res.set_cookie(
+            key="session_id",
+            value=session_id,
+            httponly=True,
+            secure=True,
+            samesite="none"
+        )
         res.status_code = status.HTTP_201_CREATED
     except mysql.connector.Error as e:
         if e.errno == errorcode.ER_DUP_ENTRY:
@@ -88,7 +93,13 @@ async def login(req: SignupLoginData, res: Response) -> None:
     user_id = await db_service.get_id_from_username(req.username)
 
     session_id = await redis_service.create_session(user_id, req.username)
-    set_session_cookie(res, session_id)
+    res.set_cookie(
+        key="session_id",
+        value=session_id,
+        httponly=True,
+        secure=True,
+        samesite="none"
+    )
     res.status_code = status.HTTP_201_CREATED
 
 
@@ -101,4 +112,4 @@ async def logout(res: Response, session_id: str = Cookie(None)) -> None:
         session_id (str, optional): The session id of the user. Defaults to Cookie(None).
     """
     await redis_service.delete_session(session_id)
-    remove_session_cookie(res)
+    res.delete_cookie(key="session_id")
