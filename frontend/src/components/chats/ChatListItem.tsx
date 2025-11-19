@@ -17,14 +17,13 @@ interface ChatListItemProps {
 const ARIA_LABEL_TEMPLATE = (
   name: string,
   isDm: boolean,
-  messageContent: string,
-  lastActivity: string
+  message: Message
 ): string => {
-  let date_time_string = datetime_format(lastActivity, true);
+  let date_time_string = datetime_format(message.timestamp, true);
   if (isDm) {
-    return `Direct chat with ${name}. Last message: ${messageContent}. Last activity ${date_time_string}}`;
+    return `Direct chat with ${name}. Last message: ${message.content}. Last activity ${date_time_string}}`;
   }
-  return `Group chat ${name}. Last message: ${messageContent}. Last activity ${date_time_string}`;
+  return `Group chat ${name}. Last message: ${message.content}. Last activity ${date_time_string}`;
 };
 
 const ChatListItem: React.FC<ChatListItemProps> = ({
@@ -43,12 +42,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
       className={styles.layoutDiv}
       onClick={() => navigate(url)}
       tabIndex={0}
-      aria-label={ARIA_LABEL_TEMPLATE(
-        name,
-        isDm,
-        lastMessage.content,
-        lastMessage.timestamp
-      )}
+      aria-label={ARIA_LABEL_TEMPLATE(name, isDm, lastMessage)}
     >
       <div className={styles.leftCol}>
         <img
@@ -64,7 +58,11 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
           <div>{name}</div>
           <div>{datetime_format(lastMessage.timestamp, false)}</div>
         </div>
-        <div className={styles.message}>{lastMessage.content}</div>
+        <div className={styles.message}>
+          {isDm
+            ? lastMessage.content
+            : `${lastMessage.senderId}: ${lastMessage.content}`}
+        </div>
       </div>
     </button>
   );
