@@ -1,12 +1,91 @@
-""" All non-request/response types related to chats"""
+""" All response types for backend """
 from enum import Enum
+from typing import List, Optional
 
-# we probably wanna move this at some point as it
-# probably will be used for requests/responses
+from pydantic import BaseModel, Field
 
 
-class Role(Enum):
-    """ Enum for the 3 possible roles. """
+class UserRole(str, Enum):
+    """ Enum representing possible user roles within a chat.
+
+    Attributes:
+        OWNER: Highest privilege level, can perform all administrative actions
+        ADMIN: Can manage users and moderate content, but cannot delete chat
+        MEMBER: Basic participant with standard messaging permissions
+    """
     OWNER = "owner"
     ADMIN = "admin"
     MEMBER = "member"
+
+
+class UserInfo(BaseModel):
+    """ Basic user information for chat participants.
+
+    Attributes:
+        user_id: Unique identifier for the user as a string
+        username: Display name of the user
+        role: User's permission level within the chat context
+    """
+    user_id: str = Field(..., alias="userId")
+    username: str
+    role: UserRole
+
+
+class ChatMessage(BaseModel):
+    """ Represents an individual message within a chat.
+
+    Attributes:
+        message_id: Unique identifier for the message
+        sender_id: Identifier of the message sender. Use "SERVER" for system messages
+        sender_username: Display name of the sender. None for system messages
+        content: The text content of the message
+        timestamp: ISO format string representing when the message was sent
+    """
+    message_id: str = Field(..., alias="messageId")
+    sender_id: str = Field(..., alias="senderId")
+    sender_username: Optional[str] = Field(None, alias="senderUsername")
+    content: str
+    timestamp: str
+
+    class Config:
+        """ Pydantic configuration for field name aliasing."""
+        populate_by_name = True
+
+
+class ChatPreview(BaseModel):
+    """ Summary information for displaying a chat in a list view.
+
+    Attributes:
+        chat_id: Unique identifier for the chat
+        chat_name: Display name of the chat
+        last_message: The most recent message in the chat, if any exists
+        dm_participant: For direct messages, contains info about the other user.
+                       None for group chats.
+        my_role: Current user's role within this chat. Determines UI permissions.
+    """
+    chat_id: str = Field(..., alias="chatId")
+    chat_name: str = Field(..., alias="chatName")
+    last_message: Optional[ChatMessage] = Field(..., alias="lastMessage")
+    dm_participant: Optional[UserInfo] = Field(..., alias="dmParticipant")
+    my_role: Optional[UserRole] = Field(..., alias="myRole")
+
+    class Config:
+        """ Pydantic configuration for field name aliasing."""
+        populate_by_name = True
+
+
+class ChatDetails(BaseModel):
+    """ Complete chat information including all participants and message history.
+
+    Attributes:
+        chat_id: Unique identifier for the chat
+        participants: List of all users in the chat with their roles and info
+        messages: Chronological list of messages in the chat (oldest first)
+    """
+    chat_id: str = Field(..., alias="chatId")
+    participants: List[UserInfo]
+    messages: List[ChatMessage]
+
+    class Config:
+        """ Pydantic configuration for field name aliasing."""
+        populate_by_name = True

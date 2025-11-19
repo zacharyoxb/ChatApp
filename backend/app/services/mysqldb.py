@@ -5,7 +5,7 @@ from mysql.connector.aio import MySQLConnectionPool
 
 from app.templates.chats.requests import NewChatData
 from app.templates.chats.responses import ChatPreview
-from app.templates.chats.types import Role
+from app.templates.chats.types import UserRole
 
 # INSERT queries
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
@@ -114,7 +114,7 @@ class DatabaseService:
             await conn.commit()
             await cursor.close()
 
-    async def add_user_to_chat(self, username: str, chat_id: bytes, role: Role):
+    async def add_user_to_chat(self, username: str, chat_id: bytes, role: UserRole):
         """ Adds user to chat in db. 
 
         Args:
