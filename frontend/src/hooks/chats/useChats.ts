@@ -120,6 +120,12 @@ export const useChats = () => {
           return currentMap;
         }
 
+        const sender = chatDetails.participants.find(
+          (user) => user.userId == message.senderId
+        );
+
+        message.senderUsername = sender?.username || "UNKNOWN";
+
         const updatedChatDetails = {
           ...chatDetails,
           messages: [...chatDetails.messages, message],
@@ -179,7 +185,7 @@ export const useChats = () => {
     async (chatId: string) => {
       chatDetailsApi.setLoading();
       try {
-        const response = await fetch("https://localhost:8000/chats/${chatId}", {
+        const response = await fetch(`https://localhost:8000/chats/${chatId}`, {
           method: "GET",
           credentials: "include",
         });

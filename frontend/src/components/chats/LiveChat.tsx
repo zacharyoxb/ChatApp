@@ -110,7 +110,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
       <div className={styles.messagesContainer}>
         {chatDetails.messages.map((message, index) => (
           <div key={index} className={styles.message}>
-            <span className={styles.sender}>{message.senderId}:</span>
+            <span className={styles.sender}>{message.senderUsername}:</span>
             <span className={styles.content}>{message.content}</span>
           </div>
         ))}

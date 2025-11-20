@@ -18,10 +18,10 @@ const ChatList: React.FC<ChatListProps> = ({ chats, isLoading }) => {
         chats.map((chat) => (
           <ChatListItem
             key={chat.chatId}
-            name={chat.chatName}
+            chatUrl={`/chats/${chat.chatId}`}
+            chatName={chat.chatName}
             isDm={!!chat.dmParticipantId}
             lastMessage={chat.lastMessage}
-            url={`/chats/${chat.chatId}`}
           ></ChatListItem>
         ))
       )}

@@ -178,8 +178,6 @@ class DatabaseService:
             await cursor.execute(GET_USERNAME_QUERY, (user_id,))
             result = await cursor.fetchone()
             await cursor.close()
-            print(GET_USERNAME_QUERY)
-            print(result)
             return result[0] if result else None
 
     async def get_password(self, username: str) -> Optional[str]:

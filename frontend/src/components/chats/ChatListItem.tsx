@@ -7,11 +7,11 @@ import styles from "./ChatListItem.module.css";
 import type { ChatMessage } from "../../hooks/chats/useChats";
 
 interface ChatListItemProps {
-  chatImage?: string;
-  name: string;
+  chatUrl: string;
+  chatName: string;
   isDm: boolean;
   lastMessage: ChatMessage;
-  url: string;
+  chatImage?: string;
 }
 
 const ARIA_LABEL_TEMPLATE = (
@@ -27,11 +27,11 @@ const ARIA_LABEL_TEMPLATE = (
 };
 
 const ChatListItem: React.FC<ChatListItemProps> = ({
-  chatImage,
-  name,
+  chatUrl,
+  chatName,
   isDm,
   lastMessage,
-  url,
+  chatImage,
 }) => {
   const navigate = useNavigate();
 
@@ -40,9 +40,9 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   return (
     <button
       className={styles.layoutDiv}
-      onClick={() => navigate(url)}
+      onClick={() => navigate(chatUrl)}
       tabIndex={0}
-      aria-label={ARIA_LABEL_TEMPLATE(name, isDm, lastMessage)}
+      aria-label={ARIA_LABEL_TEMPLATE(chatName, isDm, lastMessage)}
     >
       <div className={styles.leftCol}>
         <img
@@ -50,12 +50,14 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
           src={image}
           width={50}
           height={50}
-          alt={isDm ? `${name}'s profile picture` : `${name} group icon`}
+          alt={
+            isDm ? `${chatName}'s profile picture` : `${chatName} group icon`
+          }
         />
       </div>
       <div className={styles.rightCol}>
         <div className={styles.nameAndDate}>
-          <div>{name}</div>
+          <div>{chatName}</div>
           <div>{datetime_format(lastMessage.timestamp, false)}</div>
         </div>
         <div className={styles.message}>
