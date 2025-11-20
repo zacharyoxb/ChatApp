@@ -104,19 +104,20 @@ async def get_chat_details(
     Raises:
         HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session dependency.
     """
-    participants = await db_service.get_all_chat_participants(chat_id)
+    participants = await db_service.get_all_chat_participants(bytes.fromhex(chat_id))
     messages = await redis_service.get_chat_history(chat_id)
 
     user_id_to_username = {
-        user.user_id: user.username for user in participants}
+        user.user_id: user.username for user in participants
+    }
 
     for msg in messages:
         if msg.sender_id == "SERVER":
             msg.sender_username = "SERVER"
         else:
+
             msg.sender_username = (user_id_to_username.get(msg.sender_id)) or (
                 await db_service.get_username(msg.sender_id))
-            print(msg.sender_username)
 
     return ChatDetails(
         chat_id=chat_id,
