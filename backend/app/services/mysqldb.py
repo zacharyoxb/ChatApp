@@ -4,8 +4,7 @@ from typing import List, Optional
 from mysql.connector.aio import MySQLConnectionPool
 
 from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatPreview
-from app.templates.chats.types import UserRole
+from app.templates.chats.responses import ChatPreview, UserRole
 
 # INSERT queries
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
@@ -25,12 +24,14 @@ SELECT EXISTS(
 ) AS user_exists
 """
 GET_USER_ID_QUERY = "SELECT user_id FROM users WHERE user_name = ?"
+GET_USERNAME_QUERY = "SELECT user_name FROM users WHERE user_id = ?"
 GET_PASS_HASH_QUERY = "SELECT pass_hash FROM users WHERE user_name = ?"
 GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         c.chat_name,
-        NULL as other_user_id
+        NULL as other_user_id,
+        uic.role
     FROM chats c
     INNER JOIN users_in_chats uic ON c.chat_id = uic.chat_id
     INNER JOIN users u ON uic.user_id = u.user_id
@@ -41,7 +42,8 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         other_user.user_name as chat_name,
-        other_user.user_id as other_user_id
+        other_user.user_id as other_user_id,
+        NULL as role
     FROM chats c
     INNER JOIN dm_chats dm ON c.chat_id = dm.chat_id
     INNER JOIN users requesting_user ON requesting_user.user_name = ?
@@ -128,7 +130,7 @@ class DatabaseService:
             await conn.commit()
             await cursor.close()
 
-    async def get_id_from_username(self, username: str) -> Optional[bytes]:
+    async def get_user_id(self, username: str) -> Optional[bytes]:
         """ Gets the user id for a given username.
 
         Args:
@@ -139,6 +141,22 @@ class DatabaseService:
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
             await cursor.execute(GET_USER_ID_QUERY, (username,))
+            result = await cursor.fetchone()
+            await cursor.close()
+            return result[0] if result else None
+
+    async def get_username(self, user_id: bytes) -> Optional[str]:
+        """ Gets the username for a given user id.
+
+        Args:
+            user_id (bytes): User id of user.
+
+        Returns:
+            Optional[str]: Username if user exists, else None.
+        """
+        async with await self._pool.get_connection() as conn:
+            cursor = await conn.cursor(prepared=True)
+            await cursor.execute(GET_USERNAME_QUERY, (user_id,))
             result = await cursor.fetchone()
             await cursor.close()
             return result[0] if result else None
@@ -166,7 +184,7 @@ class DatabaseService:
             username (str): Username of the user whose chats are retrieved.
 
         Returns:
-            list[UserChat]: List containing chat information.
+            list[ChatPreview]: List containing chat information.
         """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
@@ -180,6 +198,7 @@ class DatabaseService:
                     chat_name=row[1],
                     dm_participant_id=(bytes_id := row[2]) and bytes_id.hex(),
                     last_message=None,
+                    my_role=row[3]
                 )
                 for row in results
             ] if results else []

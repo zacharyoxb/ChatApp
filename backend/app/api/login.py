@@ -90,7 +90,7 @@ async def login(req: SignupLoginData, res: Response) -> None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Username or password is incorrect.")
 
-    user_id = await db_service.get_id_from_username(req.username)
+    user_id = await db_service.get_user_id(req.username)
 
     session_id = await redis_service.create_session(user_id, req.username)
     res.set_cookie(

@@ -38,16 +38,19 @@ async def get_chat_previews(
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
     for chat in user_chats:
-        last_message_data = await redis_service.get_last_message(chat.chat_id)
 
+        last_message_data = await redis_service.get_last_message(chat.chat_id)
         if last_message_data is None:
             chat.last_message = ChatMessage(
-                messageId="N/A",
-                senderId=None,
+                message_id="N/A",
+                sender_id=None,
+                sender_username=None,
                 content="N/A",
                 timestamp=None
             )
         else:
+            last_sender_username = await db_service.get_username(last_message_data.sender_id)
+            last_message_data.sender_username = last_sender_username
             chat.last_message = last_message_data
 
     return user_chats

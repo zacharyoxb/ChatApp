@@ -245,6 +245,7 @@ class RedisService:
         formatted_message = ChatMessage(
             message_id=msg_id,
             sender_id=user_id,
+            senderUsername=None,
             content=content,
             timestamp=timestamp
         )

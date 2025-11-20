@@ -2,13 +2,15 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useApi } from "../common/apiStates";
 
+export type UserRole = "owner" | "admin" | "member";
+
 /**
  * Represents the data structure for displaying a chat in the list view
  *
  * @remarks
  * These fields match exactly with the backend ChatPreview type.
  */
-export interface ChatData {
+export interface ChatPreview {
   /** Unique identifier for the chat in hexadecimal format */
   chatId: string;
   /** Display name of the chat */
@@ -17,6 +19,8 @@ export interface ChatData {
   dmParticipantId?: string;
   /** Last message sent in the chat */
   lastMessage: Message;
+  /** Role of user in non-dm chat */
+  myRole?: UserRole;
 }
 
 /**
@@ -45,11 +49,7 @@ export const useChats = () => {
   const navigate = useNavigate();
   // ChatList data
   // Stores data for chat previews
-  const chatApi = useApi<ChatData[]>();
-  // Stores data for global chat previews
-  const globalChatApi = useApi<ChatData[]>();
-  // Stores state for chatHistory
-  const historyApi = useApi<ChatData[]>();
+  const chatPreviewApi = useApi<ChatPreview[]>();
   // Stores messages
   const [messagesByChatId, setMessagesByChatId] = useState<
     Map<string, Message[]>
@@ -66,7 +66,7 @@ export const useChats = () => {
    * Updates the chat list state with fetched data on success.
    */
   const fetchChats = useCallback(async () => {
-    chatApi.setLoading();
+    chatPreviewApi.setLoading();
 
     try {
       const response = await fetch("https://localhost:8000/chats/my-chats", {
@@ -80,48 +80,15 @@ export const useChats = () => {
       }
 
       if (response.ok) {
-        const data: ChatData[] = await response.json();
-        chatApi.setSuccess(data);
+        const data: ChatPreview[] = await response.json();
+        chatPreviewApi.setSuccess(data);
       } else {
-        chatApi.setError("Failed to fetch chats");
+        chatPreviewApi.setError("Failed to fetch chats");
       }
     } catch (err) {
-      chatApi.setError("Internal Server Error");
+      chatPreviewApi.setError("Internal Server Error");
     }
-  }, [chatApi, navigate]);
-
-  /**
-   * Fetches publicly available chats that the user is not currently participating in
-   *
-   * @remarks
-   * Useful for discovering new chats to join. Handles authentication redirects
-   * and updates the available chats state.
-   */
-  const fetchGlobalChats = useCallback(async () => {
-    // When uncommenting / fixing use globalChatApi instead of chatApi
-    // chatApi.setLoading();
-    // try {
-    //   const response = await fetch(
-    //     "https://localhost:8000/chats/available-chats",
-    //     {
-    //       method: "GET",
-    //       credentials: "include",
-    //     }
-    //   );
-    //   if (response.status === 401) {
-    //     navigate("/login", { state: { sessionExpired: true } });
-    //     return;
-    //   }
-    //   if (response.ok) {
-    //     const data = await response.json();
-    //     chatApi.setSuccess(data);
-    //   } else {
-    //     chatApi.setError("Failed to fetch chats");
-    //   }
-    // } catch (err) {
-    //   chatApi.setError("Internal Server Error");
-    // }
-  }, [chatApi, navigate]);
+  }, [chatPreviewApi, navigate]);
 
   /**
    * Helper function to add a message to a specific chat
@@ -134,8 +101,8 @@ export const useChats = () => {
         newMap.set(chatId, [...existingMessages, message]);
         return newMap;
       });
-
-      chatApi.setSuccess((prevData) => {
+      // change in future
+      chatPreviewApi.setSuccess((prevData) => {
         if (!prevData) {
           return [];
         }
@@ -151,7 +118,7 @@ export const useChats = () => {
         return updatedChats;
       });
     },
-    [chatApi]
+    [chatPreviewApi]
   );
 
   /**
@@ -206,13 +173,13 @@ export const useChats = () => {
           const messages: Message[] = await response.json();
           addMessagesToChat(chatId, messages);
         } else {
-          chatApi.setError(`Failed to fetch: ${response.status}`);
+          chatPreviewApi.setError(`Failed to fetch: ${response.status}`);
         }
       } catch (err) {
-        chatApi.setError("Internal Server Error");
+        chatPreviewApi.setError("Internal Server Error");
       }
     },
-    [messagesByChatId, chatApi, navigate, addMessagesToChat]
+    [messagesByChatId, chatPreviewApi, navigate, addMessagesToChat]
   );
 
   /**
@@ -224,7 +191,7 @@ export const useChats = () => {
    * Initializes a WebSocket for each chat to receive live updates.
    * Stores WebSocket references for future use.
    */
-  const connectToChats = useCallback((chats: ChatData[]) => {
+  const connectToChats = useCallback((chats: ChatPreview[]) => {
     chats.forEach((chat) => {
       if (websocketRefs.current.has(chat.chatId)) {
         return;
@@ -261,10 +228,10 @@ export const useChats = () => {
    * Searches the current chat list for a chat matching the provided ID.
    */
   const getChatDataFromId = useCallback(
-    (chatId: string): ChatData | undefined => {
-      return chatApi.data?.find((chat) => chat.chatId === chatId);
+    (chatId: string): ChatPreview | undefined => {
+      return chatPreviewApi.data?.find((chat) => chat.chatId === chatId);
     },
-    [chatApi]
+    [chatPreviewApi]
   );
 
   /**
@@ -318,22 +285,22 @@ export const useChats = () => {
         });
 
         if (response.status !== 201) {
-          chatApi.setError("Error occurred when creating chat.");
+          chatPreviewApi.setError("Error occurred when creating chat.");
           return;
         }
 
-        const newChat: ChatData = await response.json();
-        if (chatApi.data) {
-          chatApi.setSuccess([...chatApi.data, newChat]);
+        const newChat: ChatPreview = await response.json();
+        if (chatPreviewApi.data) {
+          chatPreviewApi.setSuccess([...chatPreviewApi.data, newChat]);
         } else {
-          chatApi.setSuccess([newChat]);
+          chatPreviewApi.setSuccess([newChat]);
         }
         navigate(`/chats/${newChat.chatId}`);
       } catch (err) {
-        chatApi.setError("Internal Server Error.");
+        chatPreviewApi.setError("Internal Server Error.");
       }
     },
-    [chatApi]
+    [chatPreviewApi]
   );
 
   /**
@@ -347,31 +314,31 @@ export const useChats = () => {
    */
   const removeChat = useCallback(
     (chatId: string) => {
-      if (!chatApi.data) return;
+      if (!chatPreviewApi.data) return;
 
-      const filteredChats = chatApi.data.filter(
+      const filteredChats = chatPreviewApi.data.filter(
         (chat) => chat.chatId !== chatId
       );
-      chatApi.setSuccess(filteredChats);
+      chatPreviewApi.setSuccess(filteredChats);
     },
-    [chatApi]
+    [chatPreviewApi]
   );
 
   const sortedChatPreviews = useMemo(() => {
-    return (chatApi.data || []).sort(
+    return (chatPreviewApi.data || []).sort(
       (prev, next) =>
         new Date(next.lastMessage.timestamp).getTime() -
         new Date(prev.lastMessage.timestamp).getTime()
     );
-  }, [chatApi.data]);
+  }, [chatPreviewApi.data]);
 
   return {
     /** Array of chat items, empty array if no chats are loaded */
-    chats: chatApi.data || [],
+    chats: chatPreviewApi.data || [],
     /** Indicates if a chat operation is currently in progress */
-    loading: chatApi.isLoading,
+    loading: chatPreviewApi.isLoading,
     /** Error message from the last failed operation, empty string if no error */
-    error: chatApi.error,
+    error: chatPreviewApi.error,
 
     /** Array of global chat items, empty array if no chats are loaded */
     // globalChats: globalChatApi.data || [],
@@ -384,8 +351,6 @@ export const useChats = () => {
 
     /** Function to fetch user's participating chats */
     fetchChats,
-    /** Function to fetch discoverable public chats */
-    fetchGlobalChats,
     /** Function to fetch message history for a specific chat */
     fetchChatHistory,
     /** Function to connect websockets for real-time chat updates */

@@ -42,7 +42,7 @@ async def get_user_id(
         HTTPException: 500 INTERNAL SERVER_ERROR if a database error occurs.
     """
     try:
-        user_id = await db_service.get_id_from_username(username)
+        user_id = await db_service.get_user_id(username)
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist")
