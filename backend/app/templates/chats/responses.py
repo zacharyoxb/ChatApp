@@ -46,10 +46,6 @@ class ChatMessage(BaseModel):
     """
     message_id: str = Field(..., alias="messageId")
     sender_id: str = Field(..., alias="senderId")
-    # USE PARTICIPANTS TO FILL THIS OPTIONAL, DOING A
-    # DB CHECK FOR ANY SENDER_IDs OF USERS THAT HAVE
-    # SINCE LEFT THE CHAT, SO THIS SHOWS CURRENT USERNAME
-    # SO I CAN IMPLEMENT USERNAME CHANGES
     sender_username: Optional[str] = Field(None, alias="senderUsername")
     content: str
     timestamp: str

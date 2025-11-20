@@ -51,7 +51,7 @@ async def get_chat_previews(
             if last_message_data.sender_id == "SERVER":
                 last_sender_username = "SERVER"
             else:
-                last_sender_username = await db_service.get_username(last_message_data.sender_id)
+                last_sender_username = await db_service.get_username(bytes.fromhex(last_message_data.sender_id))
             last_message_data.sender_username = last_sender_username
             chat.last_message = last_message_data
 

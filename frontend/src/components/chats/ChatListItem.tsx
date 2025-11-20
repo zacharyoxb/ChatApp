@@ -4,26 +4,26 @@ import defaultDm from "/src/assets/default-dm.png";
 import defaultGroup from "/src/assets/default-group.png";
 import { datetime_format } from "../../utils/formatDatetime";
 import styles from "./ChatListItem.module.css";
-import type { Message } from "../../hooks/chats/useChats";
+import type { ChatMessage } from "../../hooks/chats/useChats";
 
 interface ChatListItemProps {
   chatImage?: string;
   name: string;
   isDm: boolean;
-  lastMessage: Message;
+  lastMessage: ChatMessage;
   url: string;
 }
 
 const ARIA_LABEL_TEMPLATE = (
   name: string,
   isDm: boolean,
-  message: Message
+  message: ChatMessage
 ): string => {
   let date_time_string = datetime_format(message.timestamp, true);
   if (isDm) {
     return `Direct chat with ${name}. Last message: ${message.content}. Last activity ${date_time_string}}`;
   }
-  return `Group chat ${name}. Last message sent by ${message.senderId}: ${message.content}. Last activity ${date_time_string}`;
+  return `Group chat ${name}. Last message sent by ${message.senderUsername}: ${message.content}. Last activity ${date_time_string}`;
 };
 
 const ChatListItem: React.FC<ChatListItemProps> = ({
@@ -61,7 +61,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
         <div className={styles.message}>
           {isDm
             ? lastMessage.content
-            : `${lastMessage.senderId}: ${lastMessage.content}`}
+            : `${lastMessage.senderUsername}: ${lastMessage.content}`}
         </div>
       </div>
     </button>

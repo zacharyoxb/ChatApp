@@ -24,7 +24,9 @@ export interface ChatMessage {
   /** Unique identifier for the message */
   messageId: string;
   /** Sender's user ID in hexadecimal format (null for system messages) */
-  senderId: string | null;
+  senderId: string;
+  /** Sender's username for display purposes */
+  senderUsername: string;
   /** Content of the message */
   content: string;
   /** ISO datetime string of when the message was sent */
