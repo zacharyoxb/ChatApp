@@ -29,6 +29,10 @@ class UserInfo(BaseModel):
     username: str
     role: UserRole
 
+    class Config:
+        """ Pydantic configuration for field name aliasing."""
+        populate_by_name = True
+
 
 class ChatMessage(BaseModel):
     """ Represents an individual message within a chat.

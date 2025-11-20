@@ -6,13 +6,12 @@ from typing import List
 
 from fastapi import (APIRouter, Depends, HTTPException,
                      Response, WebSocket, WebSocketDisconnect, status)
-from fastapi.params import Query
 
 from app.api.session import auth_session
 from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
 from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatMessage, ChatPreview
+from app.templates.chats.responses import ChatDetails, ChatMessage, ChatPreview
 
 router = APIRouter()
 
@@ -49,7 +48,10 @@ async def get_chat_previews(
                 timestamp=None
             )
         else:
-            last_sender_username = await db_service.get_username(last_message_data.sender_id)
+            if last_message_data.sender_id == "SERVER":
+                last_sender_username = "SERVER"
+            else:
+                last_sender_username = await db_service.get_username(last_message_data.sender_id)
             last_message_data.sender_username = last_sender_username
             chat.last_message = last_message_data
 
@@ -80,14 +82,9 @@ async def get_available_chat_previews(
     return user_chats
 
 
-@router.get("/chats/{chat_id}", response_model=List[ChatMessage])
-async def get_chat_history(
+@router.get("/chats/{chat_id}", response_model=ChatDetails)
+async def get_chat_details(
         chat_id: str,
-        start_id: str = Query(
-            None, description="Hex string for the id of the start message"),
-        end_id: str = Query(
-            None, description="Hex string for the id of the end message"),
-        count: int = Query(20, description="Number of messages to retrieve"),
         _: SessionData = Depends(auth_session)
 ):
     """ Retrieves the chat history for a specific chat.
@@ -106,8 +103,24 @@ async def get_chat_history(
     Raises:
         HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session dependency.
     """
-    history = await redis_service.get_chat_history(chat_id, start_id, end_id, count)
-    return history
+    participants = await db_service.get_all_chat_participants(chat_id)
+    messages = await redis_service.get_chat_history(chat_id)
+
+    user_id_to_username = {
+        user.user_id: user.username for user in participants}
+
+    for msg in messages:
+        if msg.sender_id == "SERVER":
+            msg.sender_username = "SERVER"
+        else:
+            msg.sender_username = (user_id_to_username.get(msg.sender_id)) or (
+                await db_service.get_username(msg.sender_id))
+
+    return ChatDetails(
+        chat_id=chat_id,
+        participants=participants,
+        messages=messages
+    )
 
 
 @router.post("/chats")

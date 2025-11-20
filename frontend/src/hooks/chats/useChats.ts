@@ -1,8 +1,35 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useApi } from "../common/apiStates";
 
+/** Represents the role of a user in a chat */
 export type UserRole = "owner" | "admin" | "member";
+
+/**
+ * Represents the information for each user in a chat
+ */
+export interface UserInfo {
+  /** Unique identifier for user */
+  userId: string;
+  /** Username of user */
+  username: string;
+  /** Role of user in chat */
+  role: UserRole;
+}
+
+/**
+ * Represents a message within a chat
+ */
+export interface ChatMessage {
+  /** Unique identifier for the message */
+  messageId: string;
+  /** Sender's user ID in hexadecimal format (null for system messages) */
+  senderId: string | null;
+  /** Content of the message */
+  content: string;
+  /** ISO datetime string of when the message was sent */
+  timestamp: string;
+}
 
 /**
  * Represents the data structure for displaying a chat in the list view
@@ -18,23 +45,15 @@ export interface ChatPreview {
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
   dmParticipantId?: string;
   /** Last message sent in the chat */
-  lastMessage: Message;
+  lastMessage: ChatMessage;
   /** Role of user in non-dm chat */
   myRole?: UserRole;
 }
 
-/**
- * Represents a message within a chat
- */
-export interface Message {
-  /** Unique identifier for the message */
-  messageId: string;
-  /** Sender's user ID in hexadecimal format (null for system messages) */
-  senderId: string | null;
-  /** Content of the message */
-  content: string;
-  /** ISO datetime string of when the message was sent */
-  timestamp: string;
+export interface ChatDetails {
+  chatId: string;
+  participants: UserInfo[];
+  messages: ChatMessage[];
 }
 
 /**
@@ -47,14 +66,10 @@ export interface Message {
  */
 export const useChats = () => {
   const navigate = useNavigate();
-  // ChatList data
   // Stores data for chat previews
   const chatPreviewApi = useApi<ChatPreview[]>();
-  // Stores messages
-  const [messagesByChatId, setMessagesByChatId] = useState<
-    Map<string, Message[]>
-  >(new Map());
-
+  // Stores chat details
+  const chatDetailsApi = useApi<Map<string, ChatDetails>>();
   // References to store websockets
   const websocketRefs = useRef<Map<string, WebSocket>>(new Map());
 
@@ -65,7 +80,7 @@ export const useChats = () => {
    * Automatically handles session expiration by redirecting to login page.
    * Updates the chat list state with fetched data on success.
    */
-  const fetchChats = useCallback(async () => {
+  const fetchChatPreviews = useCallback(async () => {
     chatPreviewApi.setLoading();
 
     try {
@@ -88,20 +103,29 @@ export const useChats = () => {
     } catch (err) {
       chatPreviewApi.setError("Internal Server Error");
     }
-  }, [chatPreviewApi, navigate]);
+  }, [chatPreviewApi.data, navigate]);
 
   /**
    * Helper function to add a message to a specific chat
    */
   const addMessageToChat = useCallback(
-    (chatId: string, message: Message) => {
-      setMessagesByChatId((prev) => {
-        const newMap = new Map(prev);
-        const existingMessages = newMap.get(chatId) || [];
-        newMap.set(chatId, [...existingMessages, message]);
-        return newMap;
+    (chatId: string, message: ChatMessage) => {
+      chatDetailsApi.setSuccess((prev) => {
+        const currentMap = prev || new Map<string, ChatDetails>();
+
+        const chatDetails = currentMap.get(chatId);
+        if (!chatDetails) {
+          return currentMap;
+        }
+
+        const updatedChatDetails = {
+          ...chatDetails,
+          messages: [...chatDetails.messages, message],
+        };
+
+        return new Map(prev).set(chatId, updatedChatDetails);
       });
-      // change in future
+
       chatPreviewApi.setSuccess((prevData) => {
         if (!prevData) {
           return [];
@@ -118,48 +142,42 @@ export const useChats = () => {
         return updatedChats;
       });
     },
-    [chatPreviewApi]
+    [chatPreviewApi.data, chatDetailsApi.data]
   );
 
   /**
    * Helper function to add multiple messages to a specific chat
    */
   const addMessagesToChat = useCallback(
-    (chatId: string, newMessages: Message[]) => {
-      setMessagesByChatId((prev) => {
-        const newMap = new Map(prev);
-        const existingMessages = newMap.get(chatId) || [];
-        newMap.set(chatId, [...existingMessages, ...newMessages]);
-        return newMap;
+    (chatId: string, newMessages: ChatMessage[]) => {
+      chatDetailsApi.setSuccess((prev) => {
+        const currentMap = prev || new Map<string, ChatDetails>();
+
+        const chatDetails = currentMap.get(chatId);
+        if (!chatDetails) {
+          return currentMap;
+        }
+
+        const updatedChatDetails = {
+          ...chatDetails,
+          messages: [...chatDetails.messages, ...newMessages],
+        };
+
+        return new Map(prev).set(chatId, updatedChatDetails);
       });
     },
-    []
+    [chatDetailsApi]
   );
 
-  /** Fetches Chat History from backend. If some message history has already been fetched,
-   *  fetch "count" number of messages before the earliest fetched message.
+  /** Fetches ChatDetails from backend
    *
-   * @param chatId - ID of the chat to fetch history for
-   * @param count - Number of messages to fetch (Backend's default is 20)
+   * @param chatId - ID of the chat to fetch details for
    */
-  const fetchChatHistory = useCallback(
-    async (chatId: string, count?: number) => {
-      let messages = messagesByChatId.get(chatId);
-      if (!messages) {
-        messages = [];
-      }
-
-      let url = `https://localhost:8000/chats/${chatId}?`;
-      if (messages.length > 0) {
-        let startMessageId = messages[messages.length - 1].messageId;
-        url += `start_id=${startMessageId}&`;
-      }
-      if (count) {
-        url += `count=${count}&`;
-      }
-
+  const fetchChatDetails = useCallback(
+    async (chatId: string) => {
+      chatDetailsApi.setLoading();
       try {
-        const response = await fetch(url, {
+        const response = await fetch("https://localhost:8000/chats/${chatId}", {
           method: "GET",
           credentials: "include",
         });
@@ -170,8 +188,10 @@ export const useChats = () => {
         }
 
         if (response.ok) {
-          const messages: Message[] = await response.json();
-          addMessagesToChat(chatId, messages);
+          const chatDetails: ChatDetails = await response.json();
+          chatDetailsApi.setSuccess((prev) => {
+            return new Map(prev).set(chatId, chatDetails);
+          });
         } else {
           chatPreviewApi.setError(`Failed to fetch: ${response.status}`);
         }
@@ -179,7 +199,7 @@ export const useChats = () => {
         chatPreviewApi.setError("Internal Server Error");
       }
     },
-    [messagesByChatId, chatPreviewApi, navigate, addMessagesToChat]
+    [chatDetailsApi, navigate, addMessagesToChat]
   );
 
   /**
@@ -206,7 +226,7 @@ export const useChats = () => {
 
       ws.onmessage = (event) => {
         const firstParse = JSON.parse(event.data);
-        const messageData: Message = JSON.parse(firstParse);
+        const messageData: ChatMessage = JSON.parse(firstParse);
 
         addMessageToChat(chat.chatId, messageData);
       };
@@ -217,32 +237,6 @@ export const useChats = () => {
       };
     });
   }, []);
-
-  /**
-   * Retrieves a chat by its unique identifier
-   *
-   * @param chatId - Unique identifier of the chat to retrieve
-   * @returns The ChatData object if found, otherwise undefined
-   *
-   * @remarks
-   * Searches the current chat list for a chat matching the provided ID.
-   */
-  const getChatDataFromId = useCallback(
-    (chatId: string): ChatPreview | undefined => {
-      return chatPreviewApi.data?.find((chat) => chat.chatId === chatId);
-    },
-    [chatPreviewApi]
-  );
-
-  /**
-   * Get messages for a specific chat
-   */
-  const getMessagesForChat = useCallback(
-    (chatId: string): Message[] => {
-      return messagesByChatId.get(chatId) || [];
-    },
-    [messagesByChatId]
-  );
 
   /**
    * Retrieves the WebSocket connection for a specific chat by its ID
@@ -333,32 +327,26 @@ export const useChats = () => {
   }, [chatPreviewApi.data]);
 
   return {
-    /** Array of chat items, empty array if no chats are loaded */
-    chats: chatPreviewApi.data || [],
-    /** Indicates if a chat operation is currently in progress */
-    loading: chatPreviewApi.isLoading,
-    /** Error message from the last failed operation, empty string if no error */
-    error: chatPreviewApi.error,
+    /** Array of chat previews, empty array if no chats are loaded */
+    chatPreviews: chatPreviewApi.data || [],
+    /** Indicates if a chat preview operation is currently in progress */
+    isLoadingPreviews: chatPreviewApi.isLoading,
+    /** Error message from the last failed chat preview operation, empty string if no error */
+    isErrorPreviews: chatPreviewApi.error,
 
-    /** Array of global chat items, empty array if no chats are loaded */
-    // globalChats: globalChatApi.data || [],
-    /** Indicates if a global chat operation is currently in progress */
-    // globalLoading: globalChatApi.isLoading,
-    /** Error message from the last failed global chat operation, empty string if no error */
-    // globalError: globalChatApi.error,e
-    /** Current state of the global chat list operations */
-    // globalState: globalChatApi.state,
+    /** Array of chat details, empty array if no chats are loaded */
+    chatDetails: chatDetailsApi.data || new Map<string, ChatDetails>(),
+    /** Indicates if a chat details operation is currently in progress */
+    isLoadingDetails: chatDetailsApi.isLoading,
+    /** Error message from the last failed chat details operation, empty string if no error */
+    isErrorDetails: chatDetailsApi.error,
 
     /** Function to fetch user's participating chats */
-    fetchChats,
-    /** Function to fetch message history for a specific chat */
-    fetchChatHistory,
+    fetchChatPreviews,
+    /** Function to fetch details for a specific chat */
+    fetchChatDetails,
     /** Function to connect websockets for real-time chat updates */
     connectToChats,
-    /** Function to get a chat by its unique identifier */
-    getChatDataFromId,
-    /** Function to get a chat's messages by its unique identifier */
-    getMessagesForChat,
     /** Function to get the WebSocket for a specific chat by its ID */
     getSocketFromId,
     /** Function to create a new chat */

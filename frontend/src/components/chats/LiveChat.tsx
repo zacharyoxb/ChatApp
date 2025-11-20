@@ -1,4 +1,3 @@
-import type { ChatData, Message } from "../../hooks/chats/useChats";
 import styles from "./LiveChat.module.css";
 import defaultDm from "/src/assets/default-dm.png";
 import defaultGroup from "/src/assets/default-group.png";
@@ -9,12 +8,12 @@ import threeDotsLight from "/src/assets/three-dots-light.png";
 import type { DropdownOption } from "../common/Dropdown";
 import Dropdown from "../common/Dropdown";
 import { useState } from "react";
+import type { ChatDetails, ChatPreview } from "../../hooks/chats/useChats";
 
 interface LiveChatProps {
-  chatId?: string;
-  getChatDataFromId: (chatId: string) => ChatData | undefined;
-  getMessagesForChat: (chatId: string) => Message[];
-  getSocketFromId: (chatId: string) => WebSocket | undefined;
+  chatPreview: ChatPreview | undefined;
+  chatDetails: ChatDetails | undefined;
+  chatWebSocket: WebSocket | undefined;
 }
 
 const dropdownGroupChat: DropdownOption[] = [
@@ -32,19 +31,14 @@ const dropdownDmChat: DropdownOption[] = [
 ];
 
 const LiveChat: React.FC<LiveChatProps> = ({
-  chatId,
-  getChatDataFromId,
-  getMessagesForChat,
-  getSocketFromId,
+  chatPreview,
+  chatDetails,
+  chatWebSocket,
 }) => {
   const [messageInput, setMessageInput] = useState("");
 
-  const chatData = chatId ? getChatDataFromId(chatId) : undefined;
-  const chatMessages = chatId ? getMessagesForChat(chatId) : undefined;
-  const chatWebSocket = chatId ? getSocketFromId(chatId) : undefined;
-
-  if (!chatData || !chatMessages || !chatWebSocket) {
-    return <h2 className={styles.noChat}> No chat selected. </h2>;
+  if (!chatPreview || !chatDetails) {
+    return <h2 className={styles.noChat}> Temp </h2>;
   }
 
   const handleSendMessage = () => {
@@ -53,7 +47,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
     chatWebSocket?.send(
       JSON.stringify({
         type: "message",
-        chatId: chatData?.chatId,
+        chatId: chatDetails.chatId,
         content: messageInput,
       })
     );
@@ -67,7 +61,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
     }
   };
 
-  const isDm = !!chatData.dmParticipantId;
+  const isDm = !!chatPreview.dmParticipantId;
   // Placeholder for chat image logic
   let chatImage = undefined;
   let image = chatImage || (isDm ? defaultDm : defaultGroup);
@@ -83,11 +77,11 @@ const LiveChat: React.FC<LiveChatProps> = ({
             height={75}
             alt={
               isDm
-                ? `${chatData.chatName}'s profile picture`
-                : `${chatData.chatName} group icon`
+                ? `${chatPreview.chatName}'s profile picture`
+                : `${chatPreview.chatName} group icon`
             }
           />
-          <div className={styles.chatTitle}> {chatData.chatName} </div>
+          <div className={styles.chatTitle}> {chatPreview.chatName} </div>
         </div>
         <div className={styles.rightSide}>
           <button className={styles.searchButton}>
@@ -114,7 +108,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
         </div>
       </div>
       <div className={styles.messagesContainer}>
-        {chatMessages.map((message, index) => (
+        {chatDetails.messages.map((message, index) => (
           <div key={index} className={styles.message}>
             <span className={styles.sender}>{message.senderId}:</span>
             <span className={styles.content}>{message.content}</span>

@@ -221,6 +221,7 @@ class RedisService:
             formatted_messages.append(ChatMessage(
                 message_id=msg_id,
                 sender_id=user_id,
+                sender_username=None,
                 content=content,
                 timestamp=timestamp),
             )

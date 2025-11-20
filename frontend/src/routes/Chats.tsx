@@ -25,23 +25,28 @@ function Chats() {
   useEffect(() => {
     if (!hasFetchedRef.current) {
       hasFetchedRef.current = true;
-      chats.fetchChats();
+      chats.fetchChatPreviews();
     }
   }, []);
 
   useEffect(() => {
-    if (chats.chats.length > 0 && !chats.loading) {
+    if (chats.chatPreviews.length > 0 && !chats.isLoadingPreviews) {
       if (chatId && !hasFetchedHistoryRef.current.get(chatId)) {
         hasFetchedHistoryRef.current.set(chatId, true);
-        chats.fetchChatHistory(chatId);
+        chats.fetchChatDetails(chatId);
       }
-      chats.connectToChats(chats.chats);
+      chats.connectToChats(chats.chatPreviews);
 
-      if (chats.error) {
-        console.error("Error connecting to chats:", chats.error);
+      if (chats.isErrorPreviews) {
+        console.error("Error connecting to chats:", chats.isErrorPreviews);
       }
     }
-  }, [chatId, chats.chats, chats.loading, chats.connectToChats]);
+  }, [
+    chatId,
+    chats.chatPreviews,
+    chats.isLoadingPreviews,
+    chats.connectToChats,
+  ]);
 
   const selectionListDropdown: DropdownOption[] = [
     {
@@ -57,14 +62,14 @@ function Chats() {
   return (
     <div className={styles.parentDiv}>
       <h1 className="sr-only"> ChatApp </h1>
-      {chats.error && (
+      {chats.isErrorPreviews && (
         <div
           className="error-box"
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
         >
-          {chats.error}
+          {chats.isErrorPreviews}
         </div>
       )}
       <div
@@ -81,7 +86,7 @@ function Chats() {
         <div className={styles.middleBar}>
           <ChatList
             chats={chats.sortedChatPreviews}
-            isLoading={chats.loading}
+            isLoading={chats.isLoadingPreviews}
           />
         </div>
         <div className={styles.bottomBar}></div>
@@ -94,12 +99,17 @@ function Chats() {
       <div
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
-        <LiveChat
-          chatId={chatId}
-          getChatDataFromId={chats.getChatDataFromId}
-          getMessagesForChat={chats.getMessagesForChat}
-          getSocketFromId={chats.getSocketFromId}
-        ></LiveChat>
+        {chatId ? (
+          <LiveChat
+            chatPreview={chats.chatPreviews.find(
+              (preview) => preview.chatId == chatId
+            )}
+            chatDetails={chats.chatDetails.get(chatId)}
+            chatWebSocket={chats.getSocketFromId(chatId)}
+          ></LiveChat>
+        ) : (
+          <h2 className={styles.noChat}> No chat selected. </h2>
+        )}
       </div>
     </div>
   );

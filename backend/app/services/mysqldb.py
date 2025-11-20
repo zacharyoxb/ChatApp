@@ -4,7 +4,7 @@ from typing import List, Optional
 from mysql.connector.aio import MySQLConnectionPool
 
 from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatPreview, UserRole
+from app.templates.chats.responses import ChatPreview, UserInfo, UserRole
 
 # INSERT queries
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
@@ -54,6 +54,25 @@ GET_USER_CHATS_QUERY = """
         END
     ) = other_user.user_id
     WHERE requesting_user.user_id IN (dm.user1_id, dm.user2_id)
+"""
+GET_IS_DM_QUERY = "SELECT 1 FROM dm_chats WHERE chat_id = ?"
+GET_DM_PARTICIPANTS_QUERY = """
+    SELECT
+        u.user_id,
+        u.user_name,
+        NULL as role
+    FROM dm_chats dm
+    JOIN users u ON u.user_id IN (dm.user1_id, dm.user2_id)
+    WHERE dm.chat_id = ?
+"""
+GET_GROUP_PARTICIPANTS_QUERY = """
+    SELECT
+        u.user_id,
+        u.user_name,
+        uic.role
+    FROM users_in_chats uic
+    JOIN users u ON uic.user_id = u.user_id
+    WHERE uic.chat_id = ?
 """
 
 
@@ -203,15 +222,33 @@ class DatabaseService:
                 for row in results
             ] if results else []
 
-    async def get_all_available_chats(self, username: str) -> List[ChatPreview]:
-        """ Gets all chats that the user isn't in but are available for the user to join. 
+    async def get_all_chat_participants(self, chat_id: bytes) -> List[UserInfo]:
+        """ Gets all users currently in a chat.
 
         Args:
-            username (str): Username of the user whose chats are retrieved.
-
-        Returns:
-            list[UserChat]: List containing chat information.
+            chat_id (bytes): The id of the chat.
         """
+        async with await self._pool.get_connection() as conn:
+            cursor = await conn.cursor(prepared=True)
+            await cursor.execute(GET_IS_DM_QUERY, (chat_id,))
+            is_dm = await cursor.fetchone()
+
+            if is_dm:
+                await cursor.execute(GET_DM_PARTICIPANTS_QUERY, (chat_id,))
+            else:
+                await cursor.execute(GET_GROUP_PARTICIPANTS_QUERY, (chat_id,))
+
+            results = await cursor.fetchall()
+            await cursor.close()
+
+            return [
+                UserInfo(
+                    user_id=(user_bytes_id := row[0]) and user_bytes_id.hex(),
+                    username=row[1],
+                    role=row[2]
+                )
+                for row in results
+            ] if results else []
 
 
 db_service = DatabaseService()
