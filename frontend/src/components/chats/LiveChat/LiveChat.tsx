@@ -5,10 +5,10 @@ import searchIcon from "/src/assets/search.png";
 import searchIconLight from "/src/assets/search-light.png";
 import threeDots from "/src/assets/three-dots.png";
 import threeDotsLight from "/src/assets/three-dots-light.png";
-import type { DropdownOption } from "../common/Dropdown";
-import Dropdown from "../common/Dropdown";
+import type { DropdownOption } from "../../common/Dropdown";
+import Dropdown from "../../common/Dropdown";
 import { useState } from "react";
-import type { ChatDetails, ChatPreview } from "../../hooks/chats/useChats";
+import type { ChatDetails, ChatPreview } from "../../../hooks/chats/useChats";
 
 interface LiveChatProps {
   chatPreview: ChatPreview | undefined;

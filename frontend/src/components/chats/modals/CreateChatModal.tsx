@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Modal from "../common/Modal";
-import { StyledButton } from "../common/StyledButton";
+import Modal from "../../common/Modal";
+import { StyledButton } from "../../common/StyledButton";
 import styles from "./CreateChatModal.module.css";
 import errorIcon from "/src/assets/error-icon.png";
 

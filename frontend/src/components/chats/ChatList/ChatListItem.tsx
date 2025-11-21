@@ -2,9 +2,9 @@ import React from "react";
 import { useNavigate } from "react-router";
 import defaultDm from "/src/assets/default-dm.png";
 import defaultGroup from "/src/assets/default-group.png";
-import { datetime_format } from "../../utils/formatDatetime";
+import { datetime_format } from "../../../utils/formatDatetime";
 import styles from "./ChatListItem.module.css";
-import type { ChatMessage } from "../../hooks/chats/useChats";
+import type { ChatMessage } from "../../../hooks/chats/useChats";
 
 interface ChatListItemProps {
   chatUrl: string;

@@ -4,11 +4,11 @@ import threeDotsLight from "../assets/three-dots-light.png";
 import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
 import styles from "./Chats.module.css";
 import { useModal } from "../hooks/common/useModal";
-import CreateChatModal from "../components/chats/CreateChatModal";
+import CreateChatModal from "../components/chats/modals/CreateChatModal";
 import { useSession } from "../hooks/common/useSession";
 import { useParams } from "react-router";
-import LiveChat from "../components/chats/LiveChat";
-import ChatList from "../components/chats/ChatList";
+import LiveChat from "../components/chats/LiveChat/LiveChat";
+import ChatList from "../components/chats/ChatList/ChatList";
 import { useChats } from "../hooks/chats/useChats";
 
 function Chats() {

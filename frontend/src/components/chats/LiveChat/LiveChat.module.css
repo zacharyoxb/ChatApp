@@ -1,11 +1,3 @@
-.noChat {
-  height: 80%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
 .liveChat {
   display: flex;
   flex-direction: column;
