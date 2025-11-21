@@ -13,6 +13,8 @@
 }
 
 .modalContent {
+  width: 80%;
+  height: max-content;
   background-color: #131313;
   border: 1px solid #ffffff;
   padding: 10px;
