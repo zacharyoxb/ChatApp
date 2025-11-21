@@ -273,7 +273,7 @@ export const useChats = () => {
    * Automatically updates chat data after operation.
    */
   const createChat = useCallback(
-    async (chatName: string, otherUsers: string[], isPublic: boolean) => {
+    async (chatName: string, otherUsers: UserInfo[], isPublic: boolean) => {
       try {
         const response = await fetch("https://localhost:8000/chats", {
           method: "POST",

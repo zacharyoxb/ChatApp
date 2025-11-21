@@ -6,13 +6,14 @@ import add from "/src/assets/add.png";
 import addLight from "/src/assets/add-light.png";
 import minus from "/src/assets/minus.png";
 import minusLight from "/src/assets/minus-light.png";
+import type { UserInfo } from "../../../hooks/chats/useChats";
 
 interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateChat: (
     chatName: string,
-    members: string[],
+    members: UserInfo[],
     isPublic: boolean
   ) => Promise<void>;
 }
@@ -26,9 +27,9 @@ function CreateChatModal({
   const [error, setError] = useState<string | null>(null);
 
   const [usernameToIdMap, setUsernameToIdMap] = useState<
-    Record<string, string>
+    Record<string, UserInfo>
   >({});
-  const [members, setMembers] = useState<string[]>([]);
+  const [members, setMembers] = useState<UserInfo[]>([]);
 
   const handleAddMember = async (newMember: string) => {
     // The user has entered nothing
@@ -69,21 +70,18 @@ function CreateChatModal({
         return;
       }
 
-      const response_obj = await response.json();
-      const user_id = response_obj.userId;
-      setUsernameToIdMap((prev) => ({ ...prev, [newMember]: user_id }));
+      const userInfo: UserInfo = await response.json();
+      setUsernameToIdMap((prev) => ({ ...prev, [newMember]: userInfo }));
 
       setError(null);
-      setMembers((prevMembers) => [...prevMembers, user_id]);
+      setMembers((prevMembers) => [...prevMembers, userInfo]);
     } catch (err) {
       console.log(err);
     }
   };
 
-  const handleRemoveMember = (usernameToRemove: string) => {
-    setMembers(
-      members.filter((memberUsername) => memberUsername !== usernameToRemove)
-    );
+  const handleRemoveMember = (userToRemove: UserInfo) => {
+    setMembers(members.filter((member) => member !== userToRemove));
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -126,8 +124,8 @@ function CreateChatModal({
           </div>
           <div className={styles.membersMap}>
             {members.map((member) => (
-              <div key={member} className={styles.userRectangle}>
-                <span> {member}</span>
+              <div key={member.userId} className={styles.userRectangle}>
+                <span> {member.username}</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveMember(member)}

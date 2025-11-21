@@ -129,9 +129,10 @@ class DatabaseService:
             await cursor.execute(ADD_USER_TO_CHAT_QUERY,
                                  (chat_creator_id, req.chat_id, 'owner'))
             # add other users if provided
-            for other_user_username in req.other_users:
+            for other_user in req.other_users:
+                other_user_id = bytes.fromhex(other_user.user_id)
                 await cursor.execute(ADD_USER_TO_CHAT_QUERY,
-                                     (other_user_username, req.chat_id, 'member'))
+                                     (other_user_id, req.chat_id, other_user.role))
             await conn.commit()
             await cursor.close()
 

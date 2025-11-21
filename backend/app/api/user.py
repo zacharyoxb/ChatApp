@@ -11,21 +11,21 @@ router = APIRouter()
 
 
 @router.get("/users/{username}", response_model=UserInfo)
-async def get_user_id(
+async def get_new_user_template(
     username: str,
     _: SessionData = Depends(auth_session)
 ) -> None:
-    """ Checks if a user with the given username exists and returns their user ID.
+    """ Returns a UserInfo entry for a user being added to a new chat/
 
     Args:
-        username (str): The username to look up.
+        username (str): The username of the user to make a UserInfo entry of. 
 
     Returns:
-        UserIdResponse: The user ID in hexadecimal format if the user exists.
+       UserInfo: UserInfo entry for user. 
 
     Raises:
-        HTTPException: 404 NOT FOUND if the user does not exist.
         HTTPException: 401 UNAUTHORIZED if session authentication fails.
+        HTTPException: 404 NOT FOUND if the user does not exist.
         HTTPException: 500 INTERNAL SERVER_ERROR if a database error occurs.
     """
     try:
