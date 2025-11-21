@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import styles from "./Home.module.css";
 import { useNavigate } from "react-router";
-import { StyledButton } from "../components/common/StyledButton";
 import { useSession } from "../hooks/common/useSession";
 
 function Home() {
@@ -22,18 +21,18 @@ function Home() {
     <div className={styles.parentDiv}>
       <h1>ChatApp: Basic Group Messaging Service</h1>
       <div className={styles.linkButtons}>
-        <StyledButton
+        <button
           onClick={() => navigate("/login")}
           className={styles.homeButton}
         >
           Login
-        </StyledButton>
-        <StyledButton
+        </button>
+        <button
           onClick={() => navigate("/signup")}
           className={styles.homeButton}
         >
           Sign Up
-        </StyledButton>
+        </button>
       </div>
     </div>
   );

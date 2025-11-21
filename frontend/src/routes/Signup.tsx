@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { StyledButton } from "../components/common/StyledButton";
 import styles from "./LoginSignup.module.css";
 import { useSession } from "../hooks/common/useSession";
 
@@ -114,7 +113,7 @@ function SignUp() {
           Remember me
         </label>
 
-        <StyledButton type="submit">Sign Up</StyledButton>
+        <button type="submit">Sign Up</button>
       </form>
 
       <div>

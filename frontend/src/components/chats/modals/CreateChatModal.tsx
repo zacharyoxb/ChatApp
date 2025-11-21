@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Modal from "../../common/Modal";
-import { StyledButton } from "../../common/StyledButton";
 import styles from "./CreateChatModal.module.css";
 import errorIcon from "/src/assets/error-icon.png";
 
@@ -135,14 +134,14 @@ function CreateChatModal({
                 </div>
               )}
             </div>
-            <StyledButton
+            <button
               type="button"
               className={styles.addMemberButton}
               onClick={() => handleAddMember(memberEntryBox)}
             >
               Add
               <div className="sr-only">member</div>
-            </StyledButton>
+            </button>
           </label>
           <div className={styles.userListContainer}>
             <div className={styles.userRectangle}>
@@ -166,9 +165,9 @@ function CreateChatModal({
           Set Public: <input name="is-public" type="checkbox"></input>
         </label>
 
-        <StyledButton className={styles.createChatButton} type="submit">
+        <button className={styles.createChatButton} type="submit">
           Create Chat
-        </StyledButton>
+        </button>
       </form>
     </Modal>
   );

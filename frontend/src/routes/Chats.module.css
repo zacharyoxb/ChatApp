@@ -68,7 +68,7 @@
   }
 
   .chatArea {
-    width: 60%;
+    min-width: 60%;
   }
 
   .parentDiv {

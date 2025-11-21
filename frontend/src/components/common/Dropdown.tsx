@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StyledButton } from "./StyledButton";
 import styles from "./Dropdown.module.css";
 import threeDots from "/src/assets/three-dots.png";
 import threeDotsLight from "/src/assets/three-dots-light.png";
@@ -79,13 +78,13 @@ const Dropdown: React.FC<DropdownProps> = ({ label, menuOptions }) => {
           } ${styles.dropdownMenu}`}
         >
           {menuOptions.map((option, index) => (
-            <StyledButton
+            <button
               key={index}
               className={styles.dropdownOption}
               onClick={() => handleOptionClick(option.action)}
             >
               {option.label}
-            </StyledButton>
+            </button>
           ))}
         </div>
       )}

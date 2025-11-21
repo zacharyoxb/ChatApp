@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { StyledButton } from "../components/common/StyledButton";
 import styles from "./LoginSignup.module.css";
 import { useSession } from "../hooks/common/useSession";
 
@@ -99,7 +98,7 @@ function Login() {
           Remember me
         </label>
 
-        <StyledButton type="submit">Log in</StyledButton>
+        <button type="submit">Log in</button>
       </form>
 
       <div>
