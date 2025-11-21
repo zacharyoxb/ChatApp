@@ -172,20 +172,20 @@ function CreateChatModal({
               className={styles.addMemberButton}
               name="add-member-button"
               type="button"
-              onKeyDown={() => handleAddMember}
+              onClick={() => handleAddMember(memberEntryBox)}
               aria-label="Click to add user to chat"
             >
               <img
                 className="darkIcon"
                 src={add}
-                width={25}
+                width={40}
                 height="auto"
                 alt="Add user to new chat"
               ></img>
               <img
                 className="lightIcon"
                 src={addLight}
-                width={25}
+                width={40}
                 height="auto"
                 alt="Add user to new chat"
               ></img>

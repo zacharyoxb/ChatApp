@@ -1,29 +1,16 @@
 """ Functions related to users / user information """
 from fastapi import APIRouter, Depends, HTTPException, status
 import mysql
-from pydantic import BaseModel, Field
 
 from app.api.session import auth_session
 from app.services.myredis import SessionData
 from app.services.mysqldb import db_service
+from app.templates.chats.responses import UserInfo, UserRole
 
 router = APIRouter()
 
 
-class UserIdResponse(BaseModel):
-    """ Response to send user_id of user as response
-
-    Attributes:
-        user_id: hex string of user_id
-    """
-    user_id: str = Field(..., alias="userId")
-
-    class Config:
-        """ Sets CreateChat Request Model to expect aliases from frontend """
-        populate_by_name = True
-
-
-@router.get("/users/{username}", response_model=UserIdResponse)
+@router.get("/users/{username}", response_model=UserInfo)
 async def get_user_id(
     username: str,
     _: SessionData = Depends(auth_session)
@@ -46,8 +33,10 @@ async def get_user_id(
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist")
-        return UserIdResponse(
-            user_id=user_id.hex()
+        return UserInfo(
+            user_id=user_id.hex(),
+            username=username,
+            role=UserRole.MEMBER
         )
     except mysql.connector.Error as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

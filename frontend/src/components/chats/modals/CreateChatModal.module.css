@@ -10,7 +10,7 @@
 }
 
 .chatNameLabel {
-  min-width: fit-content;
+  min-width: min-content;
 }
 
 .inputBox {
@@ -26,6 +26,7 @@
 .userRectangle {
   border: 1px solid rgb(143, 143, 157);
   margin: 4px 0;
+  padding: 10px;
 }
 
 .membersMap {
@@ -52,13 +53,14 @@
   position: relative;
   display: flex;
   align-items: center;
+  padding-right: 5px;
 }
 
 .tooltip {
   position: absolute;
   bottom: 100%;
   left: 50%;
-  transform: translateX(-2%);
+  transform: translateX(-3%);
   background-color: #333;
   color: white;
   padding: 8px 12px;
