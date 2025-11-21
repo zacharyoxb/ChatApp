@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
-import threeDots from "../assets/three-dots.png";
-import threeDotsLight from "../assets/three-dots-light.png";
+
 import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
 import styles from "./Chats.module.css";
 import { useModal } from "../hooks/common/useModal";
@@ -77,11 +76,7 @@ function Chats() {
       >
         <div className={styles.topBar}>
           <h2> ChatApp </h2>
-          <Dropdown
-            darkLogo={threeDots}
-            lightLogo={threeDotsLight}
-            menuOptions={selectionListDropdown}
-          ></Dropdown>
+          <Dropdown menuOptions={selectionListDropdown}></Dropdown>
         </div>
         <div className={styles.middleBar}>
           <ChatList

@@ -11,7 +11,7 @@ from app.api.session import auth_session
 from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
 from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatDetails, ChatMessage, ChatPreview
+from app.templates.chats.responses import ChatDetails, ChatMessage, ChatPreview, UserRole
 
 router = APIRouter()
 
@@ -160,8 +160,9 @@ async def create_new_chat(
     res.status_code = status.HTTP_201_CREATED
 
     message = ChatMessage(
-        messageId=message_id,
-        senderId="SERVER",
+        message_id=message_id,
+        sender_id="SERVER",
+        sender_username="SERVER",
         content=message_text,
         timestamp=datetime.now().isoformat()
     )
@@ -169,9 +170,10 @@ async def create_new_chat(
     return ChatPreview(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,
+        dm_participant_id=None,
         last_activity=datetime.now().isoformat(),
-        dmParticipantId=None,
-        last_message=message
+        last_message=message,
+        my_role=UserRole.OWNER
     )
 
 # =============== WEBSOCKET METHODS ===============

@@ -292,11 +292,13 @@ export const useChats = () => {
         }
 
         const newChat: ChatPreview = await response.json();
-        if (chatPreviewApi.data) {
-          chatPreviewApi.setSuccess([...chatPreviewApi.data, newChat]);
-        } else {
-          chatPreviewApi.setSuccess([newChat]);
-        }
+
+        chatPreviewApi.setSuccess((prev) => {
+          const safePrev = prev || [];
+          const updatedChatPreviews = [...safePrev, newChat];
+          return updatedChatPreviews;
+        });
+
         navigate(`/chats/${newChat.chatId}`);
       } catch (err) {
         chatPreviewApi.setError("Internal Server Error.");

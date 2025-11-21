@@ -3,12 +3,13 @@ import defaultDm from "/src/assets/default-dm.png";
 import defaultGroup from "/src/assets/default-group.png";
 import searchIcon from "/src/assets/search.png";
 import searchIconLight from "/src/assets/search-light.png";
-import threeDots from "/src/assets/three-dots.png";
-import threeDotsLight from "/src/assets/three-dots-light.png";
+import arrow from "/src/assets/arrow.png";
+import arrowLight from "/src/assets/arrow-light.png";
 import type { DropdownOption } from "../../common/Dropdown";
 import Dropdown from "../../common/Dropdown";
 import { useState } from "react";
 import type { ChatDetails, ChatPreview } from "../../../hooks/chats/useChats";
+import { useNavigate } from "react-router";
 
 interface LiveChatProps {
   chatPreview: ChatPreview | undefined;
@@ -36,6 +37,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
   chatWebSocket,
 }) => {
   const [messageInput, setMessageInput] = useState("");
+  const navigate = useNavigate();
 
   if (!chatPreview || !chatDetails) {
     return <h2 className={styles.noChat}> Temp </h2>;
@@ -70,6 +72,20 @@ const LiveChat: React.FC<LiveChatProps> = ({
     <div className={styles.liveChat}>
       <div className={styles.titleBar}>
         <div className={styles.leftSide}>
+          <button className={styles.mobileOnly} onClick={() => navigate(-1)}>
+            <img
+              src={arrow}
+              className={styles.darkIcon}
+              width={50}
+              height={50}
+            ></img>
+            <img
+              src={arrowLight}
+              className={styles.lightIcon}
+              width={50}
+              height={50}
+            ></img>
+          </button>
           <img
             className={styles.profileImage}
             src={image}
@@ -86,23 +102,21 @@ const LiveChat: React.FC<LiveChatProps> = ({
         <div className={styles.rightSide}>
           <button className={styles.searchButton}>
             <img
-              src={searchIconLight}
-              className={styles.searchLightIcon}
+              src={searchIcon}
+              className="darkIcon"
               width={40}
               height={40}
               alt={"Search chat messages"}
-            ></img>
+            ></img>{" "}
             <img
-              src={searchIcon}
-              className={styles.searchDarkIcon}
+              src={searchIconLight}
+              className="lightIcon"
               width={40}
               height={40}
               alt={"Search chat messages"}
             ></img>
           </button>
           <Dropdown
-            darkLogo={threeDots}
-            lightLogo={threeDotsLight}
             menuOptions={isDm ? dropdownDmChat : dropdownGroupChat}
           ></Dropdown>
         </div>

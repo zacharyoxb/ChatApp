@@ -87,10 +87,45 @@ button:focus-visible {
   border: 0;
 }
 
+.darkIcon {
+  display: block;
+}
+
+.lightIcon {
+  display: none;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
+  }
+
+  button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 3vw;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.25s;
+  }
+  button:hover {
+    border-color: #aaaaaa;
+  }
+  button:focus,
+  button:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+  }
+
+  .darkIcon {
+    display: none;
+  }
+
+  .lightIcon {
+    display: block;
   }
 }
 

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StyledButton } from "./StyledButton";
 import styles from "./Dropdown.module.css";
+import threeDots from "/src/assets/three-dots.png";
+import threeDotsLight from "/src/assets/three-dots-light.png";
 
 interface DropdownProps {
   label?: string;
@@ -14,12 +16,7 @@ export interface DropdownOption {
   action: () => void;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({
-  label,
-  lightLogo,
-  darkLogo,
-  menuOptions,
-}) => {
+const Dropdown: React.FC<DropdownProps> = ({ label, menuOptions }) => {
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [menuPosition, setMenuPosition] = useState<"left" | "right">("left");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,22 +57,18 @@ const Dropdown: React.FC<DropdownProps> = ({
   return (
     <div className={styles.dropdownContainer} ref={containerRef}>
       <button className={styles.logoButton} onClick={toggleMenu}>
-        {lightLogo && (
-          <img
-            src={lightLogo}
-            className={styles.lightModeIcon}
-            alt="Miscellaneous menu"
-            height={75}
-          />
-        )}
-        {darkLogo && (
-          <img
-            src={darkLogo}
-            className={styles.darkModeIcon}
-            alt="Miscellaneous menu"
-            height={75}
-          />
-        )}
+        <img
+          src={threeDotsLight}
+          className="lightIcon"
+          alt="Miscellaneous menu"
+          height={75}
+        />
+        <img
+          src={threeDots}
+          className="darkIcon"
+          alt="Miscellaneous menu"
+          height={75}
+        />
         {label}
       </button>
 
