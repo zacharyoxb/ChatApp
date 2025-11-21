@@ -63,6 +63,7 @@
 
   .chatSelectionList {
     width: 40%;
+    max-width: 450px;
     border: 1px solid #3d3d3d;
   }
 

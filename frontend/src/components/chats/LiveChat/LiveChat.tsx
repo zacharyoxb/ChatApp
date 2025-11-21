@@ -72,10 +72,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
     <div className={styles.liveChat}>
       <div className={styles.titleBar}>
         <div className={styles.leftSide}>
-          <button
-            className={styles.mobileOnly}
-            onClick={() => navigate("/chats")}
-          >
+          <button className="mobileOnly" onClick={() => navigate("/chats")}>
             <img
               src={arrow}
               className={styles.darkIcon}

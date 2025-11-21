@@ -129,12 +129,15 @@ button:focus-visible {
   }
 }
 
-/* Tablet size +++ */
-@media (min-width: 768px) {
+@media only screen and (min-width: 768px) {
   .error-box {
     left: auto;
     right: 1rem;
     transform: none;
     max-width: none;
+  }
+
+  .mobileOnly {
+    display: none;
   }
 }
