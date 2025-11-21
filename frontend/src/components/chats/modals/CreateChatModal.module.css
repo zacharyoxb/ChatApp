@@ -28,10 +28,18 @@
   margin: 4px 0;
 }
 
+.membersMap {
+  min-height: 200px;
+}
+
 .addUserArea {
-  margin-top: 10px;
+  padding: 10px;
   border-top: 1px solid rgb(143, 143, 157);
   display: flex;
+}
+
+.addMemberButton {
+  padding: 0%;
 }
 
 .inputContainer {

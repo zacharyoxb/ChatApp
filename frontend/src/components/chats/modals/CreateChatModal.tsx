@@ -124,25 +124,32 @@ function CreateChatModal({
           <div className={styles.userRectangle}>
             <span>You ({sessionStorage.getItem("currentUser")})</span>
           </div>
-          {members.map((member) => (
-            <div key={member} className={styles.userRectangle}>
-              <span> {member}</span>
-              <button type="button" onClick={() => handleRemoveMember(member)}>
-                <img
-                  className="darkIcon"
-                  src={minus}
-                  width={20}
-                  height="auto"
-                ></img>
-                <img
-                  className="lightIcon"
-                  src={minusLight}
-                  width={20}
-                  height="auto"
-                ></img>
-              </button>
-            </div>
-          ))}
+          <div className={styles.membersMap}>
+            {members.map((member) => (
+              <div key={member} className={styles.userRectangle}>
+                <span> {member}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveMember(member)}
+                >
+                  <img
+                    className="darkIcon"
+                    src={minus}
+                    width={20}
+                    height="auto"
+                    alt={`Remove user '${member}' from chat`}
+                  ></img>
+                  <img
+                    className="lightIcon"
+                    src={minusLight}
+                    width={20}
+                    height="auto"
+                    alt={`Remove user '${member}' from chat`}
+                  ></img>
+                </button>
+              </div>
+            ))}
+          </div>
           <div className={styles.addUserArea}>
             {error && (
               <div className={styles.errorTooltip}>
@@ -150,27 +157,37 @@ function CreateChatModal({
                 <div className={styles.tooltip}>{error}</div>
               </div>
             )}
-            <input
-              name="add-member"
-              onChange={(e) => setMemberEntryBox(e.currentTarget.value)}
-              onKeyDown={handleKeyPress}
-            ></input>
+            <label>
+              Add Chat Member:
+              <input
+                name="add-member"
+                onChange={(e) => setMemberEntryBox(e.currentTarget.value)}
+                onKeyDown={handleKeyPress}
+                aria-label="Username to add to chat"
+                placeholder="Enter username"
+              ></input>
+            </label>
+
             <button
+              className={styles.addMemberButton}
               name="add-member-button"
               type="button"
               onKeyDown={() => handleAddMember}
+              aria-label="Click to add user to chat"
             >
               <img
                 className="darkIcon"
                 src={add}
                 width={25}
                 height="auto"
+                alt="Add user to new chat"
               ></img>
               <img
                 className="lightIcon"
                 src={addLight}
                 width={25}
                 height="auto"
+                alt="Add user to new chat"
               ></img>
             </button>
           </div>
