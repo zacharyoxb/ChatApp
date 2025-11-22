@@ -75,6 +75,16 @@ GET_GROUP_PARTICIPANTS_QUERY = """
     WHERE uic.chat_id = ?
 """
 
+# EXISTS query
+CHECK_USER_IN_CHAT_QUERY = """
+    SELECT EXISTS(
+        SELECT 1 
+        FROM users_in_chats uic
+        JOIN users u ON uic.user_id = u.user_id
+        WHERE u.user_name = %s AND uic.chat_id = %s
+    ) AS user_in_chat
+"""
+
 
 class DatabaseService:
     """ Singleton instance holding database pool. """
@@ -250,6 +260,23 @@ class DatabaseService:
                 )
                 for row in results
             ] if results else []
+
+    async def is_user_in_chat(self, username: str, chat_id: bytes) -> bool:
+        """ Checks if a user is part of a chat.
+
+        Args:
+            username (str): Username to check.
+            chat_id (bytes): Chat id to check.
+
+        Returns:
+            bool: True if user is in chat, False otherwise.
+        """
+        async with await self._pool.get_connection() as conn:
+            cursor = await conn.cursor(prepared=True)
+            await cursor.execute(CHECK_USER_IN_CHAT_QUERY, (username, chat_id))
+            result = await cursor.fetchone()
+            await cursor.close()
+            return bool(result[0]) if result else False
 
 
 db_service = DatabaseService()

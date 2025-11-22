@@ -206,7 +206,7 @@ async def listen_for_messages(pubsub, websocket: WebSocket):
 
 
 @router.websocket("/ws/chats/{chat_id}")
-async def websocket_chat(
+async def chat_websocket(
         websocket: WebSocket,
         chat_id: str):
     """ Websocket endpoint for chats
@@ -224,8 +224,13 @@ async def websocket_chat(
     if session_data is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
-    # here we ought to make sure the user is part of the chat, but I don't
-    # want to overcomplicate things rn
+
+    is_in_chat = await db_service.is_user_in_chat(session_data.username, bytes.fromhex(chat_id))
+
+    if not is_in_chat:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Session does not exist or has expired")
+
     await websocket.accept()
 
     async with redis_service.subscribe_to_chat(chat_id) as pubsub:
