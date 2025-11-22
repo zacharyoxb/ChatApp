@@ -11,6 +11,7 @@ import type { UserInfo } from "../../../hooks/chats/useChats";
 interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddMember: (userId: string) => Promise<UserInfo | null>;
   onCreateChat: (
     chatName: string,
     members: UserInfo[],
@@ -21,6 +22,7 @@ interface CreateChatModalProps {
 function CreateChatModal({
   isOpen,
   onClose,
+  onAddMember,
   onCreateChat,
 }: CreateChatModalProps) {
   const [memberEntryBox, setMemberEntryBox] = useState<string>("");
@@ -52,36 +54,26 @@ function CreateChatModal({
       return;
     }
 
-    try {
-      const response = await fetch(
-        `https://localhost:8000/users/${newMember}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
+    const userInfo = await onAddMember(newMember);
 
-      // User doesn't exist
-      if (response.status === 404) {
-        setError(`User "${newMember}" does not exist.`);
-        return;
-      }
-
-      const userInfo: UserInfo = await response.json();
-      setUsernameToIdMap((prev) => ({ ...prev, [newMember]: userInfo }));
-
-      setError(null);
-      setMembers((prevMembers) => [...prevMembers, userInfo]);
-    } catch (err) {
-      console.log(err);
+    // User doesn't exist
+    if (!userInfo) {
+      setError(`User "${newMember}" does not exist.`);
+      return;
     }
+
+    setUsernameToIdMap((prev) => ({ ...prev, [newMember]: userInfo }));
+    setMembers((prevMembers) => [...prevMembers, userInfo]);
+    setMemberEntryBox("");
+    setError(null);
   };
 
   const handleRemoveMember = (userToRemove: UserInfo) => {
     setMembers(members.filter((member) => member !== userToRemove));
+    setUsernameToIdMap((prev) => {
+      const { [userToRemove.username]: _, ...rest } = prev;
+      return rest;
+    });
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -159,6 +151,7 @@ function CreateChatModal({
               Add Chat Member:
               <input
                 name="add-member"
+                value={memberEntryBox}
                 onChange={(e) => setMemberEntryBox(e.currentTarget.value)}
                 onKeyDown={handleKeyPress}
                 aria-label="Username to add to chat"
@@ -176,14 +169,14 @@ function CreateChatModal({
               <img
                 className="darkIcon"
                 src={add}
-                width={40}
+                width={20}
                 height="auto"
                 alt="Add user to new chat"
               ></img>
               <img
                 className="lightIcon"
                 src={addLight}
-                width={40}
+                width={20}
                 height="auto"
                 alt="Add user to new chat"
               ></img>

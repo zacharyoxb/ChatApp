@@ -210,6 +210,34 @@ export const useChats = () => {
     [chatDetailsApi, navigate, addMessagesToChat]
   );
 
+  /** Fetches UserInfo from backend for a specific user.
+   *
+   * @param chats - Id of user to get UserInfo for
+   *
+   * @returns userInfo for user.
+   */
+  const fetchUserInfo = useCallback(async (userId: string) => {
+    try {
+      const response = await fetch(`https://localhost:8000/users/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      const userInfo: UserInfo = await response.json();
+      return userInfo;
+    } catch (err) {
+      console.log(err);
+    }
+    return null;
+  }, []);
+
   /**
    * Establishes WebSocket connections for real-time chat updates
    *
@@ -307,27 +335,6 @@ export const useChats = () => {
     [chatPreviewApi]
   );
 
-  /**
-   * Removes a chat from the local state (client-side only)
-   *
-   * @param chatId - ID of the chat to remove from the local list
-   *
-   * @remarks
-   * This is a client-side operation that does not persist to the server.
-   * Primarily useful for immediate UI updates before server synchronization.
-   */
-  const removeChat = useCallback(
-    (chatId: string) => {
-      if (!chatPreviewApi.data) return;
-
-      const filteredChats = chatPreviewApi.data.filter(
-        (chat) => chat.chatId !== chatId
-      );
-      chatPreviewApi.setSuccess(filteredChats);
-    },
-    [chatPreviewApi]
-  );
-
   const sortedChatPreviews = useMemo(() => {
     return (chatPreviewApi.data || []).sort(
       (prev, next) =>
@@ -355,14 +362,14 @@ export const useChats = () => {
     fetchChatPreviews,
     /** Function to fetch details for a specific chat */
     fetchChatDetails,
+    /** Function to fetch user info for a specific user */
+    fetchUserInfo,
     /** Function to connect websockets for real-time chat updates */
     connectToChats,
     /** Function to get the WebSocket for a specific chat by its ID */
     getSocketFromId,
     /** Function to create a new chat */
     createChat,
-    /** Function to remove a chat from local state */
-    removeChat,
 
     /** Chats sorted by most recent activity in descending order */
     sortedChatPreviews,

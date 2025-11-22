@@ -88,6 +88,7 @@ function Chats() {
         <CreateChatModal
           isOpen={createChatModal.isOpen}
           onClose={createChatModal.close}
+          onAddMember={chats.fetchUserInfo}
           onCreateChat={chats.createChat}
         ></CreateChatModal>
       </div>

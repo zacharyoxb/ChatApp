@@ -153,8 +153,6 @@ async def create_new_chat(
     user_id_hex = session_data.user_id
     user_id = bytes.fromhex(session_data.user_id)
 
-    print(req)
-
     await db_service.create_chat(user_id, req)
 
     message_text = f"NEW CHAT CREATED BY @{user_id_hex}"
