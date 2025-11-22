@@ -1,9 +1,11 @@
 """ Functions related to users / user information """
-from fastapi import APIRouter, Depends, HTTPException, status
+import asyncio
+import json
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 import mysql
 
 from app.api.session import auth_session
-from app.services.myredis import SessionData
+from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
 from app.templates.chats.responses import UserInfo, UserRole
 
@@ -41,3 +43,43 @@ async def get_new_user_template(
     except mysql.connector.Error as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="Database operation failed") from e
+
+
+@router.websocket("/ws/users/{user_id}")
+async def notification_websocket(websocket: WebSocket, user_id: str):
+    """ Websocket endpoint for chats
+
+    Args:
+        websocket (WebSocket): WebSocket for frontend communication.
+        user_id (str): Hex string for the id of the user.
+
+    Raises:
+        HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
+    """
+    session_id = websocket.cookies.get("session_id")
+    session_data = await redis_service.get_session(session_id)
+    if session_data is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Session does not exist or has expired")
+
+    await websocket.accept()
+
+    async with redis_service.subscribe_to_chat(user_id) as pubsub:
+        listen_task = asyncio.create_task(
+            redis_service.listen_for_messages(pubsub, websocket))
+
+        try:
+            while True:
+                data = await websocket.receive_text()
+                parsed_data = json.loads(data)
+                content = parsed_data.get("content")
+                await redis_service.send_chat_message(
+                    user_id, session_data.user_id, content)
+        except WebSocketDisconnect:
+            pass
+        finally:
+            listen_task.cancel()
+            try:
+                await listen_task
+            except asyncio.CancelledError:
+                pass

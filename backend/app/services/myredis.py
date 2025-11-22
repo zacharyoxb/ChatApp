@@ -6,6 +6,7 @@ import time
 from typing import Optional
 import uuid
 
+from fastapi import WebSocket
 from pydantic import BaseModel
 from redis.asyncio import ConnectionPool, Redis
 import redis.asyncio as redis
@@ -252,6 +253,31 @@ class RedisService:
         )
 
         return formatted_message
+
+    async def listen_for_messages(self, pubsub, websocket: WebSocket):
+        """ Listens for Redis Pub/Sub messages and forwards them to the WebSocket client.
+
+        Args:
+            pubsub: Redis Pub/Sub connection for receiving messages.
+            websocket (WebSocket): WebSocket connection to send messages to the client.
+
+        Note:
+            Runs continuously until the WebSocket connection is closed.
+            Only processes messages of type 'message' from Redis.
+        """
+        async for message in pubsub.listen():
+            if message['type'] == 'message':
+                message_data = message['data']
+                raw_message = json.loads(message_data)
+                (message_id, sender_id, content, timestamp) = raw_message.values()
+
+                message_obj = ChatMessage(
+                    message_id=message_id,
+                    sender_id=sender_id,
+                    content=content,
+                    timestamp=timestamp
+                )
+                await websocket.send_json(message_obj.model_dump_json(by_alias=True))
 
 
 redis_service = RedisService()

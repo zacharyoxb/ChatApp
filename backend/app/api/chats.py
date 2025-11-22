@@ -179,32 +179,6 @@ async def create_new_chat(
 # =============== WEBSOCKET METHODS ===============
 
 
-async def listen_for_messages(pubsub, websocket: WebSocket):
-    """ Listens for Redis Pub/Sub messages and forwards them to the WebSocket client.
-
-    Args:
-        pubsub: Redis Pub/Sub connection for receiving messages.
-        websocket (WebSocket): WebSocket connection to send messages to the client.
-
-    Note:
-        Runs continuously until the WebSocket connection is closed.
-        Only processes messages of type 'message' from Redis.
-    """
-    async for message in pubsub.listen():
-        if message['type'] == 'message':
-            message_data = message['data']
-            raw_message = json.loads(message_data)
-            (message_id, sender_id, content, timestamp) = raw_message.values()
-
-            message_obj = ChatMessage(
-                message_id=message_id,
-                sender_id=sender_id,
-                content=content,
-                timestamp=timestamp
-            )
-            await websocket.send_json(message_obj.model_dump_json(by_alias=True))
-
-
 @router.websocket("/ws/chats/{chat_id}")
 async def chat_websocket(
         websocket: WebSocket,
@@ -235,7 +209,8 @@ async def chat_websocket(
 
     async with redis_service.subscribe_to_chat(chat_id) as pubsub:
         listen_task = asyncio.create_task(
-            listen_for_messages(pubsub, websocket))
+            redis_service.listen_for_messages(pubsub, websocket)
+        )
 
         try:
             while True:
@@ -245,7 +220,7 @@ async def chat_websocket(
                 await redis_service.send_chat_message(
                     chat_id, session_data.user_id, content)
         except WebSocketDisconnect:
-            print(f"WebSocket for chat {chat_id} disconnected")
+            pass
         finally:
             listen_task.cancel()
             try:
