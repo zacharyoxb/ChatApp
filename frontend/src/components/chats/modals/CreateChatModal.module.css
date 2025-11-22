@@ -24,6 +24,8 @@
 }
 
 .userRectangle {
+  display: flex;
+  gap: 10px;
   border: 1px solid rgb(143, 143, 157);
   margin: 4px 0;
   padding: 10px;
@@ -33,10 +35,16 @@
   min-height: 200px;
 }
 
+.smallIcon {
+  padding: 0px;
+}
+
 .addUserArea {
+  display: flex;
+  gap: 10px;
   padding: 10px;
   border-top: 1px solid rgb(143, 143, 157);
-  display: flex;
+  justify-content: center;
 }
 
 .addMemberButton {

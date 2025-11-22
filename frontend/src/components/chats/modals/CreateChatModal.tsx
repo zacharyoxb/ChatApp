@@ -120,6 +120,7 @@ function CreateChatModal({
                 <span> {member.username}</span>
                 <button
                   type="button"
+                  className={styles.smallIcon}
                   onClick={() => handleRemoveMember(member)}
                 >
                   <img
@@ -147,21 +148,18 @@ function CreateChatModal({
                 <div className={styles.tooltip}>{error}</div>
               </div>
             )}
-            <label>
-              Add Chat Member:
-              <input
-                name="add-member"
-                value={memberEntryBox}
-                onChange={(e) => setMemberEntryBox(e.currentTarget.value)}
-                onKeyDown={handleKeyPress}
-                aria-label="Username to add to chat"
-                placeholder="Enter username"
-              ></input>
-            </label>
+            <label htmlFor="username-input">Add Chat Member:</label>
+            <input
+              id="username-input"
+              value={memberEntryBox}
+              onChange={(e) => setMemberEntryBox(e.currentTarget.value)}
+              onKeyDown={handleKeyPress}
+              aria-label="Username of user to add to chat"
+              placeholder="Enter username"
+            ></input>
 
             <button
               className={styles.addMemberButton}
-              name="add-member-button"
               type="button"
               onClick={() => handleAddMember(memberEntryBox)}
               aria-label="Click to add user to chat"
