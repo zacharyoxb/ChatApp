@@ -14,7 +14,7 @@ import { useNavigate } from "react-router";
 interface LiveChatProps {
   chatPreview: ChatPreview | undefined;
   chatDetails: ChatDetails | undefined;
-  chatWebSocket: WebSocket | undefined;
+  chatWebSocket: WebSocket | null;
 }
 
 const dropdownGroupChat: DropdownOption[] = [

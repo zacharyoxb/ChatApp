@@ -36,13 +36,13 @@ function Chats() {
         hasFetchedHistoryRef.current.set(chatId, true);
         chats.fetchChatDetails(chatId);
       }
-      chats.connectToChats(chats.chatPreviews);
+      chats.connectWebsocket();
     }
   }, [
     chatId,
     chats.chatPreviews,
     chats.isLoadingPreviews,
-    chats.connectToChats,
+    chats.connectWebsocket,
   ]);
 
   const selectionListDropdown: DropdownOption[] = [
@@ -99,7 +99,7 @@ function Chats() {
               (preview) => preview.chatId == chatId
             )}
             chatDetails={chats.chatDetails.get(chatId)}
-            chatWebSocket={chats.getSocketFromId(chatId)}
+            chatWebSocket={chats.chatWebsocket}
           ></LiveChat>
         ) : (
           <h2 className={styles.noChat}> No chat selected. </h2>

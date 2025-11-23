@@ -179,7 +179,7 @@ async def create_new_chat(
 # =============== WEBSOCKET METHODS ===============
 
 
-async def listen_for_messages(pubsub, websocket: WebSocket):
+async def listen_for_messages(chat_id: str, websocket: WebSocket):
     """ Listens for Redis Pub/Sub messages and forwards them to the WebSocket client.
 
     Args:
@@ -190,32 +190,36 @@ async def listen_for_messages(pubsub, websocket: WebSocket):
         Runs continuously until the WebSocket connection is closed.
         Only processes messages of type 'message' from Redis.
     """
-    async for message in pubsub.listen():
-        if message['type'] == 'message':
-            message_data = message['data']
-            raw_message = json.loads(message_data)
-            (message_id, sender_id, sender_username,
-             content, timestamp) = raw_message.values()
+    async with redis_service.subscribe_to_chat(chat_id) as pubsub:
+        async for message in pubsub.listen():
+            if message['type'] == 'message':
+                message_data = message['data']
+                raw_message = json.loads(message_data)
+                (message_id, sender_id, sender_username,
+                 content, timestamp) = raw_message.values()
 
-            message_obj = ChatMessage(
-                message_id=message_id,
-                sender_id=sender_id,
-                sender_username=sender_username,
-                content=content,
-                timestamp=timestamp
-            )
-            await websocket.send_json(message_obj.model_dump_json(by_alias=True))
+                message_obj = ChatMessage(
+                    message_id=message_id,
+                    sender_id=sender_id,
+                    sender_username=sender_username,
+                    content=content,
+                    timestamp=timestamp
+                )
+
+                message_data = {
+                    "chatId": chat_id,
+                    "message": message_obj.model_dump(by_alias=True)
+                }
+
+                await websocket.send_json(message_data)
 
 
-@router.websocket("/ws/chats/{chat_id}")
-async def chat_websocket(
-        websocket: WebSocket,
-        chat_id: str):
+@router.websocket("/ws/chats")
+async def chat_websocket(websocket: WebSocket):
     """ Websocket endpoint for chats
 
     Args:
-        websocket (WebSocket): WebSocket for frontend communication.
-        chat_id (str): Hex string for the id of the chat.
+        websocket (WebSocket): WebSocket connection to send messages to the client.
 
     Raises:
         HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
@@ -226,31 +230,36 @@ async def chat_websocket(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Session does not exist or has expired")
 
-    is_in_chat = await db_service.is_user_in_chat(session_data.username, bytes.fromhex(chat_id))
-
-    if not is_in_chat:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail=f"User isn't in the chat by the id {chat_id}")
-
+    previews = await db_service.get_all_user_chats(session_data.username)
     await websocket.accept()
 
-    async with redis_service.subscribe_to_chat(chat_id) as pubsub:
-        listen_task = asyncio.create_task(
-            listen_for_messages(pubsub, websocket)
+    listen_tasks = []
+    for preview in previews:
+        task = asyncio.create_task(
+            listen_for_messages(preview.chat_id, websocket)
         )
+        listen_tasks.append(task)
 
-        try:
-            while True:
-                data = await websocket.receive_text()
-                parsed_data = json.loads(data)
-                content = parsed_data.get("content")
+    user_chat_ids = [preview.chat_id for preview in previews]
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            parsed_data = json.loads(data)
+            chat_id = parsed_data.get("chatId")
+            content = parsed_data.get("content")
+
+            if chat_id in user_chat_ids:
                 await redis_service.send_chat_message(
                     chat_id, session_data.user_id, session_data.username, content)
-        except WebSocketDisconnect:
-            pass
-        finally:
-            listen_task.cancel()
-            try:
-                await listen_task
-            except asyncio.CancelledError:
-                pass
+            else:
+                print(
+                    f"User attempted to send message to unauthorized chat: {chat_id}")
+
+    except WebSocketDisconnect:
+        pass
+    finally:
+        for task in listen_tasks:
+            task.cancel()
+        if listen_tasks:
+            await asyncio.gather(*listen_tasks, return_exceptions=True)

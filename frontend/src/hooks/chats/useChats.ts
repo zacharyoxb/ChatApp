@@ -52,10 +52,20 @@ export interface ChatPreview {
   myRole?: UserRole;
 }
 
+/** Details for the chat when its displayed in LiveChat */
 export interface ChatDetails {
+  /** Unique identifier for the chat in hexadecimal format */
   chatId: string;
+  /** All participants in the chat */
   participants: UserInfo[];
+  /** Messages in the chat */
   messages: ChatMessage[];
+}
+
+/** Frontend only type containing format of websocket messages. */
+interface WebSocketMessage {
+  chatId: string;
+  message: ChatMessage;
 }
 
 /**
@@ -73,7 +83,7 @@ export const useChats = () => {
   // Stores chat details
   const chatDetailsApi = useApi<Map<string, ChatDetails>>();
   // References to store websockets
-  const websocketRefs = useRef<Map<string, WebSocket>>(new Map());
+  const ws = useRef<WebSocket>(null);
 
   /**
    * Fetches all chats that the current user is participating in
@@ -239,56 +249,35 @@ export const useChats = () => {
   }, []);
 
   /**
-   * Establishes WebSocket connections for real-time chat updates
-   *
-   * @param chats - Array of ChatData objects to connect websockets for
+   * Establishes WebSocket connection for real-time chat updates
    *
    * @remarks
-   * Initializes a WebSocket for each chat to receive live updates.
-   * Stores WebSocket references for future use.
+   * Initializes a WebSocket for the user to receive live updates.
+   * Stores WebSocket reference.
    */
-  const connectToChats = useCallback((chats: ChatPreview[]) => {
-    chats.forEach((chat) => {
-      if (websocketRefs.current.has(chat.chatId)) {
-        return;
-      }
-      const ws = new WebSocket(`wss://localhost:8000/ws/chats/${chat.chatId}`);
+  const connectWebsocket = useCallback(() => {
+    if (ws.current && ws.current.OPEN) {
+      return;
+    }
 
-      websocketRefs.current.set(chat.chatId, ws);
+    ws.current = new WebSocket("https://localhost:8000/ws/chats");
+    ws.current.onopen = () => {
+      console.log("WebSocket connected.");
+    };
 
-      ws.onopen = () => {
-        console.log(`WebSocket connected for chat ${chat.chatId}`);
-      };
+    ws.current.onmessage = (event) => {
+      const data: WebSocketMessage = JSON.parse(event.data);
+      const chatId = data.chatId;
+      const messageData: ChatMessage = data.message;
 
-      ws.onmessage = (event) => {
-        const firstParse = JSON.parse(event.data);
-        const messageData: ChatMessage = JSON.parse(firstParse);
+      addMessageToChat(chatId, messageData);
+    };
 
-        addMessageToChat(chat.chatId, messageData);
-      };
-
-      ws.onclose = () => {
-        console.log(`WebSocket disconnected for chat ${chat.chatId}`);
-        websocketRefs.current.delete(chat.chatId);
-      };
-    });
+    ws.current.onclose = () => {
+      console.log("WebSocket disconnected.");
+      ws.current = null;
+    };
   }, []);
-
-  /**
-   * Retrieves the WebSocket connection for a specific chat by its ID
-   *
-   * @param chatId - Unique identifier of the chat
-   * @returns The WebSocket object if a connection exists, otherwise undefined
-   *
-   * @remarks
-   * Useful for sending messages or performing actions over the chat's WebSocket.
-   */
-  const getSocketFromId = useCallback(
-    (chatId: string): WebSocket | undefined => {
-      return websocketRefs.current.get(chatId);
-    },
-    []
-  );
 
   /**
    * Creates a new chat with specified parameters
@@ -350,6 +339,8 @@ export const useChats = () => {
     isLoadingPreviews: chatPreviewApi.isLoading,
     /** Error message from the last failed chat preview operation, empty string if no error */
     isErrorPreviews: chatPreviewApi.error,
+    /** Websocket for user */
+    chatWebsocket: ws.current,
 
     /** Array of chat details, empty array if no chats are loaded */
     chatDetails: chatDetailsApi.data || new Map<string, ChatDetails>(),
@@ -365,12 +356,9 @@ export const useChats = () => {
     /** Function to fetch user info for a specific user */
     fetchUserInfo,
     /** Function to connect websockets for real-time chat updates */
-    connectToChats,
-    /** Function to get the WebSocket for a specific chat by its ID */
-    getSocketFromId,
+    connectWebsocket,
     /** Function to create a new chat */
     createChat,
-
     /** Chats sorted by most recent activity in descending order */
     sortedChatPreviews,
   };
