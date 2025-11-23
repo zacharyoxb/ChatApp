@@ -179,6 +179,34 @@ async def create_new_chat(
 # =============== WEBSOCKET METHODS ===============
 
 
+async def listen_for_messages(pubsub, websocket: WebSocket):
+    """ Listens for Redis Pub/Sub messages and forwards them to the WebSocket client.
+
+    Args:
+        pubsub: Redis Pub/Sub connection for receiving messages.
+        websocket (WebSocket): WebSocket connection to send messages to the client.
+
+    Note:
+        Runs continuously until the WebSocket connection is closed.
+        Only processes messages of type 'message' from Redis.
+    """
+    async for message in pubsub.listen():
+        if message['type'] == 'message':
+            message_data = message['data']
+            raw_message = json.loads(message_data)
+            (message_id, sender_id, sender_username,
+             content, timestamp) = raw_message.values()
+
+            message_obj = ChatMessage(
+                message_id=message_id,
+                sender_id=sender_id,
+                sender_username=sender_username,
+                content=content,
+                timestamp=timestamp
+            )
+            await websocket.send_json(message_obj.model_dump_json(by_alias=True))
+
+
 @router.websocket("/ws/chats/{chat_id}")
 async def chat_websocket(
         websocket: WebSocket,
@@ -192,7 +220,6 @@ async def chat_websocket(
     Raises:
         HTTPException: Exception thrown if the user's session has expired. (401 UNAUTHORIZED)
     """
-    # This cookie check is probably not super secure, but it's better than nothing
     session_id = websocket.cookies.get("session_id")
     session_data = await redis_service.get_session(session_id)
     if session_data is None:
@@ -203,13 +230,13 @@ async def chat_websocket(
 
     if not is_in_chat:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Session does not exist or has expired")
+                            detail=f"User isn't in the chat by the id {chat_id}")
 
     await websocket.accept()
 
     async with redis_service.subscribe_to_chat(chat_id) as pubsub:
         listen_task = asyncio.create_task(
-            redis_service.listen_for_messages(pubsub, websocket)
+            listen_for_messages(pubsub, websocket)
         )
 
         try:
@@ -218,7 +245,7 @@ async def chat_websocket(
                 parsed_data = json.loads(data)
                 content = parsed_data.get("content")
                 await redis_service.send_chat_message(
-                    chat_id, session_data.user_id, content)
+                    chat_id, session_data.user_id, session_data.username, content)
         except WebSocketDisconnect:
             pass
         finally:

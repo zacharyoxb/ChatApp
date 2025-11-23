@@ -212,13 +212,13 @@ export const useChats = () => {
 
   /** Fetches UserInfo from backend for a specific user.
    *
-   * @param chats - Id of user to get UserInfo for
+   * @param username - Username to get userinfo for
    *
    * @returns userInfo for user.
    */
-  const fetchUserInfo = useCallback(async (userId: string) => {
+  const fetchUserInfo = useCallback(async (username: string) => {
     try {
-      const response = await fetch(`https://localhost:8000/users/${userId}`, {
+      const response = await fetch(`https://localhost:8000/users/${username}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

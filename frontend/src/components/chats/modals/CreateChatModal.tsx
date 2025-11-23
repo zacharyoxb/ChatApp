@@ -11,7 +11,7 @@ import type { UserInfo } from "../../../hooks/chats/useChats";
 interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddMember: (userId: string) => Promise<UserInfo | null>;
+  onAddMember: (username: string) => Promise<UserInfo | null>;
   onCreateChat: (
     chatName: string,
     members: UserInfo[],

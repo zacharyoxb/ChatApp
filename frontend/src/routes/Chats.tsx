@@ -29,16 +29,14 @@ function Chats() {
   }, []);
 
   useEffect(() => {
+    // If previews have finished loading and there is at least 1 chat
     if (chats.chatPreviews.length > 0 && !chats.isLoadingPreviews) {
+      // If a chat is selected and hasn't already been fetched
       if (chatId && !hasFetchedHistoryRef.current.get(chatId)) {
         hasFetchedHistoryRef.current.set(chatId, true);
         chats.fetchChatDetails(chatId);
       }
       chats.connectToChats(chats.chatPreviews);
-
-      if (chats.isErrorPreviews) {
-        console.error("Error connecting to chats:", chats.isErrorPreviews);
-      }
     }
   }, [
     chatId,

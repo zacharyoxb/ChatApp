@@ -6,7 +6,6 @@ import time
 from typing import Optional
 import uuid
 
-from fastapi import WebSocket
 from pydantic import BaseModel
 from redis.asyncio import ConnectionPool, Redis
 import redis.asyncio as redis
@@ -165,8 +164,19 @@ class RedisService:
 
         return message_id
 
-    async def send_chat_message(self, chat_id: str, sender_id: str, message: str):
+    async def send_chat_message(
+            self,
+            chat_id: str,
+            sender_id: str,
+            sender_username: str,
+            message: str
+    ) -> str:
         """ Log a message to the chat's stream.
+
+        Note - The username is only sent to the pubsub service, when the message
+        is logged to the stream the sender is only identified by id. This makes sure
+        the username is always correct if a user changes their name after messages
+        have already been sent.
 
         Args:
             sender_id (str): Hex id of the chat which the stream will contain.
@@ -176,20 +186,21 @@ class RedisService:
         Returns:
             str: Id of the message just sent.
         """
-        message_dict = {
+        stream_mssg = {
             "sender_id": sender_id,
             "content": message,
             "timestamp": datetime.now().isoformat()
         }
-        message_id = await self._streams_redis.xadd(chat_id, message_dict)
+        message_id = await self._streams_redis.xadd(chat_id, stream_mssg)
 
-        message_with_id = {
+        pubsub_mssg = {
             "message_id": message_id,
             "sender_id": sender_id,
+            "sender_username": sender_username,
             "content": message,
-            "timestamp": message_dict["timestamp"]
+            "timestamp": stream_mssg["timestamp"]
         }
-        message_json = json.dumps(message_with_id)
+        message_json = json.dumps(pubsub_mssg)
         await self._streams_redis.publish(chat_id, message_json)
 
         return message_id
@@ -201,7 +212,7 @@ class RedisService:
         end_id: Optional[str] = None,
         count: int = 15,
     ) -> list[ChatMessage]:
-        """ Gets history of chat
+        """ Gets history of chat.
 
         Args:
             chat_id (str): The id of the chat stream
@@ -253,31 +264,6 @@ class RedisService:
         )
 
         return formatted_message
-
-    async def listen_for_messages(self, pubsub, websocket: WebSocket):
-        """ Listens for Redis Pub/Sub messages and forwards them to the WebSocket client.
-
-        Args:
-            pubsub: Redis Pub/Sub connection for receiving messages.
-            websocket (WebSocket): WebSocket connection to send messages to the client.
-
-        Note:
-            Runs continuously until the WebSocket connection is closed.
-            Only processes messages of type 'message' from Redis.
-        """
-        async for message in pubsub.listen():
-            if message['type'] == 'message':
-                message_data = message['data']
-                raw_message = json.loads(message_data)
-                (message_id, sender_id, content, timestamp) = raw_message.values()
-
-                message_obj = ChatMessage(
-                    message_id=message_id,
-                    sender_id=sender_id,
-                    content=content,
-                    timestamp=timestamp
-                )
-                await websocket.send_json(message_obj.model_dump_json(by_alias=True))
 
 
 redis_service = RedisService()
