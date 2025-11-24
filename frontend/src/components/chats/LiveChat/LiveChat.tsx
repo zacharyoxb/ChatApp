@@ -40,7 +40,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
   const navigate = useNavigate();
 
   if (!chatPreview || !chatDetails) {
-    return <h2 className={styles.noChat}> Temp </h2>;
+    return <h2 className={styles.noChat}> Loading... </h2>;
   }
 
   const handleSendMessage = () => {
@@ -61,6 +61,31 @@ const LiveChat: React.FC<LiveChatProps> = ({
     if (e.key === "Enter") {
       handleSendMessage();
     }
+  };
+
+  /**
+   * For messages with an @ followed by user id,
+   * replace that with the username for message
+   * display.
+   *
+   * @param content - message content
+   *
+   * @returns content - content with all usernames inserted
+   */
+  const insertUsernames = (content: string) => {
+    if (!content.includes("@")) {
+      return content;
+    }
+
+    const userMap = new Map();
+    chatDetails.participants.forEach((participant) => {
+      userMap.set(participant.userId, participant.username);
+    });
+
+    return content.replace(/@([^@\s]{32})/g, (match, userId) => {
+      const username = userMap.get(userId);
+      return username ? `@${username}` : match;
+    });
   };
 
   const isDm = !!chatPreview.dmParticipantId;
@@ -125,7 +150,9 @@ const LiveChat: React.FC<LiveChatProps> = ({
         {chatDetails.messages.map((message, index) => (
           <div key={index} className={styles.message}>
             <span className={styles.sender}>{message.senderUsername}:</span>
-            <span className={styles.content}>{message.content}</span>
+            <span className={styles.content}>
+              {insertUsernames(message.content)}
+            </span>
           </div>
         ))}
       </div>
