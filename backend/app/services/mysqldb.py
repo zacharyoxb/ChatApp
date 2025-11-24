@@ -1,4 +1,5 @@
 """ Connects to mysql database """
+from datetime import datetime
 from typing import List, Optional
 
 from mysql.connector.aio import MySQLConnectionPool
@@ -9,8 +10,8 @@ from app.templates.chats.responses import ChatPreview, UserInfo, UserRole
 # INSERT queries
 CREATE_USER_QUERY = "INSERT INTO users (user_id, user_name, pass_hash) VALUES (%s, %s, %s)"
 CREATE_CHAT_QUERY = """
-INSERT INTO chats (chat_id, chat_name, created_by, is_public)
-VALUES (%s, %s, %s, %s)
+INSERT INTO chats (chat_id, chat_name, created_by, created_at, is_public)
+VALUES (%s, %s, %s, %s, %s)
 """
 ADD_USER_TO_CHAT_QUERY = """
 INSERT INTO users_in_chats (user_id, chat_id, role)
@@ -126,7 +127,7 @@ class DatabaseService:
             await conn.commit()
             await cursor.close()
 
-    async def create_chat(self, chat_creator_id: bytes, req: NewChatData) -> None:
+    async def create_chat(self, chat_creator_id: bytes, req: NewChatData) -> datetime:
         """ Adds chat to db. 
 
         Args:
@@ -134,9 +135,11 @@ class DatabaseService:
         """
         async with await self._pool.get_connection() as conn:
             cursor = await conn.cursor(prepared=True)
+            created_at = datetime.now()
+
             # create chat
             await cursor.execute(CREATE_CHAT_QUERY, (req.chat_id, req.chat_name, chat_creator_id,
-                                                     req.is_public))
+                                                     created_at, req.is_public))
             # add creator as owner
             await cursor.execute(ADD_USER_TO_CHAT_QUERY,
                                  (chat_creator_id, req.chat_id, 'owner'))
@@ -147,6 +150,7 @@ class DatabaseService:
                                      (other_user_id, req.chat_id, other_user.role))
             await conn.commit()
             await cursor.close()
+        return created_at
 
     async def add_user_to_chat(self, username: str, chat_id: bytes, role: UserRole):
         """ Adds user to chat in db. 

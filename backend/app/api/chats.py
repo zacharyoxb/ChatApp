@@ -147,7 +147,7 @@ async def create_new_chat(
     user_id_hex = session_data.user_id
     user_id = bytes.fromhex(session_data.user_id)
 
-    await db_service.create_chat(user_id, req)
+    created_at = await db_service.create_chat(user_id, req)
 
     message_text = f"NEW CHAT CREATED BY @{user_id_hex}"
     message_id = await redis_service.send_system_message(req.chat_id.hex(), message_text)
@@ -164,6 +164,7 @@ async def create_new_chat(
     return ChatPreview(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,
+        created_at=created_at.isoformat(),
         dm_participant_id=None,
         last_activity=datetime.now().isoformat(),
         last_message=message,

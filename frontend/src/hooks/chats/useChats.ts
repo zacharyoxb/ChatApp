@@ -318,6 +318,13 @@ export const useChats = () => {
           return updatedChatPreviews;
         });
 
+        ws.current?.send(
+          JSON.stringify({
+            type: "subscribe",
+            chatId: newChat.chatId,
+          })
+        );
+
         navigate(`/chats/${newChat.chatId}`);
       } catch (err) {
         chatPreviewApi.setError("Internal Server Error.");
