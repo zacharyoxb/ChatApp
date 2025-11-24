@@ -185,6 +185,7 @@ async def listen_for_messages(chat_id: str, websocket: WebSocket):
         Only processes messages of type 'message' from Redis.
     """
     async with redis_service.subscribe_to_chat(chat_id) as pubsub:
+        # Handles backend -> frontend traffic
         async for message in pubsub.listen():
             if message['type'] == 'message':
                 message_data = message['data']
@@ -227,33 +228,63 @@ async def chat_websocket(websocket: WebSocket):
     previews = await db_service.get_all_user_chats(session_data.username)
     await websocket.accept()
 
-    listen_tasks = []
+    active_subscriptions = {}  # chat_id -> task
+    user_chat_ids = set(preview.chat_id for preview in previews)
+
     for preview in previews:
         task = asyncio.create_task(
             listen_for_messages(preview.chat_id, websocket)
         )
-        listen_tasks.append(task)
-
-    user_chat_ids = [preview.chat_id for preview in previews]
+        active_subscriptions[preview.chat_id] = task
 
     try:
+        # Loop that handles websocket traffic from
+        # frontend -> backend.
         while True:
             data = await websocket.receive_text()
             parsed_data = json.loads(data)
-            chat_id = parsed_data.get("chatId")
-            content = parsed_data.get("content")
 
-            if chat_id in user_chat_ids:
-                await redis_service.send_chat_message(
-                    chat_id, session_data.user_id, session_data.username, content)
-            else:
-                print(
-                    f"User attempted to send message to unauthorized chat: {chat_id}")
+            request_type = parsed_data.get("type")
+            chat_id = parsed_data.get("chatId")
+
+            # check type of request
+            if request_type == "message":
+                content = parsed_data.get("content")
+
+                if chat_id in user_chat_ids:
+                    await redis_service.send_chat_message(
+                        chat_id, session_data.user_id, session_data.username, content)
+                else:
+                    print(
+                        f"User attempted to send message to unauthorized chat: {chat_id}")
+
+            if request_type == "subscribe":
+                # check user isn't already subscribed
+                if chat_id in active_subscriptions:
+                    print(f"Already subscribed to chat {chat_id}")
+                    return
+                # check user is in chat and can subscribe
+                can_subscribe = await db_service.is_user_in_chat(session_data.username, chat_id)
+                if can_subscribe:
+                    task = asyncio.create_task(
+                        listen_for_messages(chat_id, websocket)
+                    )
+                    active_subscriptions[chat_id] = task
+                else:
+                    print(
+                        f"User attempted to subscribe to unauthorized chat: {chat_id}")
+
+            if request_type == "unsubscribe":
+                if chat_id not in active_subscriptions:
+                    print(f"Not subscribed to chat {chat_id}")
+                    return
+                active_subscriptions[chat_id].cancel()
+                del active_subscriptions[chat_id]
 
     except WebSocketDisconnect:
         pass
     finally:
-        for task in listen_tasks:
+        for task in active_subscriptions.values():
             task.cancel()
-        if listen_tasks:
-            await asyncio.gather(*listen_tasks, return_exceptions=True)
+        if active_subscriptions:
+            await asyncio.gather(*active_subscriptions.values(), return_exceptions=True)
