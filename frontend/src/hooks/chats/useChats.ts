@@ -104,8 +104,13 @@ export const useChats = () => {
       });
 
       if (response.status === 401) {
-        navigate("/login", { state: { sessionExpired: true } });
-        return;
+        const data = await response.json();
+        if (data.detail === "SESSION_EXPIRED") {
+          navigate("/login", { state: { sessionExpired: true } });
+        } else {
+          navigate("/login", { state: { noCookie: true } });
+          return;
+        }
       }
 
       if (response.ok) {

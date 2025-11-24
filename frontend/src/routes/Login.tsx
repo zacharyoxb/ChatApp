@@ -20,6 +20,9 @@ function Login() {
       setError("Your session has expired. Please log in again.");
       navigate(location.pathname, { replace: true, state: {} });
       return;
+    } else if (location.state?.noCookie) {
+      setError("You must login before you can access your chats.");
+      navigate(location.pathname, { replace: true, state: {} });
     } else {
       checkSession();
     }
