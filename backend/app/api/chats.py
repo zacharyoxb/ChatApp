@@ -40,13 +40,7 @@ async def get_chat_previews(
 
         last_message_data = await redis_service.get_last_message(chat.chat_id)
         if last_message_data is None:
-            chat.last_message = ChatMessage(
-                message_id="N/A",
-                sender_id=None,
-                sender_username=None,
-                content="N/A",
-                timestamp=None
-            )
+            chat.last_message = None
         else:
             if last_message_data.sender_id == "SERVER":
                 last_sender_username = "SERVER"

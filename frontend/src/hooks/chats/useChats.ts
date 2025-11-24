@@ -44,10 +44,12 @@ export interface ChatPreview {
   chatId: string;
   /** Display name of the chat */
   chatName: string;
+  /** ISO datetime string of the creation time of the chat */
+  createdAt: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
   dmParticipantId?: string;
   /** Last message sent in the chat */
-  lastMessage: ChatMessage;
+  lastMessage?: ChatMessage;
   /** Role of user in non-dm chat */
   myRole?: UserRole;
 }
@@ -324,12 +326,24 @@ export const useChats = () => {
     [chatPreviewApi]
   );
 
+  /** Sorts chat previews by timestamp of last message
+   *
+   * @remarks
+   * Order of chats
+   * 1. Most recently created chats with no messages (i.e. those
+   *    that appear latest in the list)
+   */
   const sortedChatPreviews = useMemo(() => {
-    return (chatPreviewApi.data || []).sort(
-      (prev, next) =>
-        new Date(next.lastMessage.timestamp).getTime() -
-        new Date(prev.lastMessage.timestamp).getTime()
-    );
+    return (chatPreviewApi.data || []).sort((prev, next) => {
+      const nextTime = next.lastMessage
+        ? next.lastMessage.timestamp
+        : next.createdAt;
+      const prevTime = prev.lastMessage
+        ? prev.lastMessage.timestamp
+        : prev.createdAt;
+
+      return new Date(nextTime).getTime() - new Date(prevTime).getTime();
+    });
   }, [chatPreviewApi.data]);
 
   return {

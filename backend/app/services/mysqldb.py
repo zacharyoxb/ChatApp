@@ -30,6 +30,7 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         c.chat_name,
+        c.created_at,
         NULL as other_user_id,
         uic.role
     FROM chats c
@@ -42,6 +43,7 @@ GET_USER_CHATS_QUERY = """
     SELECT 
         c.chat_id,
         other_user.user_name as chat_name,
+        c.created_at,
         other_user.user_id as other_user_id,
         NULL as role
     FROM chats c
@@ -208,7 +210,7 @@ class DatabaseService:
             return result[0] if result else None
 
     async def get_all_user_chats(self, username: str) -> list[ChatPreview]:
-        """ Gets all group chats the user is in, including both group chats and DMs.
+        """ Gets previews for all group chats the user is in, including both group chats and DMs.
 
         Args:
             username (str): Username of the user whose chats are retrieved.
@@ -226,7 +228,8 @@ class DatabaseService:
                 ChatPreview(
                     chat_id=(chat_bytes_id := row[0]) and chat_bytes_id.hex(),
                     chat_name=row[1],
-                    dm_participant_id=(bytes_id := row[2]) and bytes_id.hex(),
+                    created_at=str(row[2]),
+                    dm_participant_id=(bytes_id := row[3]) and bytes_id.hex(),
                     last_message=None,
                     my_role=row[3]
                 )

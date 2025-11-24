@@ -61,12 +61,14 @@ class ChatPreview(BaseModel):
     Attributes:
         chat_id (str): Unique identifier for the chat
         chat_name (str): Display name of the chat
+        created_at: (str) ISO format string representing chat creation time
         dm_participant_id (Optional[str]): The id of the other user if the chat is a dm
         last_message (Optional[ChatMessage]): The most recent message in the chat, if any exists
         my_role (Optional[UserRole]): Current user's role within this chat. None if chat is a dm
     """
     chat_id: str = Field(..., alias="chatId")
     chat_name: str = Field(..., alias="chatName")
+    created_at: str = Field(..., alias="createdAt")
     dm_participant_id: Optional[str] = Field(..., alias="dmParticipantId")
     last_message: Optional[ChatMessage] = Field(..., alias="lastMessage")
     my_role: Optional[UserRole] = Field(..., alias="myRole")

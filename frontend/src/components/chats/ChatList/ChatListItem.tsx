@@ -9,16 +9,28 @@ import type { ChatMessage } from "../../../hooks/chats/useChats";
 interface ChatListItemProps {
   chatUrl: string;
   chatName: string;
+  createdAt: string;
   isDm: boolean;
-  lastMessage: ChatMessage;
+  lastMessage?: ChatMessage;
   chatImage?: string;
 }
 
 const ARIA_LABEL_TEMPLATE = (
   name: string,
+  createdAt: string,
   isDm: boolean,
-  message: ChatMessage
+  message?: ChatMessage
 ): string => {
+  // If no messages yet
+  if (!message) {
+    let date_time_string = datetime_format(createdAt, true);
+    if (isDm) {
+      return `Direct chat with ${name}. No messages yet. Last activity ${date_time_string}`;
+    }
+    return `Group chat ${name}. No messages yet. Last activity ${date_time_string}`;
+  }
+
+  // Otherwise:
   let date_time_string = datetime_format(message.timestamp, true);
   if (isDm) {
     return `Direct chat with ${name}. Last message: ${message.content}. Last activity ${date_time_string}}`;
@@ -29,20 +41,36 @@ const ARIA_LABEL_TEMPLATE = (
 const ChatListItem: React.FC<ChatListItemProps> = ({
   chatUrl,
   chatName,
+  createdAt,
   isDm,
   lastMessage,
   chatImage,
 }) => {
   const navigate = useNavigate();
 
-  let image = chatImage || (isDm ? defaultDm : defaultGroup);
+  const image = chatImage || (isDm ? defaultDm : defaultGroup);
+  const aria_label = ARIA_LABEL_TEMPLATE(
+    chatName,
+    createdAt,
+    isDm,
+    lastMessage
+  );
+
+  let messagePreview;
+  if (isDm) {
+    messagePreview = lastMessage ? lastMessage.content : "No messages yet.";
+  } else {
+    messagePreview = lastMessage
+      ? `${lastMessage.senderUsername}: ${lastMessage.content}`
+      : "No messages yet.";
+  }
 
   return (
     <button
       className={styles.layoutDiv}
       onClick={() => navigate(chatUrl)}
       tabIndex={0}
-      aria-label={ARIA_LABEL_TEMPLATE(chatName, isDm, lastMessage)}
+      aria-label={aria_label}
     >
       <div className={styles.leftCol}>
         <img
@@ -58,13 +86,14 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
       <div className={styles.rightCol}>
         <div className={styles.nameAndDate}>
           <div>{chatName}</div>
-          <div>{datetime_format(lastMessage.timestamp, false)}</div>
+          <div>
+            {datetime_format(
+              lastMessage ? lastMessage.timestamp : createdAt,
+              false
+            )}
+          </div>
         </div>
-        <div className={styles.message}>
-          {isDm
-            ? lastMessage.content
-            : `${lastMessage.senderUsername}: ${lastMessage.content}`}
-        </div>
+        <div className={styles.message}>{messagePreview}</div>
       </div>
     </button>
   );
