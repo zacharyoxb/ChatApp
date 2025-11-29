@@ -122,12 +122,18 @@ export const useChatPreviews = () => {
   }, [chatPreviewApi.data]);
 
   return {
+    /** Array of chat previews, empty array if no chats are loaded */
     data: chatPreviewApi.data || [],
+    /** Indicates if a chat preview operation is currently in progress */
     isLoading: chatPreviewApi.isLoading,
+    /** Error message from the last failed chat preview operation, empty string if no error */
     error: chatPreviewApi.isError,
 
+    /** Function to fetch user's participating chats */
     fetchChatPreviews,
+    /** Function to create a new chat */
     createChat,
+    /** Chats sorted by most recent activity in descending order */
     sortedChatPreviews,
   };
 };

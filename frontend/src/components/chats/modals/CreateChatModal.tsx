@@ -6,7 +6,7 @@ import add from "/src/assets/add.png";
 import addLight from "/src/assets/add-light.png";
 import minus from "/src/assets/minus.png";
 import minusLight from "/src/assets/minus-light.png";
-import type { UserInfo } from "../../../hooks/chats/useChats";
+import type { UserInfo } from "../../../types/chats";
 
 interface CreateChatModalProps {
   isOpen: boolean;
