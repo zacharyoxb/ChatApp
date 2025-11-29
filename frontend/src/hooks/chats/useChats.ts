@@ -64,11 +64,41 @@ export interface ChatDetails {
   messages: ChatMessage[];
 }
 
-/** Frontend only type containing format of websocket messages. */
-interface WebSocketMessage {
+/** Types describing format of websocket messages. */
+interface WebSocketMessage<T = any> {
+  type: string;
+  data: T;
+}
+
+interface WSChatMessageData {
   chatId: string;
   message: ChatMessage;
 }
+
+// interface WSTypingIndicatorData {
+//   chatId: string;
+//   userId: string;
+//   username: string;
+//   isTyping: boolean;
+// }
+
+// interface WSUserAddedData {
+//   chatId: string;
+//   addedBy: string;
+// }
+
+// interface WSUserRemovedData {
+//   chatId: string;
+//   removedBy: string;
+// }
+
+// Message type to data type mapping
+type MessageTypeMap = {
+  message: WSChatMessageData;
+  // typing_indicator: WSTypingIndicatorData;
+  // user_added: WSUserAddedData;
+  // user_removed: WSUserRemovedData;
+};
 
 /**
  * Custom hook for fetching previews of chats and the creation and deletion of chats.
@@ -128,27 +158,27 @@ export const useChats = () => {
    * Helper function to add a message to a specific chat
    */
   const addMessageToChat = useCallback(
-    (chatId: string, message: ChatMessage) => {
+    (data: WSChatMessageData) => {
       chatDetailsApi.setSuccess((prev) => {
         const currentMap = prev || new Map<string, ChatDetails>();
 
-        const chatDetails = currentMap.get(chatId);
+        const chatDetails = currentMap.get(data.chatId);
         if (!chatDetails) {
           return currentMap;
         }
 
         const sender = chatDetails.participants.find(
-          (user) => user.userId == message.senderId
+          (user) => user.userId == data.message.senderId
         );
 
-        message.senderUsername = sender?.username || "UNKNOWN";
+        data.message.senderUsername = sender?.username || "UNKNOWN";
 
         const updatedChatDetails = {
           ...chatDetails,
-          messages: [...chatDetails.messages, message],
+          messages: [...chatDetails.messages, data.message],
         };
 
-        return new Map(prev).set(chatId, updatedChatDetails);
+        return new Map(prev).set(data.chatId, updatedChatDetails);
       });
 
       chatPreviewApi.setSuccess((prevData) => {
@@ -157,10 +187,10 @@ export const useChats = () => {
         }
 
         const updatedChats = prevData.map((chat) =>
-          chat.chatId === chatId
+          chat.chatId === data.chatId
             ? {
                 ...chat,
-                lastMessage: message,
+                lastMessage: data.message,
               }
             : { ...chat }
         );
@@ -273,11 +303,16 @@ export const useChats = () => {
     };
 
     ws.current.onmessage = (event) => {
-      const data: WebSocketMessage = JSON.parse(event.data);
-      const chatId = data.chatId;
-      const messageData: ChatMessage = data.message;
+      const ws_mssg: WebSocketMessage = JSON.parse(event.data);
 
-      addMessageToChat(chatId, messageData);
+      console.log(ws_mssg);
+
+      switch (ws_mssg.type as keyof MessageTypeMap) {
+        case "message":
+          const chatMessage: WSChatMessageData = ws_mssg.data;
+          addMessageToChat(chatMessage);
+          break;
+      }
     };
 
     ws.current.onclose = () => {

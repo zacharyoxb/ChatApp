@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import HTTPException, WebSocket, status
 from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
-from app.templates.chats.responses import ChatMessage, WebsocketMessage
+from app.templates.chats.responses import ChatMessage, WSChatMessageData, WebsocketMessage
 
 
 class WebSocketConnectionManager:
@@ -189,12 +189,17 @@ async def listen_for_messages(chat_id: str, websocket: WebSocket):
                     timestamp=timestamp
                 )
 
-                message_data = WebsocketMessage(
+                ws_payload = WSChatMessageData(
                     chat_id=chat_id,
                     message=message_obj
                 )
 
-                await websocket.send_json(message_data.model_dump(by_alias=True))
+                full_message = WebsocketMessage(
+                    type="message",
+                    data=ws_payload
+                )
+
+                await websocket.send_json(full_message.model_dump(by_alias=True))
 
 
 async def listen_for_notifications(user_id: str, websocket: WebSocket):

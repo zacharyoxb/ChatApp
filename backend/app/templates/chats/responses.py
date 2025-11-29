@@ -1,6 +1,6 @@
 """ Templates for chats.py responses """
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -96,20 +96,60 @@ class ChatDetails(BaseModel):
 
 
 class WebsocketMessage(BaseModel):
-    """ Chat message data sent across WebSocket
+    """Generic WebSocket message container with type-based payload.
 
     Attributes:
-        chat_id (str): Hex id of chat the message is from
-        message: Details of the message sent
+        type (str): Type identifier for the message (e.g., 'message', 'user_added', 'user_removed')
+        data (Dict[str, Any]): Payload data specific to the message type
+    """
+    type: str
+    data: Any
+
+    class Config:
+        """Pydantic configuration for field name aliasing."""
+        populate_by_name = True
+
+
+class WSChatMessageData(BaseModel):
+    """Data payload for chat message WebSocket events.
+
+    Attributes:
+        chat_id (str): Unique identifier of the chat where the message was sent
+        message (ChatMessage): The chat message content and metadata
     """
     chat_id: str = Field(..., alias="chatId")
     message: ChatMessage
 
     class Config:
-        """ Pydantic configuration for field name aliasing."""
+        """Pydantic configuration for field name aliasing."""
         populate_by_name = True
 
 
-class WebSocketNotification(BaseModel):
-    """ Notification data sent across WebSocket
+class WSUserAddedData(BaseModel):
+    """Data payload for user added to chat notification.
+
+    Attributes:
+        chat_id (str): Unique identifier of the chat the user was added to
+        added_by (str): User ID of the person who added the user to the chat
     """
+    chat_id: str = Field(..., alias="chatId")
+    added_by: str = Field(..., alias="addedBy")
+
+    class Config:
+        """Pydantic configuration for field name aliasing."""
+        populate_by_name = True
+
+
+class WSUserRemovedData(BaseModel):
+    """Data payload for user removed from chat notification.
+
+    Attributes:
+        chat_id (str): Unique identifier of the chat the user was removed from
+        removed_by (str): User ID of the person who removed the user from the chat
+    """
+    chat_id: str = Field(..., alias="chatId")
+    removed_by: str = Field(..., alias="removedBy")
+
+    class Config:
+        """Pydantic configuration for field name aliasing."""
+        populate_by_name = True
