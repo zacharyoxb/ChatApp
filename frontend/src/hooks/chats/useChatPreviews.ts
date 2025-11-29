@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useApi } from "../common/apiStates";
 import type { ChatPreview, UserInfo } from "../../types/chats";
@@ -100,4 +100,34 @@ export const useChatPreviews = () => {
     },
     [chatPreviewApi]
   );
+
+  /** Sorts chat previews by timestamp of last message
+   *
+   * @remarks
+   * Order of chats
+   * 1. Most recently created chats with no messages (i.e. those
+   *    that appear latest in the list)
+   */
+  const sortedChatPreviews = useMemo(() => {
+    return (chatPreviewApi.data || []).sort((prev, next) => {
+      const nextTime = next.lastMessage
+        ? next.lastMessage.timestamp
+        : next.createdAt;
+      const prevTime = prev.lastMessage
+        ? prev.lastMessage.timestamp
+        : prev.createdAt;
+
+      return new Date(nextTime).getTime() - new Date(prevTime).getTime();
+    });
+  }, [chatPreviewApi.data]);
+
+  return {
+    data: chatPreviewApi.data || [],
+    isLoading: chatPreviewApi.isLoading,
+    error: chatPreviewApi.isError,
+
+    fetchChatPreviews,
+    createChat,
+    sortedChatPreviews,
+  };
 };
