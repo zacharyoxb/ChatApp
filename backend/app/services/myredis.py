@@ -121,21 +121,21 @@ class RedisService:
     # =============== CHAT METHODS ===============
 
     @asynccontextmanager
-    async def subscribe_to_chat(self, chat_id: str):
-        """ Context manager for subscribing to chat Pub/Sub
+    async def subscribe_to_channel(self, channel_id: str):
+        """ Context manager for subscribing to Pub/Sub channels
 
         Args:
-            chat_id (str): The id of the chat being subscribed to.
+            channel_id (str): The id of the channel being subscribed to.
 
         Yields:
             PubSub: Redis pubsub instance. 
         """
         pubsub = self._streams_redis.pubsub()
         try:
-            await pubsub.subscribe(chat_id)
+            await pubsub.subscribe(channel_id)
             yield pubsub
         finally:
-            await pubsub.unsubscribe(chat_id)
+            await pubsub.unsubscribe(channel_id)
             await pubsub.close()
 
     async def send_system_message(self, chat_id: str, message: str) -> str:
@@ -179,8 +179,9 @@ class RedisService:
         have already been sent.
 
         Args:
+            chat_id (str): Id of the chat to send to.
             sender_id (str): Hex id of the chat which the stream will contain.
-            user_id (str): Hex id of the subscribing user.
+            sender_username (str): Username of the user.
             message (str): Message to send. 
 
         Returns:

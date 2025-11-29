@@ -11,7 +11,8 @@ from app.api.session import auth_session
 from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
 from app.templates.chats.requests import NewChatData
-from app.templates.chats.responses import ChatDetails, ChatMessage, ChatPreview, UserRole
+from app.templates.chats.responses import (ChatDetails, ChatMessage, ChatPreview,
+                                           UserRole, WebsocketMessage)
 
 router = APIRouter()
 
@@ -109,7 +110,6 @@ async def get_chat_details(
         if msg.sender_id == "SERVER":
             msg.sender_username = "SERVER"
         else:
-
             msg.sender_username = (user_id_to_username.get(msg.sender_id)) or (
                 await db_service.get_username(msg.sender_id))
 
@@ -174,25 +174,21 @@ async def create_new_chat(
 # =============== WEBSOCKET METHODS ===============
 
 
-async def listen_for_messages(chat_id: str, websocket: WebSocket):
-    """ Listens for Redis Pub/Sub messages and forwards them to the WebSocket client.
+async def listen_for_notifications(user_id: str, websocket: WebSocket):
+    """ Listens for Redis Pub/Sub messages via user id and forwards them to the WebSocket client.
 
     Args:
-        pubsub: Redis Pub/Sub connection for receiving messages.
+        user_id (str): The id of the redis channel to connect to.
         websocket (WebSocket): WebSocket connection to send messages to the client.
-
-    Note:
-        Runs continuously until the WebSocket connection is closed.
-        Only processes messages of type 'message' from Redis.
     """
-    async with redis_service.subscribe_to_chat(chat_id) as pubsub:
+    async with redis_service.subscribe_to_channel(user_id) as pubsub:
         # Handles backend -> frontend traffic
-        async for message in pubsub.listen():
+        async for message in pubsub.listen():  # TODO
             if message['type'] == 'message':
                 message_data = message['data']
                 raw_message = json.loads(message_data)
                 (message_id, sender_id, sender_username,
-                 content, timestamp) = raw_message.values()
+                    content, timestamp) = raw_message.values()
 
                 message_obj = ChatMessage(
                     message_id=message_id,
@@ -203,16 +199,56 @@ async def listen_for_messages(chat_id: str, websocket: WebSocket):
                 )
 
                 message_data = {
-                    "chatId": chat_id,
+                    "userId": user_id,
                     "message": message_obj.model_dump(by_alias=True)
                 }
 
                 await websocket.send_json(message_data)
 
 
+async def listen_for_messages(chat_id: str, websocket: WebSocket):
+    """ Listens for Redis Pub/Sub messages via chat id and forwards them to the WebSocket client.
+
+    Args:
+        chat_id (str): The id of the redis channel to connect to.
+        websocket (WebSocket): WebSocket connection to send messages to the client.
+
+    Note:
+        Runs continuously until the WebSocket connection is closed.
+        Only processes messages of type 'message' from Redis.
+    """
+    async with redis_service.subscribe_to_channel(chat_id) as pubsub:
+        # Handles backend -> frontend traffic
+        async for message in pubsub.listen():
+            if message['type'] == 'message':
+                message_data = message['data']
+                raw_message = json.loads(message_data)
+
+                message_id = raw_message['message_id']
+                sender_id = raw_message['sender_id']
+                sender_username = raw_message['sender_username']
+                content = raw_message['content']
+                timestamp = raw_message['timestamp']
+
+                message_obj = ChatMessage(
+                    message_id=message_id,
+                    sender_id=sender_id,
+                    sender_username=sender_username,
+                    content=content,
+                    timestamp=timestamp
+                )
+
+                message_data = WebsocketMessage(
+                    chat_id=chat_id,
+                    message=message_obj
+                )
+
+                await websocket.send_json(message_data.model_dump(by_alias=True))
+
+
 @router.websocket("/ws/chats")
 async def chat_websocket(websocket: WebSocket):
-    """ Websocket endpoint for chats
+    """ Websocket endpoint for all chat related notifications.
 
     Args:
         websocket (WebSocket): WebSocket connection to send messages to the client.
@@ -232,6 +268,13 @@ async def chat_websocket(websocket: WebSocket):
     active_subscriptions = {}  # chat_id -> task
     user_chat_ids = set(preview.chat_id for preview in previews)
 
+    # receive notifications:
+    # from redis based on user ids for when user is removed/added to chat
+    task = asyncio.create_task(
+        listen_for_messages(session_data.user_id, websocket)
+    )
+    active_subscriptions[session_data.user_id] = task
+    # from redis based on chat_ids for when user recieves message
     for preview in previews:
         task = asyncio.create_task(
             listen_for_messages(preview.chat_id, websocket)

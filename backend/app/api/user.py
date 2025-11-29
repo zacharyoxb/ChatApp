@@ -41,12 +41,3 @@ async def get_new_user_template(
     except mysql.connector.Error as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="Database operation failed") from e
-
-
-@router.get("/ws/users/{username}")
-async def notification_stream(_username: str):
-    """_summary_
-
-    Args:
-        username (str): _description_
-    """

@@ -93,3 +93,23 @@ class ChatDetails(BaseModel):
     class Config:
         """ Pydantic configuration for field name aliasing."""
         populate_by_name = True
+
+
+class WebsocketMessage(BaseModel):
+    """ Chat message data sent across WebSocket
+
+    Attributes:
+        chat_id (str): Hex id of chat the message is from
+        message: Details of the message sent
+    """
+    chat_id: str = Field(..., alias="chatId")
+    message: ChatMessage
+
+    class Config:
+        """ Pydantic configuration for field name aliasing."""
+        populate_by_name = True
+
+
+class WebSocketNotification(BaseModel):
+    """ Notification data sent across WebSocket
+    """
