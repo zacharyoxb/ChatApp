@@ -88,9 +88,6 @@ async def get_chat_details(
 
     Args:
         chat_id (str): Hex string identifier of the chat.
-        start_id (str, optional): Hex string ID of the starting message for the range.
-        end_id (str, optional): Hex string ID of the ending message for the range.
-        count (int, optional): Maximum number of messages to retrieve. Defaults to 20.
 
     Returns:
         List[ChatMessage]: Array of chat messages in the specified chat.

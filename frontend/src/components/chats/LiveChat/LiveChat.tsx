@@ -8,12 +8,13 @@ import arrowLight from "/src/assets/arrow-light.png";
 import type { DropdownOption } from "../../common/Dropdown";
 import Dropdown from "../../common/Dropdown";
 import { useState } from "react";
-import type { ChatDetails, ChatPreview } from "../../../hooks/chats/useChats";
 import { useNavigate } from "react-router";
+import type { ChatDetails, ChatPreview } from "../../../types/chats";
 
 interface LiveChatProps {
-  chatPreview: ChatPreview | undefined;
-  chatDetails: ChatDetails | undefined;
+  isPending: boolean;
+  chatPreview: ChatPreview | null;
+  chatDetails: ChatDetails | null;
   chatWebSocket: WebSocket | null;
 }
 
@@ -32,6 +33,7 @@ const dropdownDmChat: DropdownOption[] = [
 ];
 
 const LiveChat: React.FC<LiveChatProps> = ({
+  isPending,
   chatPreview,
   chatDetails,
   chatWebSocket,
@@ -39,8 +41,12 @@ const LiveChat: React.FC<LiveChatProps> = ({
   const [messageInput, setMessageInput] = useState("");
   const navigate = useNavigate();
 
-  if (!chatPreview || !chatDetails) {
+  if (isPending) {
     return <h2 className={styles.noChat}> Loading... </h2>;
+  }
+
+  if (!chatPreview || !chatDetails) {
+    return <h2 className={styles.noChat}> Error: problem fetching data. </h2>;
   }
 
   const handleSendMessage = () => {

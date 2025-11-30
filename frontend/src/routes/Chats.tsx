@@ -7,32 +7,33 @@ import CreateChatModal from "../components/chats/modals/CreateChatModal";
 import { useSession } from "../hooks/common/useSession";
 import { useParams } from "react-router";
 import LiveChat from "../components/chats/LiveChat/LiveChat";
-import ChatList from "../components/chats/ChatList/ChatList";
+import PreviewList from "../components/chats/ChatList/PreviewList";
 import { useChats } from "../hooks/chats/useChats";
 import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 import type { UserInfo } from "../types/chats";
+import { useChatDetails } from "../hooks/chats/useChatDetails";
 
 function Chats() {
   const session = useSession();
-  const chatPreviews = useChatPreviews();
-  const chats = useChats();
-  const createChatModal = useModal();
-
   const params = useParams();
   const chatId = params.chatId;
+
+  const chatPreviews = useChatPreviews();
+  const chatDetails = useChatDetails(chatId);
+  const chats = useChats();
+  const createChatModal = useModal();
 
   const ws = useRef<WebSocket>(null);
 
   useEffect(() => {
     // If previews have finished loading and there is at least 1 chat
     if (chatPreviews.data.length > 0 && !chatPreviews.isPending) {
-      // If a chat is selected and hasn't already been fetched
-      if (chatId) {
-        chats.fetchChatDetails(chatId);
-      }
-      chats.connectWebsocket();
+      chats.connectWebsocket(
+        chatPreviews.updateLastMessage,
+        chatDetails.addMessage
+      );
     }
-  }, [chatId, chatPreviews.data, chats.connectWebsocket]);
+  }, [chatPreviews.data, chats.connectWebsocket]);
 
   /**
    * Creates a chat, injecting the current WebSocket for real-time updates.
@@ -86,10 +87,16 @@ function Chats() {
           <Dropdown menuOptions={selectionListDropdown}></Dropdown>
         </div>
         <div className={styles.middleBar}>
-          <ChatList
-            chats={chatPreviews.sortedChatPreviews}
-            isLoading={chatPreviews.isPending}
-          />
+          {chatPreviews.isPending ? (
+            <h2> Chats Loading...</h2>
+          ) : chatPreviews.isError ? (
+            <h2>
+              {" "}
+              Chat Error: {chatPreviews.error?.message || "Unknown error"}
+            </h2>
+          ) : (
+            <PreviewList chats={chatPreviews.sortedChatPreviews} />
+          )}
         </div>
         <div className={styles.bottomBar}></div>
         <CreateChatModal
@@ -102,17 +109,27 @@ function Chats() {
       <div
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
-        {chatId ? (
-          <LiveChat
-            chatPreview={chatPreviews.data.find(
-              (preview) => preview.chatId == chatId
-            )}
-            chatDetails={chats.chatDetails.get(chatId)}
-            chatWebSocket={chats.chatWebsocket}
-          ></LiveChat>
-        ) : (
-          <h2 className={styles.noChat}> No chat selected. </h2>
-        )}
+        {!chatId && <h2 className={styles.noChat}> No Chat Selected. </h2>}
+        {chatId &&
+          (chatDetails.isPending ? (
+            <h2> Chat History Loading... </h2>
+          ) : chatDetails.isError ? (
+            <h2>
+              {" "}
+              Chat History Error:{" "}
+              {chatDetails.error?.message || "Unknown Error"}
+            </h2>
+          ) : (
+            <LiveChat
+              isPending={chatDetails.isPending}
+              chatPreview={
+                chatPreviews.data.find((preview) => preview.chatId == chatId) ||
+                null
+              }
+              chatDetails={chatDetails.data || null}
+              chatWebSocket={chats.chatWebsocket}
+            ></LiveChat>
+          ))}
       </div>
     </div>
   );

@@ -1,13 +1,17 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router";
-import type { ChatPreview, UserInfo } from "../../types/chats";
+import type {
+  ChatPreview,
+  UserInfo,
+  WSChatMessageData,
+} from "../../types/chats";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useChatPreviews = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const previewFetch = useQuery({
-    queryKey: ["chatPreviews"],
+  const fetchPreview = useQuery({
+    queryKey: ["chatPreviews", navigate],
     queryFn: async () => {
       const response = await fetch("https://localhost:8000/chats/my-chats", {
         method: "GET",
@@ -99,11 +103,37 @@ export const useChatPreviews = () => {
     },
   });
 
-  /** Sorts chat previews by timestamp of last message
+  /**
+   * Updates the last message for a specific chat in the previews cache
    *
+   * @param messageData - message data from WebSocket
+   */
+  const updateLastMessage = useCallback(
+    (messageData: WSChatMessageData) => {
+      queryClient.setQueryData(
+        ["chatPreviews"],
+        (prev: ChatPreview[] | undefined) => {
+          if (!prev) return prev;
+
+          return prev.map((chat) =>
+            chat.chatId === messageData.chatId
+              ? {
+                  ...chat,
+                  lastMessage: messageData.message,
+                }
+              : chat
+          );
+        }
+      );
+    },
+    [queryClient]
+  );
+
+  /**
+   * Sorts chat previews by timestamp of last message
    */
   const sortedChatPreviews = useMemo(() => {
-    return (previewFetch.data || []).sort((prev, next) => {
+    return (fetchPreview.data || []).sort((prev, next) => {
       const nextTime = next.lastMessage
         ? next.lastMessage.timestamp
         : next.createdAt;
@@ -113,19 +143,24 @@ export const useChatPreviews = () => {
 
       return new Date(nextTime).getTime() - new Date(prevTime).getTime();
     });
-  }, [previewFetch.data]);
+  }, [fetchPreview.data]);
 
   return {
     /** Pending state */
-    isPending: previewFetch.isPending,
+    isPending: fetchPreview.isPending,
     /** Error state */
-    isError: previewFetch.isError,
+    isError: fetchPreview.isError,
+    /** Success state */
+    isSuccess: fetchPreview.isSuccess,
+
     /** Array of chat previews, empty array if no chats are loaded */
-    data: previewFetch.data || [],
-    /** Error message from the last failed chat preview operation, empty string if no error */
-    error: previewFetch.error,
+    data: fetchPreview.data || [],
+    /** Error message from the last failed chat preview operation, null if no error */
+    error: fetchPreview.error,
     /** Function to create a new chat */
     createChatMutation,
+    /** Updates the last message sent */
+    updateLastMessage,
     /** Chats sorted by most recent activity in descending order */
     sortedChatPreviews,
   };

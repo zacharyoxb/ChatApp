@@ -1,18 +1,15 @@
 import type { ChatPreview } from "../../../types/chats";
-import styles from "./ChatList.module.css";
+import styles from "./PreviewList.module.css";
 import ChatListItem from "./ChatListItem";
 
-interface ChatListProps {
+interface PreviewListProps {
   chats: ChatPreview[];
-  isLoading: boolean;
 }
 
-const ChatList: React.FC<ChatListProps> = ({ chats, isLoading }) => {
+const PreviewList: React.FC<PreviewListProps> = ({ chats }) => {
   return (
     <div className={styles.chatList}>
-      {isLoading ? (
-        <h2> Chats Loading...</h2>
-      ) : chats.length === 0 ? (
+      {chats.length === 0 ? (
         <h2> You aren't in any chats. </h2>
       ) : (
         chats.map((chat) => (
@@ -30,4 +27,4 @@ const ChatList: React.FC<ChatListProps> = ({ chats, isLoading }) => {
   );
 };
 
-export default ChatList;
+export default PreviewList;
