@@ -1,23 +1,14 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { useApi } from "../common/apiStates";
 import type { ChatPreview, UserInfo } from "../../types/chats";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useChatPreviews = () => {
   const navigate = useNavigate();
-  const chatPreviewApi = useApi<ChatPreview[]>();
-
-  /**
-   * Fetches all chats that the current user is participating in
-   *
-   * @remarks
-   * Automatically handles session expiration by redirecting to login page.
-   * Updates the chat list state with fetched data on success.
-   */
-  const fetchChatPreviews = useCallback(async () => {
-    chatPreviewApi.setLoading();
-
-    try {
+  const queryClient = useQueryClient();
+  const previewFetch = useQuery({
+    queryKey: ["chatPreviews"],
+    queryFn: async () => {
       const response = await fetch("https://localhost:8000/chats/my-chats", {
         method: "GET",
         credentials: "include",
@@ -27,22 +18,17 @@ export const useChatPreviews = () => {
         const data = await response.json();
         if (data.detail === "SESSION_EXPIRED") {
           navigate("/login", { state: { sessionExpired: true } });
+          return null;
         } else {
           navigate("/login", { state: { noCookie: true } });
-          return;
+          return null;
         }
       }
 
-      if (response.ok) {
-        const data: ChatPreview[] = await response.json();
-        chatPreviewApi.setSuccess(data);
-      } else {
-        chatPreviewApi.setError("Failed to fetch chats");
-      }
-    } catch (err) {
-      chatPreviewApi.setError("Internal Server Error");
-    }
-  }, [chatPreviewApi.data, navigate]);
+      const data: ChatPreview[] = await response.json();
+      return data;
+    },
+  });
 
   /**
    * Creates a new chat with specified parameters
@@ -52,64 +38,72 @@ export const useChatPreviews = () => {
    * @param isPublic - Whether the chat should be publicly discoverable
    *
    * @remarks
-   * Automatically updates chat data after operation.
+   * Automatically updates chat data after operation using TanStack Query
    */
-  const createChat = useCallback(
-    async (
-      chatName: string,
-      otherUsers: UserInfo[],
-      isPublic: boolean,
-      ws: WebSocket
-    ) => {
-      try {
-        const response = await fetch("https://localhost:8000/chats", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chatName,
-            otherUsers,
-            isPublic,
-          }),
-          credentials: "include",
-        });
+  const createChatMutation = useMutation({
+    mutationFn: async ({
+      chatName,
+      otherUsers,
+      isPublic,
+      ws,
+    }: {
+      chatName: string;
+      otherUsers: UserInfo[];
+      isPublic: boolean;
+      ws: WebSocket;
+    }) => {
+      void ws; // prevents warning
+      const response = await fetch("https://localhost:8000/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chatName,
+          otherUsers,
+          isPublic,
+        }),
+        credentials: "include",
+      });
 
-        if (response.status !== 201) {
-          chatPreviewApi.setError("Error occurred when creating chat.");
-          return;
-        }
-
-        const newChat: ChatPreview = await response.json();
-
-        chatPreviewApi.setSuccess((prev) => {
-          const safePrev = prev || [];
-          const updatedChatPreviews = [...safePrev, newChat];
-          return updatedChatPreviews;
-        });
-
-        ws.send(
-          JSON.stringify({
-            type: "subscribe",
-            chatId: newChat.chatId,
-          })
-        );
-
-        navigate(`/chats/${newChat.chatId}`);
-      } catch (err) {
-        chatPreviewApi.setError("Internal Server Error.");
+      if (response.status !== 201) {
+        throw new Error("Error occurred when creating chat.");
       }
+
+      return await response.json();
     },
-    [chatPreviewApi]
-  );
+    onSuccess: (newChat: ChatPreview, variables) => {
+      // Update the chat previews cache optimistically
+      queryClient.setQueryData(
+        ["chatPreviews"],
+        (prev: ChatPreview[] | undefined) => {
+          const safePrev = prev || [];
+          return [...safePrev, newChat];
+        }
+      );
+
+      // Subscribe to WebSocket for the new chat
+      variables.ws.send(
+        JSON.stringify({
+          type: "subscribe",
+          chatId: newChat.chatId,
+        })
+      );
+
+      navigate(`/chats/${newChat.chatId}`);
+    },
+    onError: (error: Error) => {
+      console.error("Failed to create chat:", error.message);
+    },
+    // Refetch chat previews after mutation to ensure consistency
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["chatPreviews"] });
+    },
+  });
 
   /** Sorts chat previews by timestamp of last message
    *
-   * @remarks
-   * Order of chats
-   * 1. Most recently created chats with no messages (i.e. those
-   *    that appear latest in the list)
    */
   const sortedChatPreviews = useMemo(() => {
-    return (chatPreviewApi.data || []).sort((prev, next) => {
+    return (previewFetch.data || []).sort((prev, next) => {
       const nextTime = next.lastMessage
         ? next.lastMessage.timestamp
         : next.createdAt;
@@ -119,20 +113,19 @@ export const useChatPreviews = () => {
 
       return new Date(nextTime).getTime() - new Date(prevTime).getTime();
     });
-  }, [chatPreviewApi.data]);
+  }, [previewFetch.data]);
 
   return {
+    /** Pending state */
+    isPending: previewFetch.isPending,
+    /** Error state */
+    isError: previewFetch.isError,
     /** Array of chat previews, empty array if no chats are loaded */
-    data: chatPreviewApi.data || [],
-    /** Indicates if a chat preview operation is currently in progress */
-    isLoading: chatPreviewApi.isLoading,
+    data: previewFetch.data || [],
     /** Error message from the last failed chat preview operation, empty string if no error */
-    error: chatPreviewApi.isError,
-
-    /** Function to fetch user's participating chats */
-    fetchChatPreviews,
+    error: previewFetch.error,
     /** Function to create a new chat */
-    createChat,
+    createChatMutation,
     /** Chats sorted by most recent activity in descending order */
     sortedChatPreviews,
   };

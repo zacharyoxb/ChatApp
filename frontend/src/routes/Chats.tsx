@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
 import styles from "./Chats.module.css";
@@ -21,24 +21,13 @@ function Chats() {
   const params = useParams();
   const chatId = params.chatId;
 
-  const hasFetchedRef = useRef(false);
-  const hasFetchedHistoryRef = useRef<Map<string, boolean>>(new Map());
-
   const ws = useRef<WebSocket>(null);
 
   useEffect(() => {
-    if (!hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      chatPreviews.fetchChatPreviews();
-    }
-  }, []);
-
-  useEffect(() => {
     // If previews have finished loading and there is at least 1 chat
-    if (chatPreviews.data.length > 0 && !chatPreviews.isLoading) {
+    if (chatPreviews.data.length > 0 && !chatPreviews.isPending) {
       // If a chat is selected and hasn't already been fetched
-      if (chatId && !hasFetchedHistoryRef.current.get(chatId)) {
-        hasFetchedHistoryRef.current.set(chatId, true);
+      if (chatId) {
         chats.fetchChatDetails(chatId);
       }
       chats.connectWebsocket();
@@ -49,20 +38,21 @@ function Chats() {
    * Creates a chat, injecting the current WebSocket for real-time updates.
    * Used by CreateChatModal to handle chat creation with WebSocket subscription.
    */
-  const handleCreateChat = useCallback(
-    async (chatName: string, members: UserInfo[], isPublic: boolean) => {
-      if (chats.chatWebsocket === null) {
-        return;
-      }
-      await chatPreviews.createChat(
-        chatName,
-        members,
-        isPublic,
-        chats.chatWebsocket
-      );
-    },
-    [chatPreviews.createChat, ws]
-  );
+  const handleCreateChat = async (
+    chatName: string,
+    members: UserInfo[],
+    isPublic: boolean
+  ) => {
+    if (ws.current === null) {
+      return;
+    }
+    await chatPreviews.createChatMutation.mutateAsync({
+      chatName,
+      otherUsers: members,
+      isPublic,
+      ws: ws.current,
+    });
+  };
 
   const selectionListDropdown: DropdownOption[] = [
     {
@@ -85,7 +75,7 @@ function Chats() {
           aria-live="assertive"
           aria-atomic="true"
         >
-          {chatPreviews.error}
+          {chatPreviews.error.message}
         </div>
       )}
       <div
@@ -98,7 +88,7 @@ function Chats() {
         <div className={styles.middleBar}>
           <ChatList
             chats={chatPreviews.sortedChatPreviews}
-            isLoading={chatPreviews.isLoading}
+            isLoading={chatPreviews.isPending}
           />
         </div>
         <div className={styles.bottomBar}></div>
