@@ -4,7 +4,7 @@ import defaultDm from "/src/assets/default-dm.png";
 import defaultGroup from "/src/assets/default-group.png";
 import { datetime_format } from "../../../utils/formatDatetime";
 import styles from "./ChatListItem.module.css";
-import type { ChatMessage } from "../../../hooks/chats/useChats";
+import type { ChatMessage } from "../../../types/chats";
 
 interface ChatListItemProps {
   chatUrl: string;
