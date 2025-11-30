@@ -181,6 +181,5 @@ export const useSession = () => {
     signup,
     login,
     logout,
-    reset: authApi.reset,
   };
 };

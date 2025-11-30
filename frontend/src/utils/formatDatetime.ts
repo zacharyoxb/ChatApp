@@ -1,13 +1,3 @@
-const formatTimeScreenreader = (date: Date): string => {
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "PM" : "AM";
-
-  const twelveHour = hours % 12 || 12;
-
-  return `${twelveHour}.${minutes.toString().padStart(2, "0")} ${ampm}`;
-};
-
 /**
  * Formats a date string into a human-readable format with special handling for recent dates.
  *
@@ -36,7 +26,11 @@ export const datetime_format = (
 
   if (isToday) {
     formatted_string = isScreenReadable
-      ? `Today at ${formatTimeScreenreader(date)}`
+      ? `Today at ${date.toLocaleTimeString(undefined, {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        })}`
       : date.toLocaleTimeString(undefined, {
           hour: "numeric",
           minute: "numeric",

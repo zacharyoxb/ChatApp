@@ -125,11 +125,9 @@ export const useChatWebSocket = () => {
   /**
    * Manually close the WebSocket connection
    */
-  const disconnectWebsocket = useCallback(() => {
+  const disconnect = useCallback(() => {
     if (websocketQuery.data) {
       websocketQuery.data.close();
-      // The query will remain in cache but the connection is closed
-      // To fully remove, you could invalidate the query
     }
   }, [websocketQuery.data]);
 
@@ -147,7 +145,7 @@ export const useChatWebSocket = () => {
     /** Unsubscribe from a chat */
     unsubscribeFromChat,
     /** Manually disconnect */
-    disconnectWebsocket,
+    disconnect,
     /** Refetch/Reconnect the WebSocket */
     refetch: websocketQuery.refetch,
   };
