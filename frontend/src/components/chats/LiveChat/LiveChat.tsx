@@ -12,10 +12,9 @@ import { useNavigate } from "react-router";
 import type { ChatDetails, ChatPreview } from "../../../types/chats";
 
 interface LiveChatProps {
-  isPending: boolean;
   chatPreview: ChatPreview | null;
   chatDetails: ChatDetails | null;
-  chatWebSocket: WebSocket | null;
+  chatWebSocket: WebSocket | undefined;
 }
 
 const dropdownGroupChat: DropdownOption[] = [
@@ -33,17 +32,12 @@ const dropdownDmChat: DropdownOption[] = [
 ];
 
 const LiveChat: React.FC<LiveChatProps> = ({
-  isPending,
   chatPreview,
   chatDetails,
   chatWebSocket,
 }) => {
   const [messageInput, setMessageInput] = useState("");
   const navigate = useNavigate();
-
-  if (isPending) {
-    return <h2 className={styles.noChat}> Loading... </h2>;
-  }
 
   if (!chatPreview || !chatDetails) {
     return <h2 className={styles.noChat}> Error: problem fetching data. </h2>;

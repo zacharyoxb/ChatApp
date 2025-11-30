@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
 import styles from "./Chats.module.css";
@@ -8,32 +8,33 @@ import { useSession } from "../hooks/common/useSession";
 import { useParams } from "react-router";
 import LiveChat from "../components/chats/LiveChat/LiveChat";
 import PreviewList from "../components/chats/ChatList/PreviewList";
-import { useChats } from "../hooks/chats/useChats";
+import { useChatWebSocket } from "../hooks/chats/useChatWebSocket";
 import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 import type { UserInfo } from "../types/chats";
 import { useChatDetails } from "../hooks/chats/useChatDetails";
+import { useUserInfo } from "../hooks/chats/useUserInfo";
 
 function Chats() {
   const session = useSession();
   const params = useParams();
   const chatId = params.chatId;
 
+  // Chat hooks
+  const userInfo = useUserInfo();
   const chatPreviews = useChatPreviews();
   const chatDetails = useChatDetails(chatId);
-  const chats = useChats();
+  const chatWebSocket = useChatWebSocket();
+
   const createChatModal = useModal();
 
-  const ws = useRef<WebSocket>(null);
-
   useEffect(() => {
-    // If previews have finished loading and there is at least 1 chat
-    if (chatPreviews.data.length > 0 && !chatPreviews.isPending) {
-      chats.connectWebsocket(
+    if (!chatWebSocket.isConnecting) {
+      chatWebSocket.connect(
         chatPreviews.updateLastMessage,
         chatDetails.addMessage
       );
     }
-  }, [chatPreviews.data, chats.connectWebsocket]);
+  }, [chatPreviews.data, chatWebSocket.connect]);
 
   /**
    * Creates a chat, injecting the current WebSocket for real-time updates.
@@ -44,15 +45,15 @@ function Chats() {
     members: UserInfo[],
     isPublic: boolean
   ) => {
-    if (ws.current === null) {
-      return;
-    }
-    await chatPreviews.createChatMutation.mutateAsync({
+    const newChat = await chatPreviews.createChatMutation.mutateAsync({
       chatName,
       otherUsers: members,
       isPublic,
-      ws: ws.current,
     });
+
+    if (chatPreviews.isSuccess) {
+      chatWebSocket.subscribeToChat(newChat.chatId);
+    }
   };
 
   const selectionListDropdown: DropdownOption[] = [
@@ -102,7 +103,7 @@ function Chats() {
         <CreateChatModal
           isOpen={createChatModal.isOpen}
           onClose={createChatModal.close}
-          onAddMember={chats.fetchUserInfo}
+          onAddMember={userInfo.fetchUserInfo}
           onCreateChat={handleCreateChat}
         ></CreateChatModal>
       </div>
@@ -121,13 +122,12 @@ function Chats() {
             </h2>
           ) : (
             <LiveChat
-              isPending={chatDetails.isPending}
               chatPreview={
                 chatPreviews.data.find((preview) => preview.chatId == chatId) ||
                 null
               }
               chatDetails={chatDetails.data || null}
-              chatWebSocket={chats.chatWebsocket}
+              chatWebSocket={chatWebSocket.ws}
             ></LiveChat>
           ))}
       </div>

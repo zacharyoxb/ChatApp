@@ -1,0 +1,154 @@
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type {
+  MessageTypeMap,
+  WebSocketMessage,
+  WSChatMessageData,
+} from "../../types/chats";
+
+/**
+ * Custom hook for managing WebSocket connection as a singleton
+ */
+export const useChatWebSocket = () => {
+  const websocketQuery = useQuery({
+    queryKey: ["websocket"],
+    queryFn: () => {
+      return new Promise<WebSocket>((resolve, reject) => {
+        const ws = new WebSocket("wss://localhost:8000/ws/chats");
+
+        ws.onopen = () => {
+          console.log("WebSocket connected.");
+          resolve(ws);
+        };
+
+        ws.onerror = (error) => {
+          console.error("WebSocket connection error:", error);
+          reject(error);
+        };
+      });
+    },
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  /**
+   * Establishes WebSocket connection for real-time chat updates
+   * @param addMessageToChat - function that adds message to ChatDetails
+   * @param updateLastMessage - function that updates the last message sent on ChatPreview
+   */
+  const connect = useCallback(
+    (
+      addMessageToChat: (messageData: WSChatMessageData) => void,
+      updateLastMessage: (messageData: WSChatMessageData) => void
+    ) => {
+      const ws = websocketQuery.data;
+
+      if (!ws) {
+        console.warn("WebSocket not available");
+        return;
+      }
+
+      // Set up message handler
+      ws.onmessage = (event) => {
+        const ws_mssg: WebSocketMessage = JSON.parse(event.data);
+
+        switch (ws_mssg.type as keyof MessageTypeMap) {
+          case "message":
+            const chatMessage: WSChatMessageData = ws_mssg.data;
+            addMessageToChat(chatMessage);
+            updateLastMessage(chatMessage);
+            break;
+        }
+      };
+
+      // Set up close handler for reconnection
+      ws.onclose = () => {
+        console.log("WebSocket disconnected.");
+        // Invalidate the query to trigger reconnection if needed
+        // This will only actually reconnect if something tries to use the websocket again
+      };
+
+      // Return cleanup function
+      return () => {
+        // Don't close the connection here since we want it to persist
+        // Just remove the handlers
+        ws.onmessage = null;
+        ws.onclose = null;
+      };
+    },
+    [websocketQuery.data]
+  );
+
+  /**
+   * Subscribe to a specific chat
+   * @param - id of chat to subscribe to
+   */
+  const subscribeToChat = useCallback(
+    (chatId: string) => {
+      const ws = websocketQuery.data;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            type: "subscribe",
+            chatId: chatId,
+          })
+        );
+      }
+    },
+    [websocketQuery.data]
+  );
+
+  /**
+   * Unsubscribe from a specific chat
+   * @param - id of chat to unsubscribe from
+   */
+  const unsubscribeFromChat = useCallback(
+    (chatId: string) => {
+      const ws = websocketQuery.data;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            type: "unsubscribe",
+            chatId: chatId,
+          })
+        );
+      }
+    },
+    [websocketQuery.data]
+  );
+
+  /**
+   * Manually close the WebSocket connection
+   */
+  const disconnectWebsocket = useCallback(() => {
+    if (websocketQuery.data) {
+      websocketQuery.data.close();
+      // The query will remain in cache but the connection is closed
+      // To fully remove, you could invalidate the query
+    }
+  }, [websocketQuery.data]);
+
+  return {
+    /** WebSocket instance */
+    ws: websocketQuery.data,
+    /** WebSocket connection status */
+    isConnecting: websocketQuery.isLoading,
+    /** WebSocket error */
+    error: websocketQuery.error,
+    /** Function to connect and set up message handlers */
+    connect,
+    /** Subscribe to a chat */
+    subscribeToChat,
+    /** Unsubscribe from a chat */
+    unsubscribeFromChat,
+    /** Manually disconnect */
+    disconnectWebsocket,
+    /** Refetch/Reconnect the WebSocket */
+    refetch: websocketQuery.refetch,
+  };
+};

@@ -11,7 +11,7 @@ export const useChatPreviews = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fetchPreview = useQuery({
-    queryKey: ["chatPreviews", navigate],
+    queryKey: ["chatPreviews"],
     queryFn: async () => {
       const response = await fetch("https://localhost:8000/chats/my-chats", {
         method: "GET",
@@ -49,14 +49,11 @@ export const useChatPreviews = () => {
       chatName,
       otherUsers,
       isPublic,
-      ws,
     }: {
       chatName: string;
       otherUsers: UserInfo[];
       isPublic: boolean;
-      ws: WebSocket;
     }) => {
-      void ws; // prevents warning
       const response = await fetch("https://localhost:8000/chats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,7 +71,7 @@ export const useChatPreviews = () => {
 
       return await response.json();
     },
-    onSuccess: (newChat: ChatPreview, variables) => {
+    onSuccess: (newChat: ChatPreview) => {
       // Update the chat previews cache optimistically
       queryClient.setQueryData(
         ["chatPreviews"],
@@ -83,15 +80,6 @@ export const useChatPreviews = () => {
           return [...safePrev, newChat];
         }
       );
-
-      // Subscribe to WebSocket for the new chat
-      variables.ws.send(
-        JSON.stringify({
-          type: "subscribe",
-          chatId: newChat.chatId,
-        })
-      );
-
       navigate(`/chats/${newChat.chatId}`);
     },
     onError: (error: Error) => {
