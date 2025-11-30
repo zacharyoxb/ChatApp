@@ -53,7 +53,6 @@ export const useChatWebSocket = () => {
         return;
       }
 
-      // Set up message handler
       ws.onmessage = (event) => {
         const ws_mssg: WebSocketMessage = JSON.parse(event.data);
 
@@ -66,17 +65,11 @@ export const useChatWebSocket = () => {
         }
       };
 
-      // Set up close handler for reconnection
       ws.onclose = () => {
         console.log("WebSocket disconnected.");
-        // Invalidate the query to trigger reconnection if needed
-        // This will only actually reconnect if something tries to use the websocket again
       };
 
-      // Return cleanup function
       return () => {
-        // Don't close the connection here since we want it to persist
-        // Just remove the handlers
         ws.onmessage = null;
         ws.onclose = null;
       };

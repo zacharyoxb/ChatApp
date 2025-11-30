@@ -72,7 +72,6 @@ async def get_available_chat_previews(
         HTTPException: 401 UNAUTHORIZED if session authentication fails via auth_session dependency.
     """
     user_chats = await db_service.get_all_user_chats(session_data.username)
-    # add last message
 
     return user_chats
 
