@@ -21,7 +21,7 @@ class SessionData(BaseModel):
     Attributes:
         user_id (str): User's unique identifier.
         username (str): Username for user.
-        created_at (float): Unix timestamp for when user was created.
+        created_at (float): Unix timestamp for when user session was created.
         last_activity (float): Unix timestamp for the user's most recent activity.
     """
     user_id: str

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { useApi } from "./apiStates";
+import type { SessionData } from "../../types/session";
 
 /**
  * Custom hook for managing user authentication sessions. Uses
@@ -26,10 +27,11 @@ export const useSession = () => {
       });
 
       if (response.ok) {
-        return true;
+        const sessionData: SessionData = await response.json();
+        return sessionData;
       }
     } catch {}
-    return false;
+    return null;
   };
 
   /**
