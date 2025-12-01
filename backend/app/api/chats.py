@@ -156,6 +156,15 @@ async def create_new_chat(
         timestamp=datetime.now().isoformat()
     )
 
+    # notify user that they have been subscribed to new chat
+    redis_service.send_added_to_chat_notification(
+        user_id, req.chat_id, user_id)
+
+    # notify other users about the new chat
+    for other_user in req.other_users:
+        redis_service.send_added_to_chat_notification(
+            other_user.user_id, req.chat_id, user_id)
+
     return ChatPreview(
         chat_id=req.chat_id.hex(),
         chat_name=req.chat_name,

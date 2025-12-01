@@ -209,6 +209,39 @@ class RedisService:
 
         return message_id
 
+    async def send_added_to_chat_notification(self, user_id: str, chat_id: str, added_by_id: str):
+        """ Sends notification to user that they've been added to a chat.
+
+        Args:
+            user_id (str): Id hex string of user to notify
+            chat_id (str): Chat to add to
+            added_by_id (str): The other user that added user_id to chat
+        """
+        pubsub_mssg = {
+            "type": "added_to_chat",
+            "chat_id": chat_id,
+            "added_by_id": added_by_id,
+        }
+        message_json = json.dumps(pubsub_mssg)
+        await self._streams_redis.publish(user_id, message_json)
+
+    async def send_removed_from_chat_notification(self, user_id: str, chat_id: str,
+                                                  removed_by_id: str):
+        """ Sends notification to user that they've been removed from a chat.
+
+        Args:
+            user_id (str): Id hex string of user to notify
+            chat_id (str): Chat to remove from
+            removed_by_id (str): The other user that removed user_id from chat
+        """
+        pubsub_mssg = {
+            "type": "removed_from_chat",
+            "chat_id": chat_id,
+            "removed_by_id": removed_by_id,
+        }
+        message_json = json.dumps(pubsub_mssg)
+        await self._streams_redis.publish(user_id, message_json)
+
     async def get_chat_history(
         self,
         chat_id: str,

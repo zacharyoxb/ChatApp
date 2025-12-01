@@ -45,15 +45,11 @@ function Chats() {
     members: UserInfo[],
     isPublic: boolean
   ) => {
-    const newChat = await chatPreviews.createChatMutation.mutateAsync({
+    await chatPreviews.createChatMutation.mutateAsync({
       chatName,
       otherUsers: members,
       isPublic,
     });
-
-    if (chatPreviews.isSuccess) {
-      chatWebSocket.subscribeToChat(newChat.chatId);
-    }
   };
 
   const selectionListDropdown: DropdownOption[] = [
