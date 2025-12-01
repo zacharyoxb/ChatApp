@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import HTTPException, WebSocket, status
 from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
-from app.templates.chats.responses import ChatMessage, WSChatMessageData, WebsocketMessage
+from app.templates.chats.responses import ChatMessage, WSChatMessageData, WSUserAddedData, WSUserRemovedData, WebsocketMessage
 
 
 class WebSocketConnectionManager:
@@ -14,7 +14,7 @@ class WebSocketConnectionManager:
     Attributes:
         websocket (WebSocket): The WebSocket connection to manage
         session_data (SessionData): Session data for the authenticated user
-        active_subscriptions (Dict[str, asyncio.Task]): Mapping of subscription IDs 
+        active_subscriptions (Dict[str, asyncio.Task]): Mapping of subscription IDs
             (chat IDs or the userID) to their corresponding background tasks
         user_chat_ids (Set[str]): Set of chat IDs that the user is authorized to access
     """
@@ -33,6 +33,56 @@ class WebSocketConnectionManager:
             data = await self.websocket.receive_text()
             await self.handle_client_message(data)
 
+    async def listen_for_notifications(self):
+        """ Listens for Redis Pub/Sub messages via user id and forwards them to the
+        WebSocket client.
+        """
+        async with redis_service.subscribe_to_channel(self.session_data.user_id) as pubsub:
+            # Handles backend -> frontend traffic
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    message_data = message["data"]
+                    raw_message = json.loads(message_data)
+
+                    msg_type = raw_message["type"]
+
+                    if msg_type == "added_to_chat":
+                        chat_id = raw_message["chat_id"]
+                        added_by_id = raw_message["added_by_id"]
+
+                        # add subscription
+                        self.subscribe_to_chat(chat_id)
+
+                        ws_payload = WSUserAddedData(
+                            chat_id=chat_id,
+                            added_by=added_by_id,
+                        )
+
+                        full_message = WebsocketMessage(
+                            type="added_to_chat",
+                            data=ws_payload,
+                        )
+                        # notify user
+                        await self.websocket.send_json(full_message.model_dump(by_alias=True))
+                    elif msg_type == "removed_from_chat":
+                        chat_id = raw_message["chat_id"]
+                        removed_by_id = raw_message["removed_by_id"]
+
+                        # remove subscription
+                        self.unsubscribe_from_chat(chat_id)
+
+                        ws_payload = WSUserRemovedData(
+                            chat_id=chat_id,
+                            removed_by=removed_by_id
+                        )
+
+                        full_message = WebsocketMessage(
+                            type="removed_from_chat",
+                            data=ws_payload,
+                        )
+                        # notify user
+                        await self.websocket.send_json(full_message.model_dump(by_alias=True))
+
     async def listen_for_messages(self, chat_id: str):
         """ Listens for Redis Pub/Sub messages via chat id and forwards them to the
         WebSocket client.
@@ -43,68 +93,44 @@ class WebSocketConnectionManager:
 
         Note:
             Runs continuously until the WebSocket connection is closed.
-            Only processes messages of type 'message' from Redis.
+            Only processes messages of type "message" from Redis.
         """
         async with redis_service.subscribe_to_channel(chat_id) as pubsub:
             # Handles backend -> frontend traffic
             async for message in pubsub.listen():
-                if message['type'] == 'message':
-                    message_data = message['data']
+                if message["type"] == "message":
+                    message_data = message["data"]
                     raw_message = json.loads(message_data)
 
-                    message_id = raw_message['message_id']
-                    sender_id = raw_message['sender_id']
-                    sender_username = raw_message['sender_username']
-                    content = raw_message['content']
-                    timestamp = raw_message['timestamp']
+                    msg_type = raw_message["type"]
 
-                    message_obj = ChatMessage(
-                        message_id=message_id,
-                        sender_id=sender_id,
-                        sender_username=sender_username,
-                        content=content,
-                        timestamp=timestamp
-                    )
+                    if msg_type == "message":
+                        message_id = raw_message["message_id"]
+                        sender_id = raw_message["sender_id"]
+                        sender_username = raw_message["sender_username"]
+                        content = raw_message["content"]
+                        timestamp = raw_message["timestamp"]
 
-                    ws_payload = WSChatMessageData(
-                        chat_id=chat_id,
-                        message=message_obj
-                    )
+                        message_obj = ChatMessage(
+                            message_id=message_id,
+                            sender_id=sender_id,
+                            sender_username=sender_username,
+                            content=content,
+                            timestamp=timestamp
+                        )
 
-                    full_message = WebsocketMessage(
-                        type="message",
-                        data=ws_payload
-                    )
+                        ws_payload = WSChatMessageData(
+                            chat_id=chat_id,
+                            message=message_obj
+                        )
 
-                    await self.websocket.send_json(full_message.model_dump(by_alias=True))
-
-    async def listen_for_notifications(self):
-        """ Listens for Redis Pub/Sub messages via user id and forwards them to the
-        WebSocket client.
-        """
-        async with redis_service.subscribe_to_channel(self.session_data.user_id) as pubsub:
-            # Handles backend -> frontend traffic
-            async for message in pubsub.listen():
-                if message['type'] == 'message':
-                    message_data = message['data']
-                    raw_message = json.loads(message_data)
-                    (message_id, sender_id, sender_username,
-                        content, timestamp) = raw_message.values()
-
-                    message_obj = ChatMessage(
-                        message_id=message_id,
-                        sender_id=sender_id,
-                        sender_username=sender_username,
-                        content=content,
-                        timestamp=timestamp
-                    )
-
-                    message_data = {
-                        "userId": self.session_data.user_id,
-                        "message": message_obj.model_dump(by_alias=True)
-                    }
-
-                    await self.websocket.send_json(message_data)
+                        full_message = WebsocketMessage(
+                            type="message",
+                            data=ws_payload
+                        )
+                        await self.websocket.send_json(full_message.model_dump(by_alias=True))
+                    elif msg_type == "is_typing":
+                        pass
 
     async def initialize_subscriptions(self):
         """ Set up initial Redis subscriptions for user chats and notifications."""
@@ -114,7 +140,7 @@ class WebSocketConnectionManager:
         # Subscribe to user-level notifications (add/remove from chats)
         await self.subscribe_to_user_notifications()
 
-        # Subscribe to all user's chats
+        # Subscribe to all user"s chats
         for preview in previews:
             await self.subscribe_to_chat(preview.chat_id)
 

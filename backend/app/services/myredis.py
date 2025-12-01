@@ -153,13 +153,15 @@ class RedisService:
         }
         message_id = await self._streams_redis.xadd(chat_id, message_dict)
 
-        message_with_id = {
+        pubsub_mssg = {
+            "type": "message",
             "message_id": message_id,
             "sender_id": "SERVER",
+            "sender_username": "SERVER",
             "content": message,
             "timestamp": message_dict["timestamp"]
         }
-        message_json = json.dumps(message_with_id)
+        message_json = json.dumps(pubsub_mssg)
         await self._streams_redis.publish(chat_id, message_json)
 
         return message_id
@@ -195,6 +197,7 @@ class RedisService:
         message_id = await self._streams_redis.xadd(chat_id, stream_mssg)
 
         pubsub_mssg = {
+            "type": "message",
             "message_id": message_id,
             "sender_id": sender_id,
             "sender_username": sender_username,
