@@ -13,6 +13,7 @@ interface PreviewListItemProps {
   isDm: boolean;
   lastMessage?: ChatMessage;
   chatImage?: string;
+  isDummy?: boolean;
 }
 
 const ARIA_LABEL_TEMPLATE = (
@@ -45,6 +46,7 @@ const PreviewListItem: React.FC<PreviewListItemProps> = ({
   isDm,
   lastMessage,
   chatImage,
+  isDummy,
 }) => {
   const navigate = useNavigate();
 
@@ -68,6 +70,7 @@ const PreviewListItem: React.FC<PreviewListItemProps> = ({
   return (
     <button
       className={styles.layoutDiv}
+      disabled={!!isDummy}
       onClick={() => navigate(chatUrl)}
       tabIndex={0}
       aria-label={aria_label}

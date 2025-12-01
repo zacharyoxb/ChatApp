@@ -20,6 +20,7 @@ const PreviewList: React.FC<PreviewListProps> = ({ chats }) => {
             createdAt={chat.createdAt}
             isDm={!!chat.dmParticipantId}
             lastMessage={chat.lastMessage}
+            isDummy={chat.isDummy}
           ></PreviewListItem>
         ))
       )}

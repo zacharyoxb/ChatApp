@@ -98,6 +98,7 @@ export const useChatPreviews = () => {
         chatName: variables.chatName,
         createdAt: new Date().toISOString(),
         lastMessage: undefined,
+        isDummy: true,
       };
 
       // Optimistically update to the new value

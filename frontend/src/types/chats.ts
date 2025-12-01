@@ -48,6 +48,8 @@ export interface ChatPreview {
   lastMessage?: ChatMessage;
   /** Role of user in non-dm chat */
   myRole?: UserRole;
+  /** Only present and true if the data is a dummy (optimistic query update) */
+  isDummy?: boolean;
 }
 
 /** Details for the chat when its displayed in LiveChat */

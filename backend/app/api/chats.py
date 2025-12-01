@@ -166,6 +166,9 @@ async def create_new_chat(
         my_role=UserRole.OWNER
     )
 
+    chat_preview_users = chat_preview
+    chat_preview_users.my_role = UserRole.MEMBER
+
     # notify user that they have been subscribed to new chat
     redis_service.send_added_to_chat_notification(
         user_id, chat_preview, user_id)
@@ -173,7 +176,7 @@ async def create_new_chat(
     # notify other users about the new chat
     for other_user in req.other_users:
         redis_service.send_added_to_chat_notification(
-            other_user.user_id, req.chat_id, user_id)
+            other_user.user_id, chat_preview_users, user_id)
 
     return {"status": "success", "chat_id": chat_preview.chat_id}
 
