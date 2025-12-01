@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from redis.asyncio import ConnectionPool, Redis
 import redis.asyncio as redis
 
-from app.templates.chats.responses import ChatMessage
+from app.templates.chats.responses import ChatMessage, ChatPreview
 
 SESSION_TTL_SECONDS = 86400  # 24 hours
 
@@ -209,19 +209,24 @@ class RedisService:
 
         return message_id
 
-    async def send_added_to_chat_notification(self, user_id: str, chat_id: str, added_by_id: str):
+    async def send_added_to_chat_notification(self, user_id: str, chat_preview: ChatPreview,
+                                              added_by_id: str):
         """ Sends notification to user that they've been added to a chat.
 
         Args:
             user_id (str): Id hex string of user to notify
-            chat_id (str): Chat to add to
+            chat_preview (ChatPreview): Details of chat user was added to
             added_by_id (str): The other user that added user_id to chat
         """
         pubsub_mssg = {
             "type": "added_to_chat",
-            "chat_id": chat_id,
             "added_by_id": added_by_id,
         }
+
+        # Only include chat_preview if user isn't the one who created it
+        if user_id != added_by_id:
+            pubsub_mssg["chat_preview"] = chat_preview
+
         message_json = json.dumps(pubsub_mssg)
         await self._streams_redis.publish(user_id, message_json)
 

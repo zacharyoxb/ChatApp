@@ -78,20 +78,20 @@ export interface WSChatMessageData {
 //   isTyping: boolean;
 // }
 
-// interface WSUserAddedData {
-//   chatId: string;
-//   addedBy: string;
-// }
+export interface WSUserAddedData {
+  chatPreview: ChatPreview;
+  addedBy: string;
+}
 
-// interface WSUserRemovedData {
-//   chatId: string;
-//   removedBy: string;
-// }
+export interface WSUserRemovedData {
+  chatId: string;
+  removedBy: string;
+}
 
 // Message type to data type mapping
 export type MessageTypeMap = {
   message: WSChatMessageData;
   // typing_indicator: WSTypingIndicatorData;
-  // user_added: WSUserAddedData;
-  // user_removed: WSUserRemovedData;
+  added_to_chat: WSUserAddedData;
+  removed_from_chat: WSUserRemovedData;
 };

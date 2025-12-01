@@ -4,6 +4,7 @@ import type {
   ChatPreview,
   UserInfo,
   WSChatMessageData,
+  WSUserAddedData,
 } from "../../types/chats";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -43,7 +44,8 @@ export const useChatPreviews = () => {
   });
 
   /**
-   * Creates a new chat with specified parameters
+   * Creates a new group chat with specified parameters via a POST request
+   * and optimistically updates
    *
    * @param chatName - Display name for the new chat
    * @param otherUsers - Array of user IDs to add to the chat
@@ -77,27 +79,106 @@ export const useChatPreviews = () => {
         throw new Error("Error occurred when creating chat.");
       }
 
-      return await response.json();
+      // Only return success confirmation, not chat data
+      return { success: true };
     },
-    onSuccess: (newChat: ChatPreview) => {
-      // Update the chat previews cache optimistically
-      queryClient.setQueryData(
+
+    // OPTIMISTIC UPDATE: Immediately show the chat in UI
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["chatPreviews"] });
+
+      // Snapshot the previous value
+      const previousChats =
+        queryClient.getQueryData<ChatPreview[]>(["chatPreviews"]) || [];
+
+      // Generate optimistic chat preview
+      const optimisticChat: ChatPreview = {
+        chatId: `optimistic-${Date.now()}`, // Temporary ID
+        chatName: variables.chatName,
+        createdAt: new Date().toISOString(),
+        lastMessage: undefined,
+      };
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<ChatPreview[]>(
         ["chatPreviews"],
-        (prev: ChatPreview[] | undefined) => {
-          const safePrev = prev || [];
-          return [...safePrev, newChat];
-        }
+        [...previousChats, optimisticChat]
       );
-      navigate(`/chats/${newChat.chatId}`);
+
+      // Return context with the optimistic chat for potential rollback
+      return {
+        optimisticChat,
+        previousChats,
+      };
     },
-    onError: (error: Error) => {
+
+    // SUCCESS: POST succeeded, wait for WebSocket confirmation
+    onSuccess: () => {
+      console.log("Chat creation request sent, waiting for confirmation...");
+    },
+
+    // ERROR: Rollback the optimistic update
+    onError: (error: Error, variables, context) => {
+      void variables; // hide warning
       console.error("Failed to create chat:", error.message);
+
+      // Rollback to previous state
+      if (context?.previousChats) {
+        queryClient.setQueryData(["chatPreviews"], context.previousChats);
+      }
     },
-    // Refetch chat previews after mutation to ensure consistency
+
+    // SETTLED: Invalidates to ensure fresh data (after WS should have arrived)
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["chatPreviews"] });
+      // Optionally refetch after a delay to catch any missed WS updates
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["chatPreviews"] });
+      }, 2000); // 2 second delay as fallback
     },
   });
+
+  /**
+   * Handles WebSocket "added_to_chat" messages
+   * Updates the preview cache and navigates if needed
+   */
+  const handleUserAddedToChat = useCallback(
+    (currentUserId: string, data: WSUserAddedData) => {
+      const { chatPreview, addedBy } = data;
+
+      // Update chat previews cache
+      queryClient.setQueryData<ChatPreview[]>(["chatPreviews"], (prev = []) => {
+        // Remove optimistic update
+        const withoutOptimistic = prev.filter(
+          (chat) => !chat.chatId.startsWith("optimistic-")
+        );
+
+        // Check if chat already exists
+        const exists = withoutOptimistic.some(
+          (chat) => chat.chatId === chatPreview.chatId
+        );
+
+        if (exists) {
+          // Update existing chat
+          return withoutOptimistic.map((chat) =>
+            chat.chatId === chatPreview.chatId ? chatPreview : chat
+          );
+        }
+
+        // Add new chat
+        return [...withoutOptimistic, chatPreview];
+      });
+
+      // Navigate if current user created this chat
+      if (addedBy === currentUserId) {
+        navigate(`/chats/${chatPreview.chatId}`);
+      }
+
+      // Return the real chat ID for reference
+      return chatPreview.chatId;
+    },
+    [queryClient, navigate]
+  );
 
   /**
    * Updates the last message for a specific chat in the previews cache
@@ -155,6 +236,8 @@ export const useChatPreviews = () => {
     error: fetchPreview.error,
     /** Function to create a new chat */
     createChatMutation,
+    /** Function that handles WS notification of the user being added to a chat */
+    handleUserAddedToChat,
     /** Updates the last message sent */
     updateLastMessage,
     /** Chats sorted by most recent activity in descending order */

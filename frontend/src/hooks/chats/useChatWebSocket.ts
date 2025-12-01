@@ -4,6 +4,8 @@ import type {
   MessageTypeMap,
   WebSocketMessage,
   WSChatMessageData,
+  WSUserAddedData,
+  //WSUserRemovedData,
 } from "../../types/chats";
 
 /**
@@ -43,8 +45,13 @@ export const useChatWebSocket = () => {
    */
   const connect = useCallback(
     (
+      currentUserId: string,
       addMessageToChat: (messageData: WSChatMessageData) => void,
-      updateLastMessage: (messageData: WSChatMessageData) => void
+      updateLastMessage: (messageData: WSChatMessageData) => void,
+      handleUserAddedToChat: (
+        currentUserId: string,
+        data: WSUserAddedData
+      ) => string
     ) => {
       const ws = websocketQuery.data;
 
@@ -62,6 +69,13 @@ export const useChatWebSocket = () => {
             addMessageToChat(chatMessage);
             updateLastMessage(chatMessage);
             break;
+          case "added_to_chat":
+            const addedNotification: WSUserAddedData = ws_mssg.data;
+            handleUserAddedToChat(currentUserId, addedNotification);
+            break;
+          // case "removed_from_chat":
+          //   const removedMessage: WSUserRemovedData = ws_mssg.data;
+          //   break;
         }
       };
 

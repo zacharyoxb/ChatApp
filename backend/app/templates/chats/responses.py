@@ -129,10 +129,11 @@ class WSUserAddedData(BaseModel):
     """Data payload for user added to chat notification.
 
     Attributes:
-        chat_id (str): Unique identifier of the chat the user was added to
+        chat_preview (str): Chat data for the preview of the new chat. None
+            if the notification is being sent to the chat creator/adder
         added_by (str): User ID of the person who added the user to the chat
     """
-    chat_id: str = Field(..., alias="chatId")
+    chat_preview: ChatPreview = Field(..., alias="chatPreview")
     added_by: str = Field(..., alias="addedBy")
 
     class Config:

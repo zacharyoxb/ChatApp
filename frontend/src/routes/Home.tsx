@@ -9,7 +9,7 @@ function Home() {
 
   useEffect(() => {
     const checkSession = async () => {
-      let valid = await session.isValidSession();
+      let valid = await session.authSession();
       if (valid) {
         navigate("/chats");
       }

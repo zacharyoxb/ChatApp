@@ -16,11 +16,9 @@ export const useSession = () => {
    * @remarks
    * Checks if the current session is valid by making a GET request to the session endpoint.
    *
-   * This is the only function on the hook to not use api state management as error management
-   * is less important here (the user doesn't need to see a visual cue for a session check
-   * failing when they are on the login/signup pages)
+   * @return user_id if authenticated, null otherwise
    */
-  const isValidSession = async () => {
+  const authSession = async () => {
     try {
       const response = await fetch("https://localhost:8000/session", {
         method: "GET",
@@ -177,7 +175,7 @@ export const useSession = () => {
     /** Error message from the last operation, or null if no error */
     error: authApi.error,
 
-    isValidSession,
+    authSession,
     signup,
     login,
     logout,

@@ -10,7 +10,7 @@ function SignUp() {
 
   useEffect(() => {
     const checkSession = async () => {
-      let valid = await session.isValidSession();
+      let valid = await session.authSession();
       if (valid) {
         navigate("/chats");
       }
@@ -45,9 +45,7 @@ function SignUp() {
     }
   };
 
-  const clearError = () => {
-    if (session.isError) session.reset();
-  };
+  const clearError = () => {};
 
   return (
     <div className={styles.entryBox}>

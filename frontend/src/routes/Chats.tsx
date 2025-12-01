@@ -30,8 +30,10 @@ function Chats() {
   useEffect(() => {
     if (!chatWebSocket.isConnecting) {
       chatWebSocket.connect(
+        "temp",
         chatPreviews.updateLastMessage,
-        chatDetails.addMessage
+        chatDetails.addMessage,
+        chatPreviews.handleUserAddedToChat
       );
     }
   }, [chatPreviews.data, chatWebSocket.connect]);

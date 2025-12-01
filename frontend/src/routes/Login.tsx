@@ -16,7 +16,7 @@ function Login() {
     }
 
     const checkSession = async () => {
-      let valid = await session.isValidSession();
+      let valid = await session.authSession();
       if (valid) {
         navigate("/chats");
       }
@@ -55,7 +55,6 @@ function Login() {
   };
 
   const clearError = () => {
-    if (session.isError) session.reset();
     if (error) setError(null);
   };
 
