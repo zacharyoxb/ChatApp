@@ -3,10 +3,10 @@ import { useNavigate } from "react-router";
 import defaultDm from "/src/assets/default-dm.png";
 import defaultGroup from "/src/assets/default-group.png";
 import { datetime_format } from "../../../utils/formatDatetime";
-import styles from "./ChatListItem.module.css";
+import styles from "./PreviewListItem.module.css";
 import type { ChatMessage } from "../../../types/chats";
 
-interface ChatListItemProps {
+interface PreviewListItemProps {
   chatUrl: string;
   chatName: string;
   createdAt: string;
@@ -38,7 +38,7 @@ const ARIA_LABEL_TEMPLATE = (
   return `Group chat ${name}. Last message sent by ${message.senderUsername}: ${message.content}. Last activity ${date_time_string}`;
 };
 
-const ChatListItem: React.FC<ChatListItemProps> = ({
+const PreviewListItem: React.FC<PreviewListItemProps> = ({
   chatUrl,
   chatName,
   createdAt,
@@ -99,4 +99,4 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
   );
 };
 
-export default ChatListItem;
+export default PreviewListItem;
