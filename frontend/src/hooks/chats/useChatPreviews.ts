@@ -114,9 +114,7 @@ export const useChatPreviews = () => {
     },
 
     // SUCCESS: POST succeeded, wait for WebSocket confirmation
-    onSuccess: () => {
-      console.log("Chat creation request sent, waiting for confirmation...");
-    },
+    onSuccess: () => {},
 
     // ERROR: Rollback the optimistic update
     onError: (error: Error, variables, context) => {
@@ -141,40 +139,33 @@ export const useChatPreviews = () => {
   /**
    * Handles WebSocket "added_to_chat" messages
    * Updates the preview cache and navigates if needed
+   *
+   * @param currentUserId - id of current user
+   * @param data - data send by websocket
    */
   const handleUserAddedToChat = useCallback(
-    (currentUserId: string, data: WSUserAddedData) => {
-      const { chatPreview, addedBy } = data;
+    (data: WSUserAddedData) => {
+      const { chatPreview } = data;
 
       // Update chat previews cache
       queryClient.setQueryData<ChatPreview[]>(["chatPreviews"], (prev = []) => {
-        // Remove optimistic update
         const withoutOptimistic = prev.filter(
           (chat) => !chat.chatId.startsWith("optimistic-")
         );
 
-        // Check if chat already exists
         const exists = withoutOptimistic.some(
           (chat) => chat.chatId === chatPreview.chatId
         );
 
         if (exists) {
-          // Update existing chat
           return withoutOptimistic.map((chat) =>
             chat.chatId === chatPreview.chatId ? chatPreview : chat
           );
         }
 
-        // Add new chat
         return [...withoutOptimistic, chatPreview];
       });
 
-      // Navigate if current user created this chat
-      if (addedBy === currentUserId) {
-        navigate(`/chats/${chatPreview.chatId}`);
-      }
-
-      // Return the real chat ID for reference
       return chatPreview.chatId;
     },
     [queryClient, navigate]

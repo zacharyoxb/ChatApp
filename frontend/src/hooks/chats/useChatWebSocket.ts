@@ -42,16 +42,13 @@ export const useChatWebSocket = () => {
    * Establishes WebSocket connection for real-time chat updates
    * @param addMessageToChat - function that adds message to ChatDetails
    * @param updateLastMessage - function that updates the last message sent on ChatPreview
+   * @param handleUserAddedToChat - function that handles the user being added to a chat
    */
   const connect = useCallback(
     (
-      currentUserId: string,
       addMessageToChat: (messageData: WSChatMessageData) => void,
       updateLastMessage: (messageData: WSChatMessageData) => void,
-      handleUserAddedToChat: (
-        currentUserId: string,
-        data: WSUserAddedData
-      ) => string
+      handleUserAddedToChat: (data: WSUserAddedData) => string
     ) => {
       const ws = websocketQuery.data;
 
@@ -62,6 +59,7 @@ export const useChatWebSocket = () => {
 
       ws.onmessage = (event) => {
         const ws_mssg: WebSocketMessage = JSON.parse(event.data);
+        console.log(ws_mssg.type);
 
         switch (ws_mssg.type as keyof MessageTypeMap) {
           case "message":
@@ -71,7 +69,7 @@ export const useChatWebSocket = () => {
             break;
           case "added_to_chat":
             const addedNotification: WSUserAddedData = ws_mssg.data;
-            handleUserAddedToChat(currentUserId, addedNotification);
+            handleUserAddedToChat(addedNotification);
             break;
           // case "removed_from_chat":
           //   const removedMessage: WSUserRemovedData = ws_mssg.data;
