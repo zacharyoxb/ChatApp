@@ -228,7 +228,7 @@ class RedisService:
         min_range = start_id if start_id is not None else "-"
         max_range = end_id if end_id is not None else "+"
 
-        messages = await self._streams_redis.xrange(chat_id, min_range, max_range, count)
+        messages = await self._streams_redis.xrevrange(chat_id, max_range, min_range, count)
 
         formatted_messages = []
         for msg_id, fields in messages:

@@ -5,7 +5,8 @@ from typing import Optional
 from fastapi import HTTPException, WebSocket, status
 from app.services.myredis import SessionData, redis_service
 from app.services.mysqldb import db_service
-from app.templates.chats.responses import ChatMessage, WSChatMessageData, WSUserAddedData, WSUserRemovedData, WebsocketMessage
+from app.templates.chats.responses import (ChatMessage, WSChatMessageData, WSUserAddedData,
+                                           WSUserRemovedData, WebsocketMessage)
 
 
 class WebSocketConnectionManager:
