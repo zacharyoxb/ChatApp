@@ -32,6 +32,14 @@ export const useChatPreviews = () => {
       const data: ChatPreview[] = await response.json();
       return data;
     },
+    // WebSocket will notify us of any data
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   /**

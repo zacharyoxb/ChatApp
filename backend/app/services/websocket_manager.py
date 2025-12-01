@@ -33,6 +33,79 @@ class WebSocketConnectionManager:
             data = await self.websocket.receive_text()
             await self.handle_client_message(data)
 
+    async def listen_for_messages(self, chat_id: str):
+        """ Listens for Redis Pub/Sub messages via chat id and forwards them to the
+        WebSocket client.
+
+        Args:
+            chat_id (str): The id of the redis channel to connect to.
+            websocket (WebSocket): WebSocket connection to send messages to the client.
+
+        Note:
+            Runs continuously until the WebSocket connection is closed.
+            Only processes messages of type 'message' from Redis.
+        """
+        async with redis_service.subscribe_to_channel(chat_id) as pubsub:
+            # Handles backend -> frontend traffic
+            async for message in pubsub.listen():
+                if message['type'] == 'message':
+                    message_data = message['data']
+                    raw_message = json.loads(message_data)
+
+                    message_id = raw_message['message_id']
+                    sender_id = raw_message['sender_id']
+                    sender_username = raw_message['sender_username']
+                    content = raw_message['content']
+                    timestamp = raw_message['timestamp']
+
+                    message_obj = ChatMessage(
+                        message_id=message_id,
+                        sender_id=sender_id,
+                        sender_username=sender_username,
+                        content=content,
+                        timestamp=timestamp
+                    )
+
+                    ws_payload = WSChatMessageData(
+                        chat_id=chat_id,
+                        message=message_obj
+                    )
+
+                    full_message = WebsocketMessage(
+                        type="message",
+                        data=ws_payload
+                    )
+
+                    await self.websocket.send_json(full_message.model_dump(by_alias=True))
+
+    async def listen_for_notifications(self):
+        """ Listens for Redis Pub/Sub messages via user id and forwards them to the
+        WebSocket client.
+        """
+        async with redis_service.subscribe_to_channel(self.session_data.user_id) as pubsub:
+            # Handles backend -> frontend traffic
+            async for message in pubsub.listen():
+                if message['type'] == 'message':
+                    message_data = message['data']
+                    raw_message = json.loads(message_data)
+                    (message_id, sender_id, sender_username,
+                        content, timestamp) = raw_message.values()
+
+                    message_obj = ChatMessage(
+                        message_id=message_id,
+                        sender_id=sender_id,
+                        sender_username=sender_username,
+                        content=content,
+                        timestamp=timestamp
+                    )
+
+                    message_data = {
+                        "userId": self.session_data.user_id,
+                        "message": message_obj.model_dump(by_alias=True)
+                    }
+
+                    await self.websocket.send_json(message_data)
+
     async def initialize_subscriptions(self):
         """ Set up initial Redis subscriptions for user chats and notifications."""
         previews = await db_service.get_all_user_chats(self.session_data.username)
@@ -48,7 +121,7 @@ class WebSocketConnectionManager:
     async def subscribe_to_user_notifications(self):
         """ Subscribe to Redis channel for user-specific notifications."""
         task = asyncio.create_task(
-            listen_for_notifications(self.session_data.user_id, self.websocket)
+            self.listen_for_notifications()
         )
         self.active_subscriptions[self.session_data.user_id] = task
 
@@ -58,7 +131,7 @@ class WebSocketConnectionManager:
             return  # Already subscribed
 
         task = asyncio.create_task(
-            listen_for_messages(chat_id, self.websocket)
+            self.listen_for_messages(chat_id)
         )
         self.active_subscriptions[chat_id] = task
 
@@ -155,80 +228,3 @@ async def authenticate_websocket(websocket: WebSocket) -> Optional[SessionData]:
         )
 
     return session_data
-
-
-async def listen_for_messages(chat_id: str, websocket: WebSocket):
-    """ Listens for Redis Pub/Sub messages via chat id and forwards them to the WebSocket client.
-
-    Args:
-        chat_id (str): The id of the redis channel to connect to.
-        websocket (WebSocket): WebSocket connection to send messages to the client.
-
-    Note:
-        Runs continuously until the WebSocket connection is closed.
-        Only processes messages of type 'message' from Redis.
-    """
-    async with redis_service.subscribe_to_channel(chat_id) as pubsub:
-        # Handles backend -> frontend traffic
-        async for message in pubsub.listen():
-            if message['type'] == 'message':
-                message_data = message['data']
-                raw_message = json.loads(message_data)
-
-                message_id = raw_message['message_id']
-                sender_id = raw_message['sender_id']
-                sender_username = raw_message['sender_username']
-                content = raw_message['content']
-                timestamp = raw_message['timestamp']
-
-                message_obj = ChatMessage(
-                    message_id=message_id,
-                    sender_id=sender_id,
-                    sender_username=sender_username,
-                    content=content,
-                    timestamp=timestamp
-                )
-
-                ws_payload = WSChatMessageData(
-                    chat_id=chat_id,
-                    message=message_obj
-                )
-
-                full_message = WebsocketMessage(
-                    type="message",
-                    data=ws_payload
-                )
-
-                await websocket.send_json(full_message.model_dump(by_alias=True))
-
-
-async def listen_for_notifications(user_id: str, websocket: WebSocket):
-    """ Listens for Redis Pub/Sub messages via user id and forwards them to the WebSocket client.
-
-    Args:
-        user_id (str): The id of the redis channel to connect to.
-        websocket (WebSocket): WebSocket connection to send messages to the client.
-    """
-    async with redis_service.subscribe_to_channel(user_id) as pubsub:
-        # Handles backend -> frontend traffic
-        async for message in pubsub.listen():
-            if message['type'] == 'message':
-                message_data = message['data']
-                raw_message = json.loads(message_data)
-                (message_id, sender_id, sender_username,
-                    content, timestamp) = raw_message.values()
-
-                message_obj = ChatMessage(
-                    message_id=message_id,
-                    sender_id=sender_id,
-                    sender_username=sender_username,
-                    content=content,
-                    timestamp=timestamp
-                )
-
-                message_data = {
-                    "userId": user_id,
-                    "message": message_obj.model_dump(by_alias=True)
-                }
-
-                await websocket.send_json(message_data)

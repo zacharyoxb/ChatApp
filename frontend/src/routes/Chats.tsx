@@ -89,9 +89,9 @@ function Chats() {
         </div>
         <div className={styles.middleBar}>
           {chatPreviews.isPending ? (
-            <h2> Chats Loading...</h2>
+            <h2 className={styles.loadingOrError}> Chats Loading...</h2>
           ) : chatPreviews.isError ? (
-            <h2>
+            <h2 className={styles.loadingOrError}>
               {" "}
               Chat Error: {chatPreviews.error?.message || "Unknown error"}
             </h2>
@@ -113,9 +113,9 @@ function Chats() {
         {!chatId && <h2 className={styles.noChat}> No Chat Selected. </h2>}
         {chatId &&
           (chatDetails.isPending ? (
-            <h2> Chat History Loading... </h2>
+            <h2 className={styles.loadingOrError}> Chat History Loading... </h2>
           ) : chatDetails.isError ? (
-            <h2>
+            <h2 className={styles.loadingOrError}>
               {" "}
               Chat History Error:{" "}
               {chatDetails.error?.message || "Unknown Error"}

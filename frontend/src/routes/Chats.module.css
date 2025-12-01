@@ -36,6 +36,10 @@
   flex-direction: column;
 }
 
+.loadingOrError {
+  text-align: center;
+}
+
 .bottomBar {
   flex-shrink: 0;
 }
