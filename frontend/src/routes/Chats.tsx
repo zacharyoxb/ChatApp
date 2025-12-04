@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useParams } from "react-router";
 
-import Dropdown, { type DropdownOption } from "../components/common/Dropdown";
+
 import styles from "./Chats.module.css";
 import { useModal } from "../hooks/common/useModal";
 import CreateChatModal from "../components/chats/modals/CreateChatModal";
@@ -12,6 +12,8 @@ import { useChatWebSocket } from "../hooks/chats/useChatWebSocket";
 import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 import type { UserInfo } from "../types/chats";
 import { useChatDetails } from "../hooks/chats/useChatDetails";
+import Dropdown from "../components/common/Dropdown";
+import { ErrorBoundary } from "react-error-boundary";
 
 function Chats() {
   const session = useSession();
@@ -22,11 +24,10 @@ function Chats() {
   const chatPreviews = useChatPreviews();
   const chatDetails = useChatDetails(chatId);
   const chatWebSocket = useChatWebSocket();
-
   const createChatModal = useModal();
 
   useEffect(() => {
-    if (!chatWebSocket.isConnecting) {
+    if (!chatWebSocket.isConnecting && chatPreviews.data) {
       chatWebSocket.connect(
         chatPreviews.updateLastMessage,
         chatDetails.addMessage,
@@ -51,80 +52,61 @@ function Chats() {
     });
   };
 
-  const selectionListDropdown: DropdownOption[] = [
-    {
-      label: "Create Chat",
-      action: createChatModal.open,
-    },
-    {
-      label: "Logout",
-      action: session.logout,
-    },
-  ];
-
   return (
     <div className={styles.parentDiv}>
       <h1 className="sr-only"> ChatApp </h1>
-      {chatPreviews.error && (
-        <div
-          className="error-box"
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-        >
-          {chatPreviews.error.message}
-        </div>
-      )}
       <div
         className={`${styles.chatSelectionList} ${chatId ? styles.mobileHidden : ""}`}
       >
+        {/** Left Side Chat Previews Bar */}
         <div className={styles.topBar}>
           <h2> ChatApp </h2>
-          <Dropdown menuOptions={selectionListDropdown}></Dropdown>
+          <Dropdown menuOptions={[
+            {label: "Create Chat", action: createChatModal.open},
+            {label: "Logout", action: session.logout}
+          ]
+          }></Dropdown>
         </div>
         <div className={styles.middleBar}>
-          {chatPreviews.isPending ? (
-            <h2 className={styles.loadingOrError}> Chats Loading...</h2>
-          ) : chatPreviews.isError ? (
-            <h2 className={styles.loadingOrError}>
-              {" "}
-              Chat Error: {chatPreviews.error?.message || "Unknown error"}
-            </h2>
-          ) : (
-            <PreviewList chats={chatPreviews.sortedChatPreviews} />
-          )}
+          <ErrorBoundary 
+          fallback={<h2 className={styles.loadingOrError}>
+            Error Loading Chats: {chatPreviews.error?.message || "Unknown Error"} </h2>}
+            resetKeys={["chatPreviews"]}>
+            <Suspense fallback={<h2 className={styles.loadingOrError}> Chats Loading...</h2>}>
+              <PreviewList chats={chatPreviews.sortedChatPreviews}></PreviewList>
+            </Suspense>
+          </ErrorBoundary>
         </div>
         <div className={styles.bottomBar}></div>
-        <CreateChatModal
-          isOpen={createChatModal.isOpen}
-          onClose={createChatModal.close}
-          onCreateChat={handleCreateChat}
-        ></CreateChatModal>
       </div>
+
+      {/** Right Side Live Chat Area */}
       <div
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
-        {!chatId && <h2 className={styles.noChat}> No Chat Selected. </h2>}
-        {chatId &&
-          (chatDetails.isPending ? (
-            <h2 className={styles.loadingOrError}> Chat History Loading... </h2>
-          ) : chatDetails.isError ? (
-            <h2 className={styles.loadingOrError}>
-              {" "}
-              Chat History Error:{" "}
-              {chatDetails.error?.message || "Unknown Error"}
-            </h2>
-          ) : (
-            <LiveChat
-              chatPreview={
-                chatPreviews.data.find((preview) => preview.chatId == chatId) ||
-                null
-              }
-              chatDetails={chatDetails.data || null}
-              chatWebSocket={chatWebSocket.ws}
-            ></LiveChat>
-          ))}
+         
+        {!chatId ? <h2 className={styles.noChat}> No Chat Selected. </h2> :
+         <ErrorBoundary fallback={<h2 className={styles.loadingOrError}>
+              Error Loading Live Chat: {chatDetails.error?.message || "Unknown Error"}</h2>}
+              resetKeys={["chatDetails"]}>
+            <Suspense fallback={<h2 className={styles.loadingOrError}> Chat History Loading... </h2>}>
+              <LiveChat
+                chatPreview={
+                  chatPreviews.data?.find((preview) => preview.chatId == chatId)
+                }
+                chatDetails={chatDetails.data}
+                chatWebSocket={chatWebSocket.ws}
+              />
+            </Suspense>
+        </ErrorBoundary>}
       </div>
+
+      {/** Independent Chat Creation modal */}
+      <CreateChatModal
+          isOpen={createChatModal.isOpen}
+          onClose={createChatModal.close}
+          onCreateChat={handleCreateChat}
+      />
     </div>
   );
 }

@@ -223,7 +223,7 @@ export const useChatPreviews = () => {
     isSuccess: fetchPreview.isSuccess,
 
     /** Array of chat previews, empty array if no chats are loaded */
-    data: fetchPreview.data || [],
+    data: fetchPreview.data,
     /** Error message from the last failed chat preview operation, null if no error */
     error: fetchPreview.error,
     /** Function to create a new chat */

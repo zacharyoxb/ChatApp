@@ -59,7 +59,6 @@ export const useChatWebSocket = () => {
 
       ws.onmessage = (event) => {
         const ws_mssg: WebSocketMessage = JSON.parse(event.data);
-        console.log(ws_mssg.type);
 
         switch (ws_mssg.type as keyof MessageTypeMap) {
           case "message":

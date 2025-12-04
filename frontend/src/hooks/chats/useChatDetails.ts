@@ -97,7 +97,7 @@ export const useChatDetails = (chatId: string | undefined) => {
     /** Error state */
     isError: fetchDetails.isError,
     /** Array of chat previews, empty array if no chats are loaded */
-    data: fetchDetails.data || [],
+    data: fetchDetails.data,
     /** Error message from the last failed chat preview operation, null if no error */
     error: fetchDetails.error,
     /** Function to add a message to chat */
