@@ -73,7 +73,7 @@ function Chats() {
             Error Loading Chats: {chatPreviews.error?.message || "Unknown Error"} </h2>}
             resetKeys={["chatPreviews"]}>
             <Suspense fallback={<h2 className={styles.loadingOrError}> Chats Loading...</h2>}>
-              <PreviewList chats={chatPreviews.sortedChatPreviews}></PreviewList>
+              <PreviewList chats={chatPreviews.data}></PreviewList>
             </Suspense>
           </ErrorBoundary>
         </div>

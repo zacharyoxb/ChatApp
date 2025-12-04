@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import type {
   ChatPreview,
@@ -23,15 +23,26 @@ export const useChatPreviews = () => {
         const data = await response.json();
         if (data.detail === "SESSION_EXPIRED") {
           navigate("/login", { state: { sessionExpired: true } });
-          return null;
+          return undefined;
         } else {
           navigate("/login", { state: { noCookie: true } });
-          return null;
+          return undefined;
         }
       }
 
       const data: ChatPreview[] = await response.json();
-      return data;
+
+      return data.sort((prev, next) => {
+        const nextTime = next.lastMessage
+          ? new Date(next.lastMessage.timestamp).getTime()
+          : new Date(next.createdAt).getTime();
+        
+        const prevTime = prev.lastMessage
+          ? new Date(prev.lastMessage.timestamp).getTime()
+          : new Date(prev.createdAt).getTime();
+        
+        return nextTime - prevTime;
+      });
     },
     // WebSocket will notify us of any data
     staleTime: Infinity,
@@ -198,21 +209,6 @@ export const useChatPreviews = () => {
     [queryClient]
   );
 
-  /**
-   * Sorts chat previews by timestamp of last message
-   */
-  const sortedChatPreviews = useMemo(() => {
-    return (fetchPreview.data || []).sort((prev, next) => {
-      const nextTime = next.lastMessage
-        ? next.lastMessage.timestamp
-        : next.createdAt;
-      const prevTime = prev.lastMessage
-        ? prev.lastMessage.timestamp
-        : prev.createdAt;
-
-      return new Date(nextTime).getTime() - new Date(prevTime).getTime();
-    });
-  }, [fetchPreview.data]);
 
   return {
     /** Pending state */
@@ -232,7 +228,5 @@ export const useChatPreviews = () => {
     handleUserAddedToChat,
     /** Updates the last message sent */
     updateLastMessage,
-    /** Chats sorted by most recent activity in descending order */
-    sortedChatPreviews,
   };
 };

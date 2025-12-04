@@ -3,16 +3,16 @@ import styles from "./PreviewList.module.css";
 import PreviewListItem from "./PreviewListItem";
 
 interface PreviewListProps {
-  chats: ChatPreview[];
+  chats: ChatPreview[] | undefined;
 }
 
 const PreviewList: React.FC<PreviewListProps> = ({ chats }) => {
   return (
     <div className={styles.chatList}>
-      {chats.length === 0 ? (
+      {chats?.length === 0 ? (
         <h2> You aren't in any chats. </h2>
       ) : (
-        chats.map((chat) => (
+        chats?.map((chat) => (
           <PreviewListItem
             key={chat.chatId}
             chatUrl={`/chats/${chat.chatId}`}
