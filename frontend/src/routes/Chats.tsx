@@ -1,7 +1,6 @@
 import { Suspense, useEffect } from "react";
 import { useParams } from "react-router";
-
-
+import { ErrorBoundary } from "react-error-boundary";
 import styles from "./Chats.module.css";
 import { useModal } from "../hooks/common/useModal";
 import CreateChatModal from "../components/chats/modals/CreateChatModal";
@@ -13,7 +12,6 @@ import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 import type { UserInfo } from "../types/chats";
 import { useChatDetails } from "../hooks/chats/useChatDetails";
 import Dropdown from "../components/common/Dropdown";
-import { ErrorBoundary } from "react-error-boundary";
 
 function Chats() {
   const session = useSession();
@@ -55,17 +53,17 @@ function Chats() {
   return (
     <div className={styles.parentDiv}>
       <h1 className="sr-only"> ChatApp </h1>
+
+      {/** Left Side Chat Previews Bar */}
       <div
         className={`${styles.chatSelectionList} ${chatId ? styles.mobileHidden : ""}`}
       >
-        {/** Left Side Chat Previews Bar */}
         <div className={styles.topBar}>
           <h2> ChatApp </h2>
           <Dropdown menuOptions={[
             {label: "Create Chat", action: createChatModal.open},
             {label: "Logout", action: session.logout}
-          ]
-          }></Dropdown>
+          ]}></Dropdown>
         </div>
         <div className={styles.middleBar}>
           <ErrorBoundary 
@@ -84,7 +82,6 @@ function Chats() {
       <div
         className={`${styles.chatArea} ${!chatId ? styles.mobileHidden : ""}`}
       >
-         
         {!chatId ? <h2 className={styles.noChat}> No Chat Selected. </h2> :
          <ErrorBoundary fallback={<h2 className={styles.loadingOrError}>
               Error Loading Live Chat: {chatDetails.error?.message || "Unknown Error"}</h2>}

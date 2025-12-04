@@ -118,7 +118,6 @@ export const useChatPreviews = () => {
         [...previousChats, optimisticChat]
       );
 
-      // Return context with the optimistic chat for potential rollback
       return {
         optimisticChat,
         previousChats,
@@ -141,7 +140,6 @@ export const useChatPreviews = () => {
 
     // SETTLED: Invalidates to ensure fresh data (after WS should have arrived)
     onSettled: () => {
-      // Optionally refetch after a delay to catch any missed WS updates
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["chatPreviews"] });
       }, 2000); // 2 second delay as fallback
