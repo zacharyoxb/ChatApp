@@ -32,7 +32,18 @@ export const useChatDetails = (chatId: string | undefined) => {
         throw new Error(`Failed to fetch: ${response.status}`);
       }
 
-      return await response.json();
+      const data: ChatDetails = await response.json();
+      
+      const sortedMessages = (data.messages || []).sort((a, b) => {
+        const timeA = new Date(a.timestamp).getTime();
+        const timeB = new Date(b.timestamp).getTime();
+        return timeA - timeB
+      });
+      
+      return {
+        ...data,
+        messages: sortedMessages, 
+      };
     },
     enabled: !!chatId,
   });
@@ -96,7 +107,7 @@ export const useChatDetails = (chatId: string | undefined) => {
     isPending: fetchDetails.isPending,
     /** Error state */
     isError: fetchDetails.isError,
-    /** Array of chat previews, empty array if no chats are loaded */
+    /** Array of chat details, empty array if no chats are loaded */
     data: fetchDetails.data,
     /** Error message from the last failed chat preview operation, null if no error */
     error: fetchDetails.error,
