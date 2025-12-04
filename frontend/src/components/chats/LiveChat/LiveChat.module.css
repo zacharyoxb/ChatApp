@@ -45,6 +45,8 @@
   margin: 0;
 }
 
+/* Message Styling */
+
 .messagesContainer {
   display: flex;
   flex: 1;
@@ -54,6 +56,48 @@
   overflow-y: auto;
 }
 
+/* All messages */
+.message {
+  width: fit-content;
+  max-width: 80%;
+  padding: 10px;
+  margin: 15px;
+  border-radius: 6px;
+  background-color: #1a1a1a;
+  font-size: large;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+/* Message from this user */
+.selfMessage {
+  align-self: flex-end;
+}
+
+.selfMessage .sender {
+  display: none;
+}
+
+/* Message from other user in dm */
+.dmMessage {
+  
+}
+
+.dmMessage .sender {
+  display: none;
+}
+
+/* Message from other user in group */
+.groupMessage {}
+
+/* Message from server */
+.serverMessage {
+  align-self: center;
+}
+
+
+/* End of Message Styling */
+
 .inputContainer {
   position: sticky;
   display: flex;
@@ -61,7 +105,9 @@
   height: auto;
   flex-direction: row;
   justify-content: center;
+  padding-top: 15px;
   padding-bottom: 15px;
+  background-color: #1a1a1a;
 }
 
 .messageInput {

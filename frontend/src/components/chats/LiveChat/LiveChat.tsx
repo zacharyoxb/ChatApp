@@ -10,6 +10,7 @@ import Dropdown from "../../common/Dropdown";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import type { ChatDetails, ChatPreview } from "../../../types/chats";
+import { cn } from "../../../utils/classNames";
 
 interface LiveChatProps {
   chatPreview: ChatPreview | undefined;
@@ -38,12 +39,12 @@ const LiveChat: React.FC<LiveChatProps> = ({
 }) => {
   const [messageInput, setMessageInput] = useState("");
   const navigate = useNavigate();
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth"})
   }, [chatDetails?.messages]); 
+
 
   const handleSendMessage = () => {
     if (messageInput.trim() === "") return;
@@ -57,12 +58,6 @@ const LiveChat: React.FC<LiveChatProps> = ({
     );
 
     setMessageInput("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSendMessage();
-    }
   };
 
   /**
@@ -91,8 +86,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
   };
 
   const isDm = !!chatPreview?.dmParticipantId;
-  // Placeholder for chat image logic
-  let chatImage = undefined;
+  let chatImage = undefined; // placeholder
   let image = chatImage || (isDm ? defaultDm : defaultGroup);
 
   return (
@@ -150,7 +144,13 @@ const LiveChat: React.FC<LiveChatProps> = ({
       </div>
       <div className={styles.messagesContainer}>
         {chatDetails?.messages.map((message, index) => (
-          <div key={index} className={styles.message}>
+          <div key={index} className={cn(
+            styles.message, 
+            isDm && styles.dmMessage,
+            !isDm && styles.groupMessage,
+            message.senderUsername == sessionStorage.getItem("username") && styles.selfMessage, // change this
+            message.senderId == "SERVER" && styles.serverMessage,
+            )}>
             <span className={styles.sender}>{message.senderUsername}:</span>
             <span className={styles.content}>
               {insertUsernames(message.content)}
@@ -166,7 +166,9 @@ const LiveChat: React.FC<LiveChatProps> = ({
           placeholder="Type your message..."
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={(e) => {
+            if(e.key == "Enter") {handleSendMessage()}
+          }}
         />
         <button className={styles.sendButton} onClick={handleSendMessage}>
           Send
