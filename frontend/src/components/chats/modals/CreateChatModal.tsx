@@ -7,11 +7,11 @@ import addLight from "/src/assets/add-light.png";
 import minus from "/src/assets/minus.png";
 import minusLight from "/src/assets/minus-light.png";
 import type { UserInfo } from "../../../types/chats";
+import { useUserInfo } from "../../../hooks/chats/useUserInfo";
 
 interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddMember: (username: string) => Promise<UserInfo | null>;
   onCreateChat: (
     chatName: string,
     members: UserInfo[],
@@ -22,11 +22,14 @@ interface CreateChatModalProps {
 function CreateChatModal({
   isOpen,
   onClose,
-  onAddMember,
   onCreateChat,
 }: CreateChatModalProps) {
   const [memberEntryBox, setMemberEntryBox] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+
+  // TODO: Amend this hook I hate it
+  const username = sessionStorage.getItem("currentUser");
+  const tempHook = useUserInfo(username || "")
 
   const [usernameToIdMap, setUsernameToIdMap] = useState<
     Record<string, UserInfo>
@@ -54,7 +57,7 @@ function CreateChatModal({
       return;
     }
 
-    const userInfo = await onAddMember(newMember);
+    const userInfo = await tempHook.fetchUserInfo(newMember);
 
     // User doesn't exist
     if (!userInfo) {

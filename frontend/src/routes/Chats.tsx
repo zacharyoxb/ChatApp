@@ -12,7 +12,6 @@ import { useChatWebSocket } from "../hooks/chats/useChatWebSocket";
 import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 import type { UserInfo } from "../types/chats";
 import { useChatDetails } from "../hooks/chats/useChatDetails";
-import { useUserInfo } from "../hooks/chats/useUserInfo";
 
 function Chats() {
   const session = useSession();
@@ -20,7 +19,6 @@ function Chats() {
   const chatId = params.chatId;
 
   // Chat hooks
-  const userInfo = useUserInfo();
   const chatPreviews = useChatPreviews();
   const chatDetails = useChatDetails(chatId);
   const chatWebSocket = useChatWebSocket();
@@ -100,7 +98,6 @@ function Chats() {
         <CreateChatModal
           isOpen={createChatModal.isOpen}
           onClose={createChatModal.close}
-          onAddMember={userInfo.fetchUserInfo}
           onCreateChat={handleCreateChat}
         ></CreateChatModal>
       </div>
