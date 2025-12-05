@@ -4,7 +4,6 @@ import { ErrorBoundary } from "react-error-boundary";
 import styles from "./Chats.module.css";
 import { useModal } from "../hooks/common/useModal";
 import CreateChatModal from "../components/chats/modals/CreateChatModal";
-import { useSession } from "../hooks/common/useSession";
 import LiveChat from "../components/chats/LiveChat/LiveChat";
 import PreviewList from "../components/chats/ChatList/PreviewList";
 import { useChatWebSocket } from "../hooks/chats/useChatWebSocket";
@@ -12,17 +11,21 @@ import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 import type { UserInfo } from "../types/chats";
 import { useChatDetails } from "../hooks/chats/useChatDetails";
 import Dropdown from "../components/common/Dropdown";
+import { useLogout } from "../queries/authQueries";
 
 function Chats() {
-  const session = useSession();
   const params = useParams();
   const chatId = params.chatId;
+
+  // Queries
+  const logoutMutation = useLogout()
 
   // Chat hooks
   const chatPreviews = useChatPreviews();
   const chatDetails = useChatDetails(chatId);
   const chatWebSocket = useChatWebSocket();
   const createChatModal = useModal();
+
 
   useEffect(() => {
     if (!chatWebSocket.isConnecting && chatPreviews.data) {
@@ -62,7 +65,7 @@ function Chats() {
           <h2> ChatApp </h2>
           <Dropdown menuOptions={[
             {label: "Create Chat", action: createChatModal.open},
-            {label: "Logout", action: session.logout}
+            {label: "Logout", action: logoutMutation.mutate}
           ]}></Dropdown>
         </div>
         <div className={styles.middleBar}>

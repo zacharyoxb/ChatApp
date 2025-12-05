@@ -5,10 +5,11 @@ import { useAuthSession, useLogin } from "../queries/authQueries";
 
 function Login() {
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const location = useLocation();
-
-  const sessionQuery = useAuthSession()
+  const [error, setError] = useState<string | null>(null);
+ 
+  // Queries
+  const { data: session } = useAuthSession()
   const loginMutation = useLogin()
 
   useEffect(() => {
@@ -18,8 +19,18 @@ function Login() {
     } else if (location.state?.noCookie) {
       setError("You must login before you can access your chats.");
       navigate(location.pathname, { replace: true, state: {} });
+    } else {
+      if (session) {
+        navigate("/chats")
+      }
     }
-  }, [navigate, location]);
+  }, [session, navigate, location]);
+
+  useEffect(() => {
+    if (loginMutation.isError && loginMutation.error) {
+      setError(loginMutation.error.message);
+    }
+  }, [loginMutation.isError, loginMutation.error]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

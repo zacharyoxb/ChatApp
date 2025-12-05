@@ -1,21 +1,17 @@
 import { useEffect } from "react";
 import styles from "./Home.module.css";
 import { useNavigate } from "react-router";
-import { useSession } from "../hooks/common/useSession";
+import { useAuthSession } from "../queries/authQueries";
 
 function Home() {
   const navigate = useNavigate();
-  const session = useSession();
+  const { data: session } = useAuthSession()
 
   useEffect(() => {
-    const checkSession = async () => {
-      let valid = await session.authSession();
-      if (valid) {
-        navigate("/chats");
-      }
-    };
-    checkSession();
-  }, [navigate]);
+    if(session) {
+      navigate("/chats")
+    }
+  }, [session, navigate]);
 
   return (
     <div className={styles.parentDiv}>

@@ -1,28 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import styles from "./LoginSignup.module.css";
-import { useSession } from "../hooks/common/useSession";
+import { useAuthSession, useSignup } from "../queries/authQueries";
 
 function SignUp() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const session = useSession();
+  const { data: session } = useAuthSession()
+  const signupMutation = useSignup()
 
   useEffect(() => {
-    const checkSession = async () => {
-      let valid = await session.authSession();
-      if (valid) {
-        navigate("/chats");
-      }
-    };
-    checkSession();
-  }, [navigate]);
-
-  useEffect(() => {
-    if (session.isError && session.error) {
-      setError(session.error);
+    if(session) {
+      navigate("/chats")
     }
-  }, [session.isError, session.error]);
+  }, [session, navigate]);
+
+  useEffect(() => {
+    if (signupMutation.isError && signupMutation.error) {
+      setError(signupMutation.error.message);
+    }
+  }, [signupMutation.isError, signupMutation.error]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,10 +36,11 @@ function SignUp() {
     const username = formData.get("username") as string;
     const rememberMe = formData.get("remember-me") === "on";
 
-    await session.signup(username, password, rememberMe);
-    if (session.isError) {
-      setError(session.error);
-    }
+    signupMutation.mutate({
+      username,
+      password,
+      rememberMe,
+    })
   };
 
   const clearError = () => {};
