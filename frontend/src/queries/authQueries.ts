@@ -12,7 +12,9 @@ export const useAuthSession = () => {
           credentials: "include",
         });
         if (response.ok) return await response.json();
-      throw new Error("No valid session exists.")
+
+        const errData = await response.json()
+        throw new Error(errData.detail)
     },
     retry: false,
   });

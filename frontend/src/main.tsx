@@ -20,7 +20,7 @@ const queryClient = new QueryClient({
 
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { data: session, isLoading } = useAuthSession();
+  const { data: session, error, isLoading } = useAuthSession();
   
   if (isLoading) {
     return <div>Loading session...</div>;
@@ -28,7 +28,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   if (!session) {
     // Redirect to login if no session
-    return <Navigate to="/login" replace />;
+    if (error?.message == "SESSION_EXPIRED") {
+      return <Navigate to="/login" state={{sessionExpired: true}} replace />;
+    } else if(error?.message == "COOKIE_NOT_PRESENT") {
+      return <Navigate to="/login" state={{noCookie: true}} replace />;
+    }
+    return <Navigate to="/login" />;
   }
   
   return <>{children}</>;
