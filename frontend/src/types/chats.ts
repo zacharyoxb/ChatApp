@@ -4,7 +4,7 @@ export type UserRole = "owner" | "admin" | "member";
 /**
  * Represents the information for each user in a chat
  */
-export interface UserInfo {
+export interface ChatUserInfo {
   /** Unique identifier for user */
   userId: string;
   /** Username of user */
@@ -57,7 +57,7 @@ export interface ChatDetails {
   /** Unique identifier for the chat in hexadecimal format */
   chatId: string;
   /** All participants in the chat */
-  participants: UserInfo[];
+  participants: ChatUserInfo[];
   /** Messages in the chat */
   messages: ChatMessage[];
 }

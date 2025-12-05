@@ -8,10 +8,10 @@ import LiveChat from "../components/chats/LiveChat/LiveChat";
 import PreviewList from "../components/chats/ChatList/PreviewList";
 import { useChatWebSocket } from "../hooks/chats/useChatWebSocket";
 import { useChatPreviews } from "../hooks/chats/useChatPreviews";
-import type { UserInfo } from "../types/chats";
 import { useChatDetails } from "../hooks/chats/useChatDetails";
 import Dropdown from "../components/common/Dropdown";
 import { useLogout } from "../queries/authQueries";
+import type { ChatUserInfo } from "../types/chats";
 
 function Chats() {
   const params = useParams();
@@ -43,7 +43,7 @@ function Chats() {
    */
   const handleCreateChat = async (
     chatName: string,
-    members: UserInfo[],
+    members: ChatUserInfo[],
     isPublic: boolean
   ) => {
     await chatPreviews.createChatMutation.mutateAsync({

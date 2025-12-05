@@ -40,11 +40,6 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <div>Checking authentication...</div>;
   }
   
-  // Don't render children until authenticated
-  if (!session?.isAuthenticated) {
-    return <div>Please log in...</div>; // Brief message while redirecting
-  }
-  
   // Only render children if authenticated
   return <>{children}</>;
 }

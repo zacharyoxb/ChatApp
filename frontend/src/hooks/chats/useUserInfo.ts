@@ -1,24 +1,7 @@
 import { useCallback } from "react";
-import type { UserInfo } from "../../types/chats";
-import { useQuery } from "@tanstack/react-query";
+import type { ChatUserInfo } from "../../types/chats";
 
-export const useUserInfo = (username: string) => {
-  const userQuery = useQuery({queryKey: ['userInfo', username], queryFn: async () => {
-    const response = await fetch(`https://localhost:8000/users/${username}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.status === 404) {
-        return null;
-      }
-
-      const userInfo: UserInfo = await response.json();
-      return userInfo;
-  }})
+export const useUserInfo = () => {
   /** Fetches UserInfo from backend for a specific user.
    *
    * @param username - Username to get userinfo for
@@ -39,7 +22,7 @@ export const useUserInfo = (username: string) => {
         return null;
       }
 
-      const userInfo: UserInfo = await response.json();
+      const userInfo: ChatUserInfo = await response.json();
       return userInfo;
     } catch (err) {
       console.log(err);
@@ -50,6 +33,5 @@ export const useUserInfo = (username: string) => {
   return {
     /** Function to fetch user info for a specific user */
     fetchUserInfo,
-    userQuery,
   };
 };

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import type {
   ChatPreview,
-  UserInfo,
+  ChatUserInfo,
   WSChatMessageData,
   WSUserAddedData,
 } from "../../types/chats";
@@ -72,7 +72,7 @@ export const useChatPreviews = () => {
       isPublic,
     }: {
       chatName: string;
-      otherUsers: UserInfo[];
+      otherUsers: ChatUserInfo[];
       isPublic: boolean;
     }) => {
       const response = await fetch("https://localhost:8000/chats", {

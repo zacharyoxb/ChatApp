@@ -6,15 +6,15 @@ import add from "/src/assets/add.png";
 import addLight from "/src/assets/add-light.png";
 import minus from "/src/assets/minus.png";
 import minusLight from "/src/assets/minus-light.png";
-import type { UserInfo } from "../../../types/chats";
-import { useUserInfo } from "../../../hooks/chats/useUserInfo";
+import type { ChatUserInfo } from "../../../types/chats";
+import { useUserInfo } from "../../../queries/userQueries";
 
 interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateChat: (
     chatName: string,
-    members: UserInfo[],
+    members: ChatUserInfo[],
     isPublic: boolean
   ) => Promise<void>;
 }
@@ -27,14 +27,15 @@ function CreateChatModal({
   const [memberEntryBox, setMemberEntryBox] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
+  const userInfoMutation = useUserInfo();
+
   // TODO: Amend this hook I hate it
-  const username = sessionStorage.getItem("currentUser");
-  const tempHook = useUserInfo(username || "")
+  const username = sessionStorage.getItem("currentUser") || "placeholder";
 
   const [usernameToIdMap, setUsernameToIdMap] = useState<
-    Record<string, UserInfo>
+    Record<string, ChatUserInfo>
   >({});
-  const [members, setMembers] = useState<UserInfo[]>([]);
+  const [members, setMembers] = useState<ChatUserInfo[]>([]);
 
   const handleAddMember = async (newMember: string) => {
     // The user has entered nothing
@@ -57,13 +58,22 @@ function CreateChatModal({
       return;
     }
 
-    const userInfo = await tempHook.fetchUserInfo(newMember);
+    await userInfoMutation.mutateAsync({
+      username,
+    })
+
+    if(userInfoMutation.error) {
+      setError(`Error getting user data: ${userInfoMutation.error}`)
+      return;
+    }
 
     // User doesn't exist
-    if (!userInfo) {
+    if (!userInfoMutation.data) {
       setError(`User "${newMember}" does not exist.`);
       return;
     }
+
+    const userInfo = userInfoMutation.data;
 
     setUsernameToIdMap((prev) => ({ ...prev, [newMember]: userInfo }));
     setMembers((prevMembers) => [...prevMembers, userInfo]);
@@ -71,7 +81,7 @@ function CreateChatModal({
     setError(null);
   };
 
-  const handleRemoveMember = (userToRemove: UserInfo) => {
+  const handleRemoveMember = (userToRemove: ChatUserInfo) => {
     setMembers(members.filter((member) => member !== userToRemove));
     setUsernameToIdMap((prev) => {
       const { [userToRemove.username]: _, ...rest } = prev;

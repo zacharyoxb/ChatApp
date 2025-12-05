@@ -1,5 +1,5 @@
 // queries/authQueries.ts
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import type { UserSession } from "../types/session";
 
@@ -53,6 +53,7 @@ export const useAuthSession = (options?: useAuthSessionOptions) => {
 
 export const useSignup = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({
@@ -83,8 +84,12 @@ export const useSignup = () => {
       }
       return response;
     },
-    onSuccess: (_response, variables) => {
+    onSuccess: async (_response, variables) => {
       sessionStorage.setItem("currentUser", variables.username);
+
+      // force refetch so when session is validated the user has a cookie
+      await queryClient.invalidateQueries({queryKey: ["session"]})
+
       navigate("/chats");
     },
   });
@@ -92,6 +97,7 @@ export const useSignup = () => {
 
 export const useLogin = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({
@@ -118,8 +124,11 @@ export const useLogin = () => {
       }
       return response;
     },
-    onSuccess: (_response, variables) => {
+    onSuccess: async (_response, variables) => {
       sessionStorage.setItem("currentUser", variables.username);
+
+      await queryClient.invalidateQueries({queryKey:["session"]})
+
       navigate("/chats");
     },
   });
@@ -127,6 +136,7 @@ export const useLogin = () => {
 
 export const useLogout = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async () => {
@@ -135,13 +145,19 @@ export const useLogout = () => {
         credentials: "include",
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       sessionStorage.removeItem("currentUser");
+ 
+      await queryClient.invalidateQueries({queryKey:["session"]})
+
       navigate("/");
     },
-    onSettled: () => {
+    onSettled: async () => {
       // Clear local state even if request fails
       sessionStorage.removeItem("currentUser");
+
+      await queryClient.invalidateQueries({queryKey:["session"]})
+
       navigate("/");
     },
   });
