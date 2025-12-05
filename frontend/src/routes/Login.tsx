@@ -1,47 +1,25 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import styles from "./LoginSignup.module.css";
-import { useSession } from "../hooks/common/useSession";
+import { useAuthSession, useLogin } from "../queries/authQueries";
 
 function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
-  const session = useSession();
-  const hasCheckedSessionRef = useRef(false);
+
+  const sessionQuery = useAuthSession()
+  const loginMutation = useLogin()
 
   useEffect(() => {
-    if (hasCheckedSessionRef.current) {
-      return;
-    }
-
-    const checkSession = async () => {
-      let valid = await session.authSession();
-      if (valid) {
-        navigate("/chats");
-      }
-    };
-
-    // mark session as checked before checking
-    hasCheckedSessionRef.current = true;
-
     if (location.state?.sessionExpired) {
       setError("Your session has expired. Please log in again.");
       navigate(location.pathname, { replace: true, state: {} });
     } else if (location.state?.noCookie) {
       setError("You must login before you can access your chats.");
       navigate(location.pathname, { replace: true, state: {} });
-    } else {
-      checkSession();
     }
-    hasCheckedSessionRef.current = true;
   }, [navigate, location]);
-
-  useEffect(() => {
-    if (session.isError && session.error) {
-      setError(session.error);
-    }
-  }, [session.isError, session.error]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,9 +27,13 @@ function Login() {
 
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
-    const remember_me = formData.get("remember-me") === "on";
+    const rememberMe = formData.get("remember-me") === "on";
 
-    await session.login(username, password, remember_me);
+    loginMutation.mutate({
+      username,
+      password,
+      rememberMe,
+    })
   };
 
   const clearError = () => {

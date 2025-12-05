@@ -103,10 +103,6 @@ export const useChatDetails = (chatId: string | undefined) => {
   );
 
   return {
-    /** Pending state */
-    isPending: fetchDetails.isPending,
-    /** Error state */
-    isError: fetchDetails.isError,
     /** Array of chat details, empty array if no chats are loaded */
     data: fetchDetails.data,
     /** Error message from the last failed chat preview operation, null if no error */

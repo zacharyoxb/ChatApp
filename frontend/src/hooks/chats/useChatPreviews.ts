@@ -105,7 +105,7 @@ export const useChatPreviews = () => {
 
       // Generate optimistic chat preview
       const optimisticChat: ChatPreview = {
-        chatId: `optimistic-${Date.now()}`, // Temporary ID
+        chatId: `optimistic-${Date.now()}`, 
         chatName: variables.chatName,
         createdAt: new Date().toISOString(),
         lastMessage: undefined,
@@ -209,13 +209,6 @@ export const useChatPreviews = () => {
 
 
   return {
-    /** Pending state */
-    isPending: fetchPreview.isPending,
-    /** Error state */
-    isError: fetchPreview.isError,
-    /** Success state */
-    isSuccess: fetchPreview.isSuccess,
-
     /** Array of chat previews, empty array if no chats are loaded */
     data: fetchPreview.data,
     /** Error message from the last failed chat preview operation, null if no error */

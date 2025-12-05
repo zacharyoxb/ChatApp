@@ -1,7 +1,7 @@
 /**
  * Data structure for session information.
  */
-export interface SessionData {
+export interface UserSession {
   /** User's unique identifier. */
   user_id: string;
   /** Username for user. */

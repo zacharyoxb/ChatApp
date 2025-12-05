@@ -78,17 +78,17 @@
   display: none;
 }
 
-/* Message from other user in dm */
+/* Message from other user in dm
 .dmMessage {
   
-}
+} */
 
 .dmMessage .sender {
   display: none;
 }
 
 /* Message from other user in group */
-.groupMessage {}
+/* .groupMessage {} */
 
 /* Message from server */
 .serverMessage {
