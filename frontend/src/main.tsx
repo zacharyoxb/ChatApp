@@ -1,6 +1,6 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router";
 import "./index.css";
 import Home from "./routes/Home.tsx";
 import Login from "./routes/Login.tsx";
@@ -8,6 +8,7 @@ import SignUp from "./routes/Signup.tsx";
 import Chats from "./routes/Chats.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthSession } from "./queries/authQueries.ts";
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,22 +21,31 @@ const queryClient = new QueryClient({
 
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { data: session, error, isLoading } = useAuthSession();
-  
-  if (isLoading) {
-    return <div>Loading session...</div>;
-  }
-  
-  if (!session) {
-    // Redirect to login if no session
-    if (error?.message == "SESSION_EXPIRED") {
-      return <Navigate to="/login" state={{sessionExpired: true}} replace />;
-    } else if(error?.message == "COOKIE_NOT_PRESENT") {
-      return <Navigate to="/login" state={{noCookie: true}} replace />;
+  const navigate = useNavigate();
+  const { data: session, isLoading } = useAuthSession();
+
+  useEffect(() => {
+    if(!isLoading && !session?.isAuthenticated) {
+      if (session?.error == "SESSION_EXPIRED") {
+      navigate("/login", {replace: true, state: {sessionExpired: true}})
+    } else if(session?.error == "COOKIE_NOT_PRESENT") {
+      navigate("/login", {replace: true, state: {noCookie: true}})
     }
-    return <Navigate to="/login" />;
+    navigate("/login")
+    }
+  }, [isLoading, session, navigate]);
+  
+   // Loading state
+  if (isLoading) {
+    return <div>Checking authentication...</div>;
   }
   
+  // Don't render children until authenticated
+  if (!session?.isAuthenticated) {
+    return <div>Please log in...</div>; // Brief message while redirecting
+  }
+  
+  // Only render children if authenticated
   return <>{children}</>;
 }
 
@@ -55,6 +65,7 @@ createRoot(document.getElementById("root")!).render(
           }/>
         </Routes>
       </BrowserRouter>
+      {/* <ReactQueryDevtools initialIsOpen={true} /> */}
     </QueryClientProvider>
   </StrictMode>
 );

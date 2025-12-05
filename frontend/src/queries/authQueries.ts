@@ -3,20 +3,51 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import type { UserSession } from "../types/session";
 
-export const useAuthSession = () => {
+// Allows auth to be disabled
+type useAuthSessionOptions = {
+    enabled?: boolean;
+}
+
+interface AuthResult {
+  data: UserSession | null;
+  isAuthenticated: boolean;
+  error?: string;
+}
+
+export const useAuthSession = (options?: useAuthSessionOptions) => {
+    const {
+        enabled = true
+    } = options || {}
+
   return useQuery({
     queryKey: ["session"],
-    queryFn: async (): Promise<UserSession | null> => {
+    queryFn: async (): Promise<AuthResult> => {
         const response = await fetch("https://localhost:8000/session", {
           method: "GET",
           credentials: "include",
         });
-        if (response.ok) return await response.json();
+        if (response.ok) {
+            const data = await response.json();
+            return {
+                data,
+                isAuthenticated: true,
+            }
+        } 
+       
+        if (response.status === 401) {
+            const errData = await response.json()
+            return {
+                data: null,
+                isAuthenticated: false,
+                error: errData.detail,
+            }
+        }
 
-        const errData = await response.json()
-        throw new Error(errData.detail)
+        throw new Error(`Server error: ${response.status}`)
     },
     retry: false,
+    staleTime: Infinity,
+    enabled,
   });
 };
 

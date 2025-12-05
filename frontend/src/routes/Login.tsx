@@ -9,7 +9,6 @@ function Login() {
   const [error, setError] = useState<string | null>(null);
  
   // Queries
-  const { data: session } = useAuthSession()
   const loginMutation = useLogin()
 
   useEffect(() => {
@@ -19,12 +18,22 @@ function Login() {
     } else if (location.state?.noCookie) {
       setError("You must login before you can access your chats.");
       navigate(location.pathname, { replace: true, state: {} });
-    } else {
-      if (session) {
-        navigate("/chats")
-      }
+    } 
+  }, [navigate, location]);
+
+  // Only check auth if it hasn't already been checked
+  const checkAuth = !error;
+  const { data: session } = useAuthSession({
+    enabled: !error,
+  });
+
+  useEffect(() => {
+    if(session?.isAuthenticated && checkAuth) {
+      navigate("/chats", { replace: true })
     }
-  }, [session, navigate, location]);
+  })
+
+
 
   useEffect(() => {
     if (loginMutation.isError && loginMutation.error) {

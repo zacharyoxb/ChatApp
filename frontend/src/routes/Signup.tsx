@@ -6,20 +6,26 @@ import { useAuthSession, useSignup } from "../queries/authQueries";
 function SignUp() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const { data: session } = useAuthSession()
-  const signupMutation = useSignup()
 
-  useEffect(() => {
-    if(session) {
-      navigate("/chats")
-    }
-  }, [session, navigate]);
+  const signupMutation = useSignup()
 
   useEffect(() => {
     if (signupMutation.isError && signupMutation.error) {
       setError(signupMutation.error.message);
     }
   }, [signupMutation.isError, signupMutation.error]);
+
+  // Only check auth if it hasn't already been checked
+  const checkAuth = !error;
+  const { data: session } = useAuthSession({
+    enabled: !error,
+  });
+
+  useEffect(() => {
+    if(session?.isAuthenticated && checkAuth) {
+      navigate("/chats", { replace: true })
+    }
+  })
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

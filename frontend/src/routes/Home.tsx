@@ -8,7 +8,7 @@ function Home() {
   const { data: session } = useAuthSession()
 
   useEffect(() => {
-    if(session) {
+    if(session?.isAuthenticated) {
       navigate("/chats")
     }
   }, [session, navigate]);
