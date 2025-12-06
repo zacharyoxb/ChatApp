@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Modal from "../../common/Modal";
 import styles from "./CreateChatModal.module.css";
 import errorIcon from "/src/assets/error-icon.png";
@@ -8,6 +8,7 @@ import minus from "/src/assets/minus.png";
 import minusLight from "/src/assets/minus-light.png";
 import type { ChatUserInfo } from "../../../types/chats";
 import { useUserInfo } from "../../../queries/userQueries";
+import { useAuthSession } from "../../../queries/authQueries";
 
 interface CreateChatModalProps {
   isOpen: boolean;
@@ -27,10 +28,10 @@ function CreateChatModal({
   const [memberEntryBox, setMemberEntryBox] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
+  const { data: session } = useAuthSession();
   const userInfoMutation = useUserInfo();
 
-  // TODO: Amend this hook I hate it
-  const username = sessionStorage.getItem("currentUser") || "placeholder";
+  const safeUsername = session?.data?.username || "Placeholder";
 
   const [usernameToIdMap, setUsernameToIdMap] = useState<
     Record<string, ChatUserInfo>
@@ -45,7 +46,7 @@ function CreateChatModal({
     }
 
     // The user has entered their own username
-    if (sessionStorage.getItem("currentUser") === newMember) {
+    if (safeUsername === newMember) {
       setError(`You have entered your own username.`);
       return;
     }
@@ -59,7 +60,7 @@ function CreateChatModal({
     }
 
     await userInfoMutation.mutateAsync({
-      username,
+      username: newMember,
     })
 
     if(userInfoMutation.error) {
@@ -124,9 +125,12 @@ function CreateChatModal({
         </label>
 
         <div className={styles.userListContainer}>
-          <div className={styles.userRectangle}>
-            <span>You ({sessionStorage.getItem("currentUser")})</span>
-          </div>
+          <Suspense fallback={<span> You </span>}>
+            <div className={styles.userRectangle}>
+              <span>You ({session?.data?.username})</span>
+            </div>
+          </Suspense>
+        
           <div className={styles.membersMap}>
             {members.map((member) => (
               <div key={member.userId} className={styles.userRectangle}>

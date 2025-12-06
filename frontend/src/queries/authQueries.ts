@@ -27,7 +27,7 @@ export const useAuthSession = (options?: useAuthSessionOptions) => {
           credentials: "include",
         });
         if (response.ok) {
-            const data = await response.json();
+            const data: UserSession = await response.json();
             return {
                 data,
                 isAuthenticated: true,
@@ -84,9 +84,7 @@ export const useSignup = () => {
       }
       return response;
     },
-    onSuccess: async (_response, variables) => {
-      sessionStorage.setItem("currentUser", variables.username);
-
+    onSuccess: async (_response, _variables) => {
       // force refetch so when session is validated the user has a cookie
       await queryClient.invalidateQueries({queryKey: ["session"]})
 
@@ -124,9 +122,7 @@ export const useLogin = () => {
       }
       return response;
     },
-    onSuccess: async (_response, variables) => {
-      sessionStorage.setItem("currentUser", variables.username);
-
+    onSuccess: async (_response, _variables) => {
       await queryClient.invalidateQueries({queryKey:["session"]})
 
       navigate("/chats");
@@ -146,16 +142,11 @@ export const useLogout = () => {
       });
     },
     onSuccess: async () => {
-      sessionStorage.removeItem("currentUser");
- 
       await queryClient.invalidateQueries({queryKey:["session"]})
 
       navigate("/");
     },
     onSettled: async () => {
-      // Clear local state even if request fails
-      sessionStorage.removeItem("currentUser");
-
       await queryClient.invalidateQueries({queryKey:["session"]})
 
       navigate("/");

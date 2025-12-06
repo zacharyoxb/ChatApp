@@ -34,9 +34,9 @@ async def auth_session(res: Response, session_id: str | None = Cookie(None)) -> 
     return session_data
 
 
-@router.get("/session")
+@router.get("/session", response_model=SessionData)
 async def get_session_endpoint(
-    _: SessionData = Depends(auth_session)
+    session_data: SessionData = Depends(auth_session)
 ) -> dict:
     """ Validates the user's session authentication.
 
@@ -55,4 +55,4 @@ async def get_session_endpoint(
             - No session cookie provided ("COOKIE_NOT_PRESENT")
             - Session expired or invalid ("SESSION_EXPIRED")
     """
-    return {"message": "Session is valid"}
+    return session_data.model_dump()

@@ -94,7 +94,6 @@ export const useChatPreviews = () => {
       return { success: true };
     },
 
-    // OPTIMISTIC UPDATE: Immediately show the chat in UI
     onMutate: async (variables) => {
       // Cancel any outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ["chatPreviews"] });
@@ -103,7 +102,6 @@ export const useChatPreviews = () => {
       const previousChats =
         queryClient.getQueryData<ChatPreview[]>(["chatPreviews"]) || [];
 
-      // Generate optimistic chat preview
       const optimisticChat: ChatPreview = {
         chatId: `optimistic-${Date.now()}`, 
         chatName: variables.chatName,
@@ -124,10 +122,8 @@ export const useChatPreviews = () => {
       };
     },
 
-    // SUCCESS: POST succeeded, wait for WebSocket confirmation
     onSuccess: () => {},
 
-    // ERROR: Rollback the optimistic update
     onError: (error: Error, variables, context) => {
       void variables; // hide warning
       console.error("Failed to create chat:", error.message);
@@ -138,7 +134,7 @@ export const useChatPreviews = () => {
       }
     },
 
-    // SETTLED: Invalidates to ensure fresh data (after WS should have arrived)
+    // Invalidates to ensure fresh data (after WS should have arrived)
     onSettled: () => {
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["chatPreviews"] });
