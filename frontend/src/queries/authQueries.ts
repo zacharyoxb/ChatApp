@@ -5,8 +5,8 @@ import type { UserSession } from "../types/session";
 
 // Allows auth to be disabled
 type useAuthSessionOptions = {
-    enabled?: boolean;
-}
+  enabled?: boolean;
+};
 
 interface AuthResult {
   data: UserSession | null;
@@ -15,35 +15,33 @@ interface AuthResult {
 }
 
 export const useAuthSession = (options?: useAuthSessionOptions) => {
-    const {
-        enabled = true
-    } = options || {}
+  const { enabled = true } = options || {};
 
   return useQuery({
     queryKey: ["session"],
     queryFn: async (): Promise<AuthResult> => {
-        const response = await fetch("https://localhost:8000/session", {
-          method: "GET",
-          credentials: "include",
-        });
-        if (response.ok) {
-            const data: UserSession = await response.json();
-            return {
-                data,
-                isAuthenticated: true,
-            }
-        } 
-       
-        if (response.status === 401) {
-            const errData = await response.json()
-            return {
-                data: null,
-                isAuthenticated: false,
-                error: errData.detail,
-            }
-        }
+      const response = await fetch("https://localhost:8000/session", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data: UserSession = await response.json();
+        return {
+          data,
+          isAuthenticated: true,
+        };
+      }
 
-        throw new Error(`Server error: ${response.status}`)
+      if (response.status === 401) {
+        const errData = await response.json();
+        return {
+          data: null,
+          isAuthenticated: false,
+          error: errData.detail,
+        };
+      }
+
+      throw new Error(`Server error: ${response.status}`);
     },
     retry: false,
     staleTime: Infinity,
@@ -54,7 +52,7 @@ export const useAuthSession = (options?: useAuthSessionOptions) => {
 export const useSignup = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({
       username,
@@ -71,13 +69,15 @@ export const useSignup = () => {
         body: JSON.stringify({ username, password, rememberMe }),
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         switch (response.status) {
           case 409:
             throw new Error("This username is already taken. Try another.");
           case 500:
-            throw new Error("Database error. Please contact website administrator.");
+            throw new Error(
+              "Database error. Please contact website administrator.",
+            );
           default:
             throw new Error("Unknown error has occurred.");
         }
@@ -86,7 +86,7 @@ export const useSignup = () => {
     },
     onSuccess: async (_response, _variables) => {
       // force refetch so when session is validated the user has a cookie
-      await queryClient.invalidateQueries({queryKey: ["session"]})
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
 
       navigate("/chats");
     },
@@ -96,7 +96,7 @@ export const useSignup = () => {
 export const useLogin = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({
       username,
@@ -113,7 +113,7 @@ export const useLogin = () => {
         body: JSON.stringify({ username, password, rememberMe }),
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error("Username or password is incorrect.");
@@ -123,7 +123,7 @@ export const useLogin = () => {
       return response;
     },
     onSuccess: async (_response, _variables) => {
-      await queryClient.invalidateQueries({queryKey:["session"]})
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
 
       navigate("/chats");
     },
@@ -133,7 +133,7 @@ export const useLogin = () => {
 export const useLogout = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
       return fetch("https://localhost:8000/logout", {
@@ -142,12 +142,12 @@ export const useLogout = () => {
       });
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({queryKey:["session"]})
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
 
       navigate("/");
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({queryKey:["session"]})
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
 
       navigate("/");
     },
