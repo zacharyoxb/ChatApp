@@ -1,18 +1,15 @@
-import type { ChatPreview } from "../../../types/chats";
+import { useChatPreviews } from "../../../queries/chatPreviewQueries";
 import styles from "./PreviewList.module.css";
 import PreviewListItem from "./PreviewListItem";
 
-interface PreviewListProps {
-  chats: ChatPreview[] | undefined;
-}
-
-const PreviewList: React.FC<PreviewListProps> = ({ chats }) => {
+const PreviewList = () => {
+  const chats = useChatPreviews();
   return (
     <div className={styles.chatList}>
-      {chats?.length === 0 ? (
+      {chats.data?.length === 0 ? (
         <h2> You aren't in any chats. </h2>
       ) : (
-        chats?.map((chat) => (
+        chats.data?.map((chat) => (
           <PreviewListItem
             key={chat.chatId}
             chatUrl={`/chats/${chat.chatId}`}

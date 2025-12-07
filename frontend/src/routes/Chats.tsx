@@ -5,7 +5,7 @@ import styles from "./Chats.module.css";
 import { useModal } from "../hooks/common/useModal";
 import CreateChatModal from "../components/chats/modals/CreateChatModal";
 import LiveChat from "../components/chats/LiveChat/LiveChat";
-import PreviewList from "../components/chats/ChatList/PreviewList";
+import PreviewList from "../components/chats/PreviewList/PreviewList";
 import { useChatWebSocket } from "../hooks/chats/useChatWebSocket";
 import { useChatPreviews } from "../hooks/chats/useChatPreviews";
 import { useChatDetails } from "../hooks/chats/useChatDetails";
@@ -55,9 +55,9 @@ function Chats() {
         <div className={styles.middleBar}>
           <ErrorBoundary
             fallback={
+              // write a proper fallback
               <h2 className={styles.loadingOrError}>
-                Error Loading Chats:{" "}
-                {chatPreviews.error?.message || "Unknown Error"}{" "}
+                Error Loading Chats: {"Unknown Error"}
               </h2>
             }
             resetKeys={["chatPreviews"]}
@@ -67,7 +67,7 @@ function Chats() {
                 <h2 className={styles.loadingOrError}> Chats Loading...</h2>
               }
             >
-              <PreviewList chats={chatPreviews.data}></PreviewList>
+              <PreviewList />
             </Suspense>
           </ErrorBoundary>
         </div>
@@ -83,9 +83,9 @@ function Chats() {
         ) : (
           <ErrorBoundary
             fallback={
+              // write a proper fallback
               <h2 className={styles.loadingOrError}>
-                Error Loading Live Chat:{" "}
-                {chatDetails.error?.message || "Unknown Error"}
+                Error Loading Live Chat: {"Unknown Error"}
               </h2>
             }
             resetKeys={["chatDetails"]}
