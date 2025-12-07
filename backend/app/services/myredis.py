@@ -225,7 +225,7 @@ class RedisService:
 
         # Only include chat_preview if user isn't the one who created it
         if user_id != added_by_id:
-            pubsub_mssg["chat_preview"] = chat_preview
+            pubsub_mssg["chat_preview"] = chat_preview.model_dump()
 
         message_json = json.dumps(pubsub_mssg)
         await self._streams_redis.publish(user_id, message_json)
