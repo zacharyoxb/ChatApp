@@ -65,7 +65,7 @@ export const useChatPreviews = () => {
  * @remarks
  * Automatically updates chat data after operation using TanStack Query
  */
-export const useChatMutation = () => {
+export const useChatAddMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({

@@ -9,27 +9,20 @@ import minusLight from "/src/assets/minus-light.png";
 import type { ChatUserInfo } from "../../../types/chats";
 import { useUserInfo } from "../../../queries/userQueries";
 import { useAuthSession } from "../../../queries/authQueries";
+import { useChatAddMutation } from "../../../queries/chatPreviewQueries";
 
 interface CreateChatModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateChat: (
-    chatName: string,
-    members: ChatUserInfo[],
-    isPublic: boolean
-  ) => Promise<void>;
 }
 
-function CreateChatModal({
-  isOpen,
-  onClose,
-  onCreateChat,
-}: CreateChatModalProps) {
+function CreateChatModal({ isOpen, onClose }: CreateChatModalProps) {
   const [memberEntryBox, setMemberEntryBox] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   const { data: session } = useAuthSession();
-  const userInfoMutation = useUserInfo();
+  const addChat = useChatAddMutation();
+  const userInfoFetch = useUserInfo();
 
   const safeUsername = session?.data?.username || "Placeholder";
 
@@ -54,32 +47,30 @@ function CreateChatModal({
     // User is already a member
     if (usernameToIdMap[newMember]) {
       setError(
-        `User "${newMember} is already in the group of users to be added.`
+        `User "${newMember} is already in the group of users to be added.`,
       );
       return;
     }
 
-    await userInfoMutation.mutateAsync({
-      username: newMember,
-    })
+    try {
+      const fetchedInfo =
+        userInfoFetch.getCachedUser(newMember) ||
+        (await userInfoFetch.getUser(newMember));
 
-    if(userInfoMutation.error) {
-      setError(`Error getting user data: ${userInfoMutation.error}`)
+      if (fetchedInfo == null) {
+        setError(`User "${newMember}" does not exist.`);
+        return;
+      }
+      setUsernameToIdMap((prev) => ({ ...prev, [newMember]: fetchedInfo }));
+      setMembers((prevMembers) => [...prevMembers, fetchedInfo]);
+      setMemberEntryBox("");
+      setError(null);
+    } catch (error) {
+      error instanceof Error
+        ? setError(`Error fetching user: ${error.message}`)
+        : new Error("Unknown error");
       return;
     }
-
-    // User doesn't exist
-    if (!userInfoMutation.data) {
-      setError(`User "${newMember}" does not exist.`);
-      return;
-    }
-
-    const userInfo = userInfoMutation.data;
-
-    setUsernameToIdMap((prev) => ({ ...prev, [newMember]: userInfo }));
-    setMembers((prevMembers) => [...prevMembers, userInfo]);
-    setMemberEntryBox("");
-    setError(null);
   };
 
   const handleRemoveMember = (userToRemove: ChatUserInfo) => {
@@ -103,7 +94,7 @@ function CreateChatModal({
     const chatName = formData.get("chat-name") as string;
     const isPublic = formData.get("is-public") === "on";
 
-    await onCreateChat(chatName, members, isPublic);
+    addChat.mutate({ chatName, otherUsers: members, isPublic });
     onClose();
   };
 
@@ -130,7 +121,7 @@ function CreateChatModal({
               <span>You ({session?.data?.username})</span>
             </div>
           </Suspense>
-        
+
           <div className={styles.membersMap}>
             {members.map((member) => (
               <div key={member.userId} className={styles.userRectangle}>

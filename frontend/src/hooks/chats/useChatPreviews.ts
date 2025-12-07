@@ -36,11 +36,11 @@ export const useChatPreviews = () => {
         const nextTime = next.lastMessage
           ? new Date(next.lastMessage.timestamp).getTime()
           : new Date(next.createdAt).getTime();
-        
+
         const prevTime = prev.lastMessage
           ? new Date(prev.lastMessage.timestamp).getTime()
           : new Date(prev.createdAt).getTime();
-        
+
         return nextTime - prevTime;
       });
     },
@@ -103,7 +103,7 @@ export const useChatPreviews = () => {
         queryClient.getQueryData<ChatPreview[]>(["chatPreviews"]) || [];
 
       const optimisticChat: ChatPreview = {
-        chatId: `optimistic-${Date.now()}`, 
+        chatId: `optimistic-${Date.now()}`,
         chatName: variables.chatName,
         createdAt: new Date().toISOString(),
         lastMessage: undefined,
@@ -113,7 +113,7 @@ export const useChatPreviews = () => {
       // Optimistically update to the new value
       queryClient.setQueryData<ChatPreview[]>(
         ["chatPreviews"],
-        [...previousChats, optimisticChat]
+        [...previousChats, optimisticChat],
       );
 
       return {
@@ -147,7 +147,7 @@ export const useChatPreviews = () => {
    * Updates the preview cache and navigates if needed
    *
    * @param currentUserId - id of current user
-   * @param data - data send by websocket
+   * @param data - data sent by websocket
    */
   const handleUserAddedToChat = useCallback(
     (data: WSUserAddedData) => {
@@ -156,16 +156,16 @@ export const useChatPreviews = () => {
       // Update chat previews cache
       queryClient.setQueryData<ChatPreview[]>(["chatPreviews"], (prev = []) => {
         const withoutOptimistic = prev.filter(
-          (chat) => !chat.chatId.startsWith("optimistic-")
+          (chat) => !chat.chatId.startsWith("optimistic-"),
         );
 
         const exists = withoutOptimistic.some(
-          (chat) => chat.chatId === chatPreview.chatId
+          (chat) => chat.chatId === chatPreview.chatId,
         );
 
         if (exists) {
           return withoutOptimistic.map((chat) =>
-            chat.chatId === chatPreview.chatId ? chatPreview : chat
+            chat.chatId === chatPreview.chatId ? chatPreview : chat,
           );
         }
 
@@ -174,7 +174,7 @@ export const useChatPreviews = () => {
 
       return chatPreview.chatId;
     },
-    [queryClient, navigate]
+    [queryClient, navigate],
   );
 
   /**
@@ -195,14 +195,13 @@ export const useChatPreviews = () => {
                   ...chat,
                   lastMessage: messageData.message,
                 }
-              : chat
+              : chat,
           );
-        }
+        },
       );
     },
-    [queryClient]
+    [queryClient],
   );
-
 
   return {
     /** Array of chat previews, empty array if no chats are loaded */
