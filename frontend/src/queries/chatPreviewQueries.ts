@@ -32,13 +32,13 @@ export const useChatPreviews = () => {
       const data: ChatPreview[] = await response.json();
 
       return data.sort((prev, next) => {
-        const nextTime = next.lastMessage
-          ? new Date(next.lastMessage.timestamp).getTime()
-          : new Date(next.createdAt).getTime();
+        const nextTime = next.last_message
+          ? new Date(next.last_message.timestamp).getTime()
+          : new Date(next.created_at).getTime();
 
-        const prevTime = prev.lastMessage
-          ? new Date(prev.lastMessage.timestamp).getTime()
-          : new Date(prev.createdAt).getTime();
+        const prevTime = prev.last_message
+          ? new Date(prev.last_message.timestamp).getTime()
+          : new Date(prev.created_at).getTime();
 
         return nextTime - prevTime;
       });
@@ -81,9 +81,9 @@ export const useChatAddMutation = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chatName,
-          otherUsers,
-          isPublic,
+          "chat_name": chatName,
+          "other_users": otherUsers,
+          "is_public": isPublic,
         }),
         credentials: "include",
       });
@@ -105,11 +105,11 @@ export const useChatAddMutation = () => {
         queryClient.getQueryData<ChatPreview[]>(["chatPreviews"]) || [];
 
       const optimisticChat: ChatPreview = {
-        chatId: `optimistic-${Date.now()}`,
-        chatName: variables.chatName,
-        createdAt: new Date().toISOString(),
-        lastMessage: undefined,
-        isDummy: true,
+        chat_id: `optimistic-${Date.now()}`,
+        chat_name: variables.chatName,
+        created_at: new Date().toISOString(),
+        last_message: undefined,
+        is_dummy: true,
       };
 
       // Optimistically update to the new value
@@ -156,27 +156,27 @@ export const useUserAddedToChat = () => {
 
   return useCallback(
     (data: WSUserAddedData) => {
-      const { chatPreview } = data;
+      const { chat_preview } = data;
       // Update chat previews cache
       queryClient.setQueryData<ChatPreview[]>(["chatPreviews"], (prev = []) => {
         const withoutOptimistic = prev.filter(
-          (chat) => !chat.chatId.startsWith("optimistic-"),
+          (chat) => !chat.chat_id.startsWith("optimistic-"),
         );
 
         const exists = withoutOptimistic.some(
-          (chat) => chat.chatId === chatPreview.chatId,
+          (chat) => chat.chat_id === chat_preview.chat_id,
         );
 
         if (exists) {
           return withoutOptimistic.map((chat) =>
-            chat.chatId === chatPreview.chatId ? chatPreview : chat,
+            chat.chat_id === chat_preview.chat_id ? chat_preview : chat,
           );
         }
 
-        return [...withoutOptimistic, chatPreview];
+        return [...withoutOptimistic, chat_preview];
       });
 
-      return chatPreview.chatId;
+      return chat_preview.chat_id;
     },
     [queryClient],
   );

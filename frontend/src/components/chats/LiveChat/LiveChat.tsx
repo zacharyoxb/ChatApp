@@ -52,7 +52,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
     chatWebSocket?.send(
       JSON.stringify({
         type: "message",
-        chatId: chatDetails?.chatId,
+        chat_id: chatDetails?.chat_id,
         content: messageInput,
       })
     );
@@ -76,7 +76,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
 
     const userMap = new Map();
     chatDetails?.participants.forEach((participant) => {
-      userMap.set(participant.userId, participant.username);
+      userMap.set(participant.user_id, participant.username);
     });
 
     return content.replace(/@([^@\s]{32})/g, (match, userId) => {
@@ -85,7 +85,7 @@ const LiveChat: React.FC<LiveChatProps> = ({
     });
   };
 
-  const isDm = !!chatPreview?.dmParticipantId;
+  const isDm = !!chatPreview?.dm_participant_id;
   let chatImage = undefined; // placeholder
   let image = chatImage || (isDm ? defaultDm : defaultGroup);
 
@@ -114,11 +114,11 @@ const LiveChat: React.FC<LiveChatProps> = ({
             height={75}
             alt={
               isDm
-                ? `${chatPreview.chatName}'s profile picture`
-                : `${chatPreview?.chatName} group icon`
+                ? `${chatPreview.chat_name}'s profile picture`
+                : `${chatPreview?.chat_name} group icon`
             }
           />
-          <div className={styles.chatTitle}> {chatPreview?.chatName} </div>
+          <div className={styles.chatTitle}> {chatPreview?.chat_name} </div>
         </div>
         <div className={styles.rightSide}>
           <button className={styles.searchButton}>
@@ -148,10 +148,10 @@ const LiveChat: React.FC<LiveChatProps> = ({
             styles.message, 
             isDm && styles.dmMessage,
             !isDm && styles.groupMessage,
-            message.senderUsername == sessionStorage.getItem("username") && styles.selfMessage, // change this
-            message.senderId == "SERVER" && styles.serverMessage,
+            message.sender_username == sessionStorage.getItem("username") && styles.selfMessage, // change this
+            message.sender_id == "SERVER" && styles.serverMessage,
             )}>
-            <span className={styles.sender}>{message.senderUsername}:</span>
+            <span className={styles.sender}>{message.sender_username}:</span>
             <span className={styles.content}>
               {insertUsernames(message.content)}
             </span>

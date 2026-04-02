@@ -56,12 +56,12 @@ export const useChatDetails = (chatId: string | undefined) => {
   const addMessage = useCallback(
     (messageData: WSChatMessageData) => {
       queryClient.setQueryData(
-        ["chatDetails", messageData.chatId],
+        ["chatDetails", messageData.chat_id],
         (prev: ChatDetails | undefined) => {
           if (!prev) return prev;
 
           const sender = prev.participants.find(
-            (user) => user.userId == messageData.message.senderId
+            (user) => user.user_id == messageData.message.sender_id
           );
 
           const messageWithSender = {

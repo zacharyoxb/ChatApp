@@ -100,7 +100,7 @@ function Chats() {
             >
               <LiveChat
                 chatPreview={chatPreviews.data?.find(
-                  (preview) => preview.chatId == chatId,
+                  (preview) => preview.chat_id == chatId,
                 )}
                 chatDetails={chatDetails.data}
                 chatWebSocket={chatWebSocket.ws}

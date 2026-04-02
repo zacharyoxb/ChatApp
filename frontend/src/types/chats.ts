@@ -6,7 +6,7 @@ export type UserRole = "owner" | "admin" | "member";
  */
 export interface ChatUserInfo {
   /** Unique identifier for user */
-  userId: string;
+  user_id: string;
   /** Username of user */
   username: string;
   /** Role of user in chat */
@@ -18,11 +18,11 @@ export interface ChatUserInfo {
  */
 export interface ChatMessage {
   /** Unique identifier for the message */
-  messageId: string;
+  message_id: string;
   /** Sender's user ID in hexadecimal format (null for system messages) */
-  senderId: string;
+  sender_id: string;
   /** Sender's username for display purposes */
-  senderUsername: string;
+  sender_username: string;
   /** Content of the message */
   content: string;
   /** ISO datetime string of when the message was sent */
@@ -37,25 +37,25 @@ export interface ChatMessage {
  */
 export interface ChatPreview {
   /** Unique identifier for the chat in hexadecimal format */
-  chatId: string;
+  chat_id: string;
   /** Display name of the chat */
-  chatName: string;
+  chat_name: string;
   /** ISO datetime string of the creation time of the chat */
-  createdAt: string;
+  created_at: string;
   /** Optional identifier of the other user in direct messages (hexadecimal format) */
-  dmParticipantId?: string;
+  dm_participant_id?: string;
   /** Last message sent in the chat */
-  lastMessage?: ChatMessage;
+  last_message?: ChatMessage;
   /** Role of user in non-dm chat */
-  myRole?: UserRole;
+  my_role?: UserRole;
   /** Only present and true if the data is a dummy (optimistic query update) */
-  isDummy?: boolean;
+  is_dummy?: boolean;
 }
 
 /** Details for the chat when its displayed in LiveChat */
 export interface ChatDetails {
   /** Unique identifier for the chat in hexadecimal format */
-  chatId: string;
+  chat_id: string;
   /** All participants in the chat */
   participants: ChatUserInfo[];
   /** Messages in the chat */
@@ -69,25 +69,25 @@ export interface WebSocketMessage<T = any> {
 }
 
 export interface WSChatMessageData {
-  chatId: string;
+  chat_id: string;
   message: ChatMessage;
 }
 
 // interface WSTypingIndicatorData {
-//   chatId: string;
-//   userId: string;
+//   chat_id: string;
+//   user_id: string;
 //   username: string;
-//   isTyping: boolean;
+//   is_typing: boolean;
 // }
 
 export interface WSUserAddedData {
-  chatPreview: ChatPreview;
-  addedBy: string;
+  chat_preview: ChatPreview;
+  added_by: string;
 }
 
 export interface WSUserRemovedData {
-  chatId: string;
-  removedBy: string;
+  chat_id: string;
+  removed_by: string;
 }
 
 // Message type to data type mapping

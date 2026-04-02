@@ -52,7 +52,7 @@ class WebSocketConnectionManager:
                         added_by_id = raw_message["added_by_id"]
 
                         # add subscription
-                        self.subscribe_to_chat(chat_id)
+                        _ = self.subscribe_to_chat(chat_id)
 
                         ws_payload = WSUserAddedData(
                             chat_id=chat_id,
@@ -64,13 +64,13 @@ class WebSocketConnectionManager:
                             data=ws_payload,
                         )
                         # notify user
-                        await self.websocket.send_json(full_message.model_dump(by_alias=True))
+                        await self.websocket.send_json(full_message.model_dump())
                     elif msg_type == "removed_from_chat":
                         chat_id = raw_message["chat_id"]
                         removed_by_id = raw_message["removed_by_id"]
 
                         # remove subscription
-                        self.unsubscribe_from_chat(chat_id)
+                        _ = self.unsubscribe_from_chat(chat_id)
 
                         ws_payload = WSUserRemovedData(
                             chat_id=chat_id,
@@ -175,7 +175,7 @@ class WebSocketConnectionManager:
         try:
             parsed_data = json.loads(raw_data)
             request_type = parsed_data.get("type")
-            chat_id = parsed_data.get("chatId")
+            chat_id = parsed_data.get("chat_id")
 
             handler = self.get_message_handler(request_type)
             if handler:

@@ -11,13 +11,13 @@ const PreviewList = () => {
       ) : (
         chats.data?.map((chat) => (
           <PreviewListItem
-            key={chat.chatId}
-            chatUrl={`/chats/${chat.chatId}`}
-            chatName={chat.chatName}
-            createdAt={chat.createdAt}
-            isDm={!!chat.dmParticipantId}
-            lastMessage={chat.lastMessage}
-            isDummy={chat.isDummy}
+            key={chat.chat_id}
+            chatUrl={`/chats/${chat.chat_id}`}
+            chatName={chat.chat_name}
+            createdAt={chat.created_at}
+            isDm={!!chat.dm_participant_id}
+            lastMessage={chat.last_message}
+            isDummy={chat.is_dummy}
           ></PreviewListItem>
         ))
       )}

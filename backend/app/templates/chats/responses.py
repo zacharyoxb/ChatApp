@@ -1,7 +1,7 @@
 """ Templates for chats.py responses """
 from enum import Enum
 from typing import Any, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class UserRole(str, Enum):
@@ -25,13 +25,9 @@ class UserInfo(BaseModel):
         username (str): Display name of the user
         role (UserRole): User's permission level within the chat context
     """
-    user_id: str = Field(..., alias="userId")
+    user_id: str
     username: str
     role: UserRole
-
-    class Config:
-        """ Pydantic configuration for field name aliasing."""
-        populate_by_name = True
 
 
 class ChatMessage(BaseModel):
@@ -44,15 +40,11 @@ class ChatMessage(BaseModel):
         content (str): The text content of the message
         timestamp (str): ISO format string representing when the message was sent
     """
-    message_id: str = Field(..., alias="messageId")
-    sender_id: str = Field(..., alias="senderId")
-    sender_username: Optional[str] = Field(None, alias="senderUsername")
+    message_id: str
+    sender_id: str
+    sender_username: Optional[str]
     content: str
     timestamp: str
-
-    class Config:
-        """ Pydantic configuration for field name aliasing."""
-        populate_by_name = True
 
 
 class ChatPreview(BaseModel):
@@ -66,16 +58,12 @@ class ChatPreview(BaseModel):
         last_message (Optional[ChatMessage]): The most recent message in the chat, if any exists
         my_role (Optional[UserRole]): Current user's role within this chat. None if chat is a dm
     """
-    chat_id: str = Field(..., alias="chatId")
-    chat_name: str = Field(..., alias="chatName")
-    created_at: str = Field(..., alias="createdAt")
-    dm_participant_id: Optional[str] = Field(..., alias="dmParticipantId")
-    last_message: Optional[ChatMessage] = Field(..., alias="lastMessage")
-    my_role: Optional[UserRole] = Field(..., alias="myRole")
-
-    class Config:
-        """ Pydantic configuration for field name aliasing."""
-        populate_by_name = True
+    chat_id: str
+    chat_name: str
+    created_at: str
+    dm_participant_id: Optional[str]
+    last_message: Optional[ChatMessage]
+    my_role: Optional[UserRole]
 
 
 class ChatDetails(BaseModel):
@@ -86,13 +74,10 @@ class ChatDetails(BaseModel):
         participants (List[UserInfo]): List of all users in the chat with their roles and info
         messages (List[ChatMessage]): Chronological list of messages in the chat (oldest first)
     """
-    chat_id: str = Field(..., alias="chatId")
+    chat_id: str
     participants: List[UserInfo]
     messages: List[ChatMessage]
 
-    class Config:
-        """ Pydantic configuration for field name aliasing."""
-        populate_by_name = True
 
 
 class WebsocketMessage(BaseModel):
@@ -105,10 +90,6 @@ class WebsocketMessage(BaseModel):
     type: str
     data: Any
 
-    class Config:
-        """Pydantic configuration for field name aliasing."""
-        populate_by_name = True
-
 
 class WSChatMessageData(BaseModel):
     """Data payload for chat message WebSocket events.
@@ -117,12 +98,9 @@ class WSChatMessageData(BaseModel):
         chat_id (str): Unique identifier of the chat where the message was sent
         message (ChatMessage): The chat message content and metadata
     """
-    chat_id: str = Field(..., alias="chatId")
+    chat_id: str
     message: ChatMessage
 
-    class Config:
-        """Pydantic configuration for field name aliasing."""
-        populate_by_name = True
 
 
 class WSUserAddedData(BaseModel):
@@ -133,12 +111,8 @@ class WSUserAddedData(BaseModel):
             if the notification is being sent to the chat creator/adder
         added_by (str): User ID of the person who added the user to the chat
     """
-    chat_preview: ChatPreview = Field(..., alias="chatPreview")
-    added_by: str = Field(..., alias="addedBy")
-
-    class Config:
-        """Pydantic configuration for field name aliasing."""
-        populate_by_name = True
+    chat_preview: ChatPreview
+    added_by: str
 
 
 class WSUserRemovedData(BaseModel):
@@ -148,9 +122,5 @@ class WSUserRemovedData(BaseModel):
         chat_id (str): Unique identifier of the chat the user was removed from
         removed_by (str): User ID of the person who removed the user from the chat
     """
-    chat_id: str = Field(..., alias="chatId")
-    removed_by: str = Field(..., alias="removedBy")
-
-    class Config:
-        """Pydantic configuration for field name aliasing."""
-        populate_by_name = True
+    chat_id: str
+    removed_by: str

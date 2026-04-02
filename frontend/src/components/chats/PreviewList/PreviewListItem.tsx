@@ -36,7 +36,7 @@ const ARIA_LABEL_TEMPLATE = (
   if (isDm) {
     return `Direct chat with ${name}. Last message: ${message.content}. Last activity ${date_time_string}}`;
   }
-  return `Group chat ${name}. Last message sent by ${message.senderUsername}: ${message.content}. Last activity ${date_time_string}`;
+  return `Group chat ${name}. Last message sent by ${message.sender_username}: ${message.content}. Last activity ${date_time_string}`;
 };
 
 const PreviewListItem: React.FC<PreviewListItemProps> = ({
@@ -63,7 +63,7 @@ const PreviewListItem: React.FC<PreviewListItemProps> = ({
     messagePreview = lastMessage ? lastMessage.content : "No messages yet.";
   } else {
     messagePreview = lastMessage
-      ? `${lastMessage.senderUsername}: ${lastMessage.content}`
+      ? `${lastMessage.sender_username}: ${lastMessage.content}`
       : "No messages yet.";
   }
 

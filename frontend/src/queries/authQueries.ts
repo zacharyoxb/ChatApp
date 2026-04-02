@@ -110,7 +110,7 @@ export const useLogin = () => {
       const response = await fetch("https://localhost:8000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, rememberMe }),
+        body: JSON.stringify({ "username": username, "password": password, "remember_me": rememberMe }),
         credentials: "include",
       });
 

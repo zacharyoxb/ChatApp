@@ -300,7 +300,7 @@ class RedisService:
         formatted_message = ChatMessage(
             message_id=msg_id,
             sender_id=user_id,
-            senderUsername=None,
+            sender_username=None,
             content=content,
             timestamp=timestamp
         )

@@ -37,7 +37,6 @@ async def get_chat_previews(
     user_chats = await db_service.get_all_user_chats(session_data.username)
 
     for chat in user_chats:
-
         last_message_data = await redis_service.get_last_message(chat.chat_id)
         if last_message_data is None:
             chat.last_message = None
@@ -106,7 +105,7 @@ async def get_chat_details(
             msg.sender_username = "SERVER"
         else:
             msg.sender_username = (user_id_to_username.get(msg.sender_id)) or (
-                await db_service.get_username(msg.sender_id))
+                await db_service.get_username(msg.sender_id.encode()))
 
     return ChatDetails(
         chat_id=chat_id,
@@ -161,7 +160,6 @@ async def create_new_chat(
         chat_name=req.chat_name,
         created_at=created_at.isoformat(),
         dm_participant_id=None,
-        last_activity=datetime.now().isoformat(),
         last_message=message,
         my_role=UserRole.OWNER
     )
