@@ -218,7 +218,7 @@ class WebSocketConnectionManager:
             return
 
         can_subscribe = await db_service.is_user_in_chat(
-            self.session_data.username, chat_id
+            self.session_data.username, chat_id.encode()
         )
         if can_subscribe:
             await self.subscribe_to_chat(chat_id)
