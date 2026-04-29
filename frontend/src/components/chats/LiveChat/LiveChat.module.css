@@ -72,8 +72,10 @@
 /* Message from this user */
 .selfMessage {
   align-self: flex-end;
+  background-color: #444444;
 }
 
+/* Hide username from own messages */
 .selfMessage .sender {
   display: none;
 }
@@ -93,8 +95,8 @@
 /* Message from server */
 .serverMessage {
   align-self: center;
+  background-color: #000000;
 }
-
 
 /* End of Message Styling */
 
@@ -143,6 +145,18 @@
 }
 
 @media (prefers-color-scheme: light) {
+  .message {
+    background-color: #f0f8ff;
+  }
+
+  .selfMessage {
+    background-color: #a0faf2;
+  }
+
+  .serverMessage {
+    background-color: #d3e6fc;
+  }
+
   .liveChat {
     background-color: #63636373;
   }
@@ -156,6 +170,10 @@
   }
 
   .rightSide button {
+    background-color: #ffffff;
+  }
+
+  .inputContainer {
     background-color: #ffffff;
   }
 }

@@ -148,8 +148,8 @@ const LiveChat: React.FC<LiveChatProps> = ({
             styles.message, 
             isDm && styles.dmMessage,
             !isDm && styles.groupMessage,
-            message.sender_username == sessionStorage.getItem("username") && styles.selfMessage, // change this
             message.sender_id == "SERVER" && styles.serverMessage,
+            message.sender_id == localStorage.getItem("currentUserId") && styles.selfMessage,
             )}>
             <span className={styles.sender}>{message.sender_username}:</span>
             <span className={styles.content}>
