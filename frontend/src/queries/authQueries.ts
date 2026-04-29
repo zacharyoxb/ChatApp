@@ -14,6 +14,22 @@ interface AuthResult {
   error?: string;
 }
 
+interface SelfUser {
+  user_id: string
+}
+
+async function getUserId() {
+  const response = await fetch("https://localhost:8000/users/me", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const data: SelfUser = await response.json();
+    localStorage.setItem('currentUserId', data.user_id)
+  }
+}
+
 export const useAuthSession = (options?: useAuthSessionOptions) => {
   const { enabled = true } = options || {};
 
@@ -82,6 +98,13 @@ export const useSignup = () => {
             throw new Error("Unknown error has occurred.");
         }
       }
+
+      // Get user id of self, put it in storage
+      queryClient.prefetchQuery({
+        queryKey: ['SelfUser'],
+        queryFn: getUserId
+      })
+
       return response;
     },
     onSuccess: async (_response, _variables) => {
@@ -120,6 +143,13 @@ export const useLogin = () => {
         }
         throw new Error("Unknown error has occurred.");
       }
+
+      // Get user id of self, put it in storage
+      queryClient.prefetchQuery({
+        queryKey: ['SelfUser'],
+        queryFn: getUserId
+      })
+
       return response;
     },
     onSuccess: async (_response, _variables) => {

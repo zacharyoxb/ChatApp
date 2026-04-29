@@ -3,6 +3,10 @@ from enum import Enum
 from typing import Any, List, Optional
 from pydantic import BaseModel
 
+class SelfUser(BaseModel):
+    """ Returns the users' own ID. """
+    user_id: str
+
 
 class UserRole(str, Enum):
     """ Enum representing possible user roles within a chat.

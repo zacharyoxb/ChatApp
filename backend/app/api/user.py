@@ -5,17 +5,25 @@ import mysql
 from app.api.session import auth_session
 from app.services.myredis import SessionData
 from app.services.mysqldb import db_service
-from app.templates.chats.responses import UserInfo, UserRole
+from app.templates.chats.responses import SelfUser, UserInfo, UserRole
 
 router = APIRouter()
+
+@router.get("/users/me")
+async def get_current_user_id(
+    session_data: SessionData = Depends(auth_session)
+) -> SelfUser:
+    """ Returns the user's own ID so they can tell which messages
+     in a chat are theirs. """
+    return SelfUser(user_id=session_data.user_id)
 
 
 @router.get("/users/{username}", response_model=UserInfo)
 async def get_new_user_template(
     username: str,
     _: SessionData = Depends(auth_session)
-) -> None:
-    """ Returns a UserInfo entry for a user being added to a new chat/
+) -> UserInfo:
+    """ Returns a UserInfo entry for a user being added to a new chat.
 
     Args:
         username (str): The username of the user to make a UserInfo entry of. 
